@@ -1,0 +1,3795 @@
+{
+  "metadata": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\lib\\heroAssets.generated.json",
+  "publicAssetsDir": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets",
+  "found": [],
+  "missing": [
+    {
+      "heroId": 1,
+      "className": "hero_inferno",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/inferno_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\inferno_sm.png"
+    },
+    {
+      "heroId": 1,
+      "className": "hero_inferno",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/inferno_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\inferno_card.png"
+    },
+    {
+      "heroId": 1,
+      "className": "hero_inferno",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/inferno_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\inferno_mm.png"
+    },
+    {
+      "heroId": 1,
+      "className": "hero_inferno",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/infernus.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\infernus.svg"
+    },
+    {
+      "heroId": 1,
+      "className": "hero_inferno",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/inferno_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\inferno_vertical.png"
+    },
+    {
+      "heroId": 1,
+      "className": "hero_inferno",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/infernus_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\infernus_bg.png"
+    },
+    {
+      "heroId": 1,
+      "className": "hero_inferno",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/inferno_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\inferno_card_critical.png"
+    },
+    {
+      "heroId": 1,
+      "className": "hero_inferno",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/inferno_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\inferno_card_gloat.png"
+    },
+    {
+      "heroId": 2,
+      "className": "hero_gigawatt",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/gigawatt_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\gigawatt_sm.png"
+    },
+    {
+      "heroId": 2,
+      "className": "hero_gigawatt",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/gigawatt_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\gigawatt_card.png"
+    },
+    {
+      "heroId": 2,
+      "className": "hero_gigawatt",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/gigawatt_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\gigawatt_mm.png"
+    },
+    {
+      "heroId": 2,
+      "className": "hero_gigawatt",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/seven.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\seven.svg"
+    },
+    {
+      "heroId": 2,
+      "className": "hero_gigawatt",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/gigawatt_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\gigawatt_vertical.png"
+    },
+    {
+      "heroId": 2,
+      "className": "hero_gigawatt",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/seven_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\seven_bg.png"
+    },
+    {
+      "heroId": 2,
+      "className": "hero_gigawatt",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/gigawatt_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\gigawatt_card_critical.png"
+    },
+    {
+      "heroId": 2,
+      "className": "hero_gigawatt",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/gigawatt_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\gigawatt_card_gloat.png"
+    },
+    {
+      "heroId": 3,
+      "className": "hero_hornet",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/hornet_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hornet_sm.png"
+    },
+    {
+      "heroId": 3,
+      "className": "hero_hornet",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/hornet_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hornet_card.png"
+    },
+    {
+      "heroId": 3,
+      "className": "hero_hornet",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/hornet_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hornet_mm.png"
+    },
+    {
+      "heroId": 3,
+      "className": "hero_hornet",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/vindicta.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\vindicta.svg"
+    },
+    {
+      "heroId": 3,
+      "className": "hero_hornet",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/hornet_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hornet_vertical.png"
+    },
+    {
+      "heroId": 3,
+      "className": "hero_hornet",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/vindicta_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\vindicta_bg.png"
+    },
+    {
+      "heroId": 3,
+      "className": "hero_hornet",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/hornet_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hornet_card_critical.png"
+    },
+    {
+      "heroId": 3,
+      "className": "hero_hornet",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/hornet_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hornet_card_gloat.png"
+    },
+    {
+      "heroId": 4,
+      "className": "hero_ghost",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/spectre_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\spectre_sm.png"
+    },
+    {
+      "heroId": 4,
+      "className": "hero_ghost",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/spectre_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\spectre_card.png"
+    },
+    {
+      "heroId": 4,
+      "className": "hero_ghost",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/spectre_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\spectre_mm.png"
+    },
+    {
+      "heroId": 4,
+      "className": "hero_ghost",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/lady_geist.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\lady_geist.svg"
+    },
+    {
+      "heroId": 4,
+      "className": "hero_ghost",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/spectre_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\spectre_vertical.png"
+    },
+    {
+      "heroId": 4,
+      "className": "hero_ghost",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/geist_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\geist_bg.png"
+    },
+    {
+      "heroId": 4,
+      "className": "hero_ghost",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/spectre_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\spectre_card_critical.png"
+    },
+    {
+      "heroId": 4,
+      "className": "hero_ghost",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/spectre_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\spectre_card_gloat.png"
+    },
+    {
+      "heroId": 6,
+      "className": "hero_atlas",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/bull_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bull_sm.png"
+    },
+    {
+      "heroId": 6,
+      "className": "hero_atlas",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/bull_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bull_card.png"
+    },
+    {
+      "heroId": 6,
+      "className": "hero_atlas",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/bull_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bull_mm.png"
+    },
+    {
+      "heroId": 6,
+      "className": "hero_atlas",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/abrams.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\abrams.svg"
+    },
+    {
+      "heroId": 6,
+      "className": "hero_atlas",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/bull_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bull_vertical.png"
+    },
+    {
+      "heroId": 6,
+      "className": "hero_atlas",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/abrams_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\abrams_bg.png"
+    },
+    {
+      "heroId": 6,
+      "className": "hero_atlas",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/bull_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bull_card_critical.png"
+    },
+    {
+      "heroId": 6,
+      "className": "hero_atlas",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/bull_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bull_card_gloat.png"
+    },
+    {
+      "heroId": 7,
+      "className": "hero_wraith",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/wraith_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\wraith_sm.png"
+    },
+    {
+      "heroId": 7,
+      "className": "hero_wraith",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/wraith_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\wraith_card.png"
+    },
+    {
+      "heroId": 7,
+      "className": "hero_wraith",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/wraith_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\wraith_mm.png"
+    },
+    {
+      "heroId": 7,
+      "className": "hero_wraith",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/wraith.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\wraith.svg"
+    },
+    {
+      "heroId": 7,
+      "className": "hero_wraith",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/wraith_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\wraith_vertical.png"
+    },
+    {
+      "heroId": 7,
+      "className": "hero_wraith",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/wraith_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\wraith_bg.png"
+    },
+    {
+      "heroId": 7,
+      "className": "hero_wraith",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/wraith_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\wraith_card_critical.png"
+    },
+    {
+      "heroId": 7,
+      "className": "hero_wraith",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/wraith_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\wraith_card_gloat.png"
+    },
+    {
+      "heroId": 8,
+      "className": "hero_forge",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/engineer_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\engineer_sm.png"
+    },
+    {
+      "heroId": 8,
+      "className": "hero_forge",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/engineer_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\engineer_card.png"
+    },
+    {
+      "heroId": 8,
+      "className": "hero_forge",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/engineer_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\engineer_mm.png"
+    },
+    {
+      "heroId": 8,
+      "className": "hero_forge",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/mcginnis.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\mcginnis.svg"
+    },
+    {
+      "heroId": 8,
+      "className": "hero_forge",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/engineer_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\engineer_vertical.png"
+    },
+    {
+      "heroId": 8,
+      "className": "hero_forge",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/mcginnis_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\mcginnis_bg.png"
+    },
+    {
+      "heroId": 8,
+      "className": "hero_forge",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/engineer_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\engineer_card_critical.png"
+    },
+    {
+      "heroId": 8,
+      "className": "hero_forge",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/engineer_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\engineer_card_gloat.png"
+    },
+    {
+      "heroId": 10,
+      "className": "hero_chrono",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/chrono_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\chrono_sm.png"
+    },
+    {
+      "heroId": 10,
+      "className": "hero_chrono",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/chrono_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\chrono_card.png"
+    },
+    {
+      "heroId": 10,
+      "className": "hero_chrono",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/chrono_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\chrono_mm.png"
+    },
+    {
+      "heroId": 10,
+      "className": "hero_chrono",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/paradox.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\paradox.svg"
+    },
+    {
+      "heroId": 10,
+      "className": "hero_chrono",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/chrono_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\chrono_vertical.png"
+    },
+    {
+      "heroId": 10,
+      "className": "hero_chrono",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/paradox_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\paradox_bg.png"
+    },
+    {
+      "heroId": 10,
+      "className": "hero_chrono",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/chrono_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\chrono_card_critical.png"
+    },
+    {
+      "heroId": 10,
+      "className": "hero_chrono",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/chrono_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\chrono_card_gloat.png"
+    },
+    {
+      "heroId": 11,
+      "className": "hero_dynamo",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/sumo_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\sumo_sm.png"
+    },
+    {
+      "heroId": 11,
+      "className": "hero_dynamo",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/sumo_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\sumo_card.png"
+    },
+    {
+      "heroId": 11,
+      "className": "hero_dynamo",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/sumo_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\sumo_mm.png"
+    },
+    {
+      "heroId": 11,
+      "className": "hero_dynamo",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/dynamo.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\dynamo.svg"
+    },
+    {
+      "heroId": 11,
+      "className": "hero_dynamo",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/sumo_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\sumo_vertical.png"
+    },
+    {
+      "heroId": 11,
+      "className": "hero_dynamo",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/dynamo_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\dynamo_bg.png"
+    },
+    {
+      "heroId": 11,
+      "className": "hero_dynamo",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/sumo_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\sumo_card_critical.png"
+    },
+    {
+      "heroId": 11,
+      "className": "hero_dynamo",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/sumo_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\sumo_card_gloat.png"
+    },
+    {
+      "heroId": 12,
+      "className": "hero_kelvin",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/kelvin_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kelvin_sm.png"
+    },
+    {
+      "heroId": 12,
+      "className": "hero_kelvin",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/kelvin_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kelvin_card.png"
+    },
+    {
+      "heroId": 12,
+      "className": "hero_kelvin",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/kelvin_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kelvin_mm.png"
+    },
+    {
+      "heroId": 12,
+      "className": "hero_kelvin",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/kelvin.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\kelvin.svg"
+    },
+    {
+      "heroId": 12,
+      "className": "hero_kelvin",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/kelvin_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kelvin_vertical.png"
+    },
+    {
+      "heroId": 12,
+      "className": "hero_kelvin",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/kelvin_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\kelvin_bg.png"
+    },
+    {
+      "heroId": 12,
+      "className": "hero_kelvin",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/kelvin_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kelvin_card_critical.png"
+    },
+    {
+      "heroId": 12,
+      "className": "hero_kelvin",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/kelvin_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kelvin_card_gloat.png"
+    },
+    {
+      "heroId": 13,
+      "className": "hero_haze",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/haze_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\haze_sm.png"
+    },
+    {
+      "heroId": 13,
+      "className": "hero_haze",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/haze_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\haze_card.png"
+    },
+    {
+      "heroId": 13,
+      "className": "hero_haze",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/haze_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\haze_mm.png"
+    },
+    {
+      "heroId": 13,
+      "className": "hero_haze",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/haze.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\haze.svg"
+    },
+    {
+      "heroId": 13,
+      "className": "hero_haze",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/haze_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\haze_vertical.png"
+    },
+    {
+      "heroId": 13,
+      "className": "hero_haze",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/haze_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\haze_bg.png"
+    },
+    {
+      "heroId": 13,
+      "className": "hero_haze",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/haze_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\haze_card_critical.png"
+    },
+    {
+      "heroId": 13,
+      "className": "hero_haze",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/haze_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\haze_card_gloat.png"
+    },
+    {
+      "heroId": 14,
+      "className": "hero_astro",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/astro_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\astro_sm.png"
+    },
+    {
+      "heroId": 14,
+      "className": "hero_astro",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/astro_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\astro_card.png"
+    },
+    {
+      "heroId": 14,
+      "className": "hero_astro",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/astro_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\astro_mm.png"
+    },
+    {
+      "heroId": 14,
+      "className": "hero_astro",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/holliday.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\holliday.svg"
+    },
+    {
+      "heroId": 14,
+      "className": "hero_astro",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/astro_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\astro_vertical.png"
+    },
+    {
+      "heroId": 14,
+      "className": "hero_astro",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/astro_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\astro_bg.png"
+    },
+    {
+      "heroId": 14,
+      "className": "hero_astro",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/astro_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\astro_card_critical.png"
+    },
+    {
+      "heroId": 14,
+      "className": "hero_astro",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/astro_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\astro_card_gloat.png"
+    },
+    {
+      "heroId": 15,
+      "className": "hero_bebop",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/bebop_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bebop_sm.png"
+    },
+    {
+      "heroId": 15,
+      "className": "hero_bebop",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/bebop_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bebop_card.png"
+    },
+    {
+      "heroId": 15,
+      "className": "hero_bebop",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/bebop_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bebop_mm.png"
+    },
+    {
+      "heroId": 15,
+      "className": "hero_bebop",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/bebop.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\bebop.svg"
+    },
+    {
+      "heroId": 15,
+      "className": "hero_bebop",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/bebop_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bebop_vertical.png"
+    },
+    {
+      "heroId": 15,
+      "className": "hero_bebop",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/bebop_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\bebop_bg.png"
+    },
+    {
+      "heroId": 15,
+      "className": "hero_bebop",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/bebop_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bebop_card_critical.png"
+    },
+    {
+      "heroId": 15,
+      "className": "hero_bebop",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/bebop_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bebop_card_gloat.png"
+    },
+    {
+      "heroId": 16,
+      "className": "hero_nano",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/nano_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\nano_sm.png"
+    },
+    {
+      "heroId": 16,
+      "className": "hero_nano",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/nano_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\nano_card.png"
+    },
+    {
+      "heroId": 16,
+      "className": "hero_nano",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/nano_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\nano_mm.png"
+    },
+    {
+      "heroId": 16,
+      "className": "hero_nano",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/calico.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\calico.svg"
+    },
+    {
+      "heroId": 16,
+      "className": "hero_nano",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/nano_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\nano_vertical.png"
+    },
+    {
+      "heroId": 16,
+      "className": "hero_nano",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/calico_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\calico_bg.png"
+    },
+    {
+      "heroId": 16,
+      "className": "hero_nano",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/nano_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\nano_card_critical.png"
+    },
+    {
+      "heroId": 16,
+      "className": "hero_nano",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/nano_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\nano_card_gloat.png"
+    },
+    {
+      "heroId": 17,
+      "className": "hero_orion",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/archer_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\archer_sm.png"
+    },
+    {
+      "heroId": 17,
+      "className": "hero_orion",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/archer_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\archer_card.png"
+    },
+    {
+      "heroId": 17,
+      "className": "hero_orion",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/archer_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\archer_mm.png"
+    },
+    {
+      "heroId": 17,
+      "className": "hero_orion",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/grey_talon.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\grey_talon.svg"
+    },
+    {
+      "heroId": 17,
+      "className": "hero_orion",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/archer_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\archer_vertical.png"
+    },
+    {
+      "heroId": 17,
+      "className": "hero_orion",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/grey_talon_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\grey_talon_bg.png"
+    },
+    {
+      "heroId": 17,
+      "className": "hero_orion",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/archer_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\archer_card_critical.png"
+    },
+    {
+      "heroId": 17,
+      "className": "hero_orion",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/archer_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\archer_card_gloat.png"
+    },
+    {
+      "heroId": 18,
+      "className": "hero_krill",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/digger_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\digger_sm.png"
+    },
+    {
+      "heroId": 18,
+      "className": "hero_krill",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/digger_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\digger_card.png"
+    },
+    {
+      "heroId": 18,
+      "className": "hero_krill",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/digger_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\digger_mm.png"
+    },
+    {
+      "heroId": 18,
+      "className": "hero_krill",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/mo_krill.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\mo_krill.svg"
+    },
+    {
+      "heroId": 18,
+      "className": "hero_krill",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/digger_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\digger_vertical.png"
+    },
+    {
+      "heroId": 18,
+      "className": "hero_krill",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/krill_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\krill_bg.png"
+    },
+    {
+      "heroId": 18,
+      "className": "hero_krill",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/digger_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\digger_card_critical.png"
+    },
+    {
+      "heroId": 18,
+      "className": "hero_krill",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/digger_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\digger_card_gloat.png"
+    },
+    {
+      "heroId": 19,
+      "className": "hero_shiv",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/shiv_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\shiv_sm.png"
+    },
+    {
+      "heroId": 19,
+      "className": "hero_shiv",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/shiv_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\shiv_card.png"
+    },
+    {
+      "heroId": 19,
+      "className": "hero_shiv",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/shiv_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\shiv_mm.png"
+    },
+    {
+      "heroId": 19,
+      "className": "hero_shiv",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/shiv.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\shiv.svg"
+    },
+    {
+      "heroId": 19,
+      "className": "hero_shiv",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/shiv_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\shiv_vertical.png"
+    },
+    {
+      "heroId": 19,
+      "className": "hero_shiv",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/shiv_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\shiv_bg.png"
+    },
+    {
+      "heroId": 19,
+      "className": "hero_shiv",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/shiv_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\shiv_card_critical.png"
+    },
+    {
+      "heroId": 19,
+      "className": "hero_shiv",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/shiv_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\shiv_card_gloat.png"
+    },
+    {
+      "heroId": 20,
+      "className": "hero_tengu",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/tengu_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\tengu_sm.png"
+    },
+    {
+      "heroId": 20,
+      "className": "hero_tengu",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/tengu_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\tengu_card.png"
+    },
+    {
+      "heroId": 20,
+      "className": "hero_tengu",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/tengu_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\tengu_mm.png"
+    },
+    {
+      "heroId": 20,
+      "className": "hero_tengu",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/ivy.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\ivy.svg"
+    },
+    {
+      "heroId": 20,
+      "className": "hero_tengu",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/tengu_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\tengu_vertical.png"
+    },
+    {
+      "heroId": 20,
+      "className": "hero_tengu",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/ivy_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\ivy_bg.png"
+    },
+    {
+      "heroId": 20,
+      "className": "hero_tengu",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/tengu_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\tengu_card_critical.png"
+    },
+    {
+      "heroId": 20,
+      "className": "hero_tengu",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/tengu_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\tengu_card_gloat.png"
+    },
+    {
+      "heroId": 21,
+      "className": "hero_kali",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/kali_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kali_sm.png"
+    },
+    {
+      "heroId": 21,
+      "className": "hero_kali",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/kali_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kali_card.png"
+    },
+    {
+      "heroId": 21,
+      "className": "hero_kali",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/kali_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kali_mm.png"
+    },
+    {
+      "heroId": 25,
+      "className": "hero_warden",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/warden_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\warden_sm.png"
+    },
+    {
+      "heroId": 25,
+      "className": "hero_warden",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/warden_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\warden_card.png"
+    },
+    {
+      "heroId": 25,
+      "className": "hero_warden",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/warden_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\warden_mm.png"
+    },
+    {
+      "heroId": 25,
+      "className": "hero_warden",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/warden.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\warden.svg"
+    },
+    {
+      "heroId": 25,
+      "className": "hero_warden",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/warden_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\warden_vertical.png"
+    },
+    {
+      "heroId": 25,
+      "className": "hero_warden",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/warden_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\warden_bg.png"
+    },
+    {
+      "heroId": 25,
+      "className": "hero_warden",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/warden_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\warden_card_critical.png"
+    },
+    {
+      "heroId": 25,
+      "className": "hero_warden",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/warden_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\warden_card_gloat.png"
+    },
+    {
+      "heroId": 27,
+      "className": "hero_yamato",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/yamato_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\yamato_sm.png"
+    },
+    {
+      "heroId": 27,
+      "className": "hero_yamato",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/yamato_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\yamato_card.png"
+    },
+    {
+      "heroId": 27,
+      "className": "hero_yamato",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/yamato_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\yamato_mm.png"
+    },
+    {
+      "heroId": 27,
+      "className": "hero_yamato",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/yamato.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\yamato.svg"
+    },
+    {
+      "heroId": 27,
+      "className": "hero_yamato",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/yamato_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\yamato_vertical.png"
+    },
+    {
+      "heroId": 27,
+      "className": "hero_yamato",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/yamato_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\yamato_bg.png"
+    },
+    {
+      "heroId": 27,
+      "className": "hero_yamato",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/yamato_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\yamato_card_critical.png"
+    },
+    {
+      "heroId": 27,
+      "className": "hero_yamato",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/yamato_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\yamato_card_gloat.png"
+    },
+    {
+      "heroId": 31,
+      "className": "hero_lash",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/lash_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\lash_sm.png"
+    },
+    {
+      "heroId": 31,
+      "className": "hero_lash",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/lash_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\lash_card.png"
+    },
+    {
+      "heroId": 31,
+      "className": "hero_lash",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/lash_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\lash_mm.png"
+    },
+    {
+      "heroId": 31,
+      "className": "hero_lash",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/lash.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\lash.svg"
+    },
+    {
+      "heroId": 31,
+      "className": "hero_lash",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/lash_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\lash_vertical.png"
+    },
+    {
+      "heroId": 31,
+      "className": "hero_lash",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/lash_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\lash_bg.png"
+    },
+    {
+      "heroId": 31,
+      "className": "hero_lash",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/lash_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\lash_card_critical.png"
+    },
+    {
+      "heroId": 31,
+      "className": "hero_lash",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/lash_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\lash_card_gloat.png"
+    },
+    {
+      "heroId": 35,
+      "className": "hero_viscous",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/viscous_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\viscous_sm.png"
+    },
+    {
+      "heroId": 35,
+      "className": "hero_viscous",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/viscous_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\viscous_card.png"
+    },
+    {
+      "heroId": 35,
+      "className": "hero_viscous",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/viscous_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\viscous_mm.png"
+    },
+    {
+      "heroId": 35,
+      "className": "hero_viscous",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/viscous.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\viscous.svg"
+    },
+    {
+      "heroId": 35,
+      "className": "hero_viscous",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/viscous_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\viscous_vertical.png"
+    },
+    {
+      "heroId": 35,
+      "className": "hero_viscous",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/viscous_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\viscous_bg.png"
+    },
+    {
+      "heroId": 35,
+      "className": "hero_viscous",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/viscous_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\viscous_card_critical.png"
+    },
+    {
+      "heroId": 35,
+      "className": "hero_viscous",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/viscous_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\viscous_card_gloat.png"
+    },
+    {
+      "heroId": 38,
+      "className": "hero_gunslinger",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/gunslinger_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\gunslinger_sm.png"
+    },
+    {
+      "heroId": 38,
+      "className": "hero_gunslinger",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/gunslinger_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\gunslinger_sm.png"
+    },
+    {
+      "heroId": 38,
+      "className": "hero_gunslinger",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/gunslinger_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\gunslinger_mm.png"
+    },
+    {
+      "heroId": 39,
+      "className": "hero_yakuza",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/yakuza_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\yakuza_sm.png"
+    },
+    {
+      "heroId": 39,
+      "className": "hero_yakuza",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/yakuza_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\yakuza_sm.png"
+    },
+    {
+      "heroId": 39,
+      "className": "hero_yakuza",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/yakuza_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\yakuza_mm.png"
+    },
+    {
+      "heroId": 47,
+      "className": "hero_tokamak",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/tokamak_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\tokamak_sm.png"
+    },
+    {
+      "heroId": 47,
+      "className": "hero_tokamak",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/tokamak_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\tokamak_card.png"
+    },
+    {
+      "heroId": 47,
+      "className": "hero_tokamak",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/tokamak_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\tokamak_mm.png"
+    },
+    {
+      "heroId": 48,
+      "className": "hero_wrecker",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/wrecker_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\wrecker_sm.png"
+    },
+    {
+      "heroId": 48,
+      "className": "hero_wrecker",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/wrecker_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\wrecker_card.png"
+    },
+    {
+      "heroId": 48,
+      "className": "hero_wrecker",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/wrecker_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\wrecker_mm.png"
+    },
+    {
+      "heroId": 48,
+      "className": "hero_wrecker",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/wrecker_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\wrecker_vertical.png"
+    },
+    {
+      "heroId": 49,
+      "className": "hero_rutger",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/rutger_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\rutger_sm.png"
+    },
+    {
+      "heroId": 49,
+      "className": "hero_rutger",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/rutger_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\rutger_card.png"
+    },
+    {
+      "heroId": 49,
+      "className": "hero_rutger",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/rutger_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\rutger_mm.png"
+    },
+    {
+      "heroId": 50,
+      "className": "hero_synth",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/synth_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\synth_sm.png"
+    },
+    {
+      "heroId": 50,
+      "className": "hero_synth",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/synth_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\synth_card.png"
+    },
+    {
+      "heroId": 50,
+      "className": "hero_synth",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/synth_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\synth_mm.png"
+    },
+    {
+      "heroId": 50,
+      "className": "hero_synth",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/pocket.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\pocket.svg"
+    },
+    {
+      "heroId": 50,
+      "className": "hero_synth",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/synth_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\synth_vertical.png"
+    },
+    {
+      "heroId": 50,
+      "className": "hero_synth",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/pocket_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\pocket_bg.png"
+    },
+    {
+      "heroId": 50,
+      "className": "hero_synth",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/synth_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\synth_card_critical.png"
+    },
+    {
+      "heroId": 50,
+      "className": "hero_synth",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/synth_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\synth_card_gloat.png"
+    },
+    {
+      "heroId": 51,
+      "className": "hero_thumper",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/thumper_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\thumper_sm.png"
+    },
+    {
+      "heroId": 51,
+      "className": "hero_thumper",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/thumper_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\thumper_sm.png"
+    },
+    {
+      "heroId": 51,
+      "className": "hero_thumper",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/thumper_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\thumper_mm.png"
+    },
+    {
+      "heroId": 52,
+      "className": "hero_mirage",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/mirage_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\mirage_sm.png"
+    },
+    {
+      "heroId": 52,
+      "className": "hero_mirage",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/mirage_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\mirage_card.png"
+    },
+    {
+      "heroId": 52,
+      "className": "hero_mirage",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/mirage_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\mirage_mm.png"
+    },
+    {
+      "heroId": 52,
+      "className": "hero_mirage",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/mirage.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\mirage.svg"
+    },
+    {
+      "heroId": 52,
+      "className": "hero_mirage",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/mirage_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\mirage_vertical.png"
+    },
+    {
+      "heroId": 52,
+      "className": "hero_mirage",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/mirage_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\mirage_bg.png"
+    },
+    {
+      "heroId": 52,
+      "className": "hero_mirage",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/mirage_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\mirage_card_critical.png"
+    },
+    {
+      "heroId": 52,
+      "className": "hero_mirage",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/mirage_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\mirage_card_gloat.png"
+    },
+    {
+      "heroId": 53,
+      "className": "hero_slork",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/slork_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\slork_sm.png"
+    },
+    {
+      "heroId": 53,
+      "className": "hero_slork",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/slork_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\slork_card.png"
+    },
+    {
+      "heroId": 53,
+      "className": "hero_slork",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/slork_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\slork_mm.png"
+    },
+    {
+      "heroId": 53,
+      "className": "hero_slork",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/slork_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\slork_vertical.png"
+    },
+    {
+      "heroId": 54,
+      "className": "hero_cadence",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/cadence_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\cadence_sm.png"
+    },
+    {
+      "heroId": 54,
+      "className": "hero_cadence",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/cadence_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\cadence_sm.png"
+    },
+    {
+      "heroId": 54,
+      "className": "hero_cadence",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/cadence_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\cadence_mm.png"
+    },
+    {
+      "heroId": 58,
+      "className": "hero_viper",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/kali_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kali_sm.png"
+    },
+    {
+      "heroId": 58,
+      "className": "hero_viper",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/kali_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kali_card.png"
+    },
+    {
+      "heroId": 58,
+      "className": "hero_viper",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/kali_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kali_mm.png"
+    },
+    {
+      "heroId": 58,
+      "className": "hero_viper",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/vyper.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\vyper.svg"
+    },
+    {
+      "heroId": 58,
+      "className": "hero_viper",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/kali_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kali_vertical.png"
+    },
+    {
+      "heroId": 58,
+      "className": "hero_viper",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/vyper_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\vyper_bg.png"
+    },
+    {
+      "heroId": 58,
+      "className": "hero_viper",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/kali_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kali_card_critical.png"
+    },
+    {
+      "heroId": 58,
+      "className": "hero_viper",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/kali_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\kali_card_gloat.png"
+    },
+    {
+      "heroId": 59,
+      "className": "hero_vandal",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/vandal_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\vandal_sm.png"
+    },
+    {
+      "heroId": 59,
+      "className": "hero_vandal",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/vandal_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\vandal_card.png"
+    },
+    {
+      "heroId": 59,
+      "className": "hero_vandal",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/vandal_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\vandal_mm.png"
+    },
+    {
+      "heroId": 59,
+      "className": "hero_vandal",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/vandal_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\vandal_vertical.png"
+    },
+    {
+      "heroId": 60,
+      "className": "hero_magician",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/magician_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\magician_sm.png"
+    },
+    {
+      "heroId": 60,
+      "className": "hero_magician",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/magician_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\magician_card.png"
+    },
+    {
+      "heroId": 60,
+      "className": "hero_magician",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/magician_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\magician_mm.png"
+    },
+    {
+      "heroId": 60,
+      "className": "hero_magician",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/sinclair.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\sinclair.svg"
+    },
+    {
+      "heroId": 60,
+      "className": "hero_magician",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/magician_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\magician_vertical.png"
+    },
+    {
+      "heroId": 60,
+      "className": "hero_magician",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/magician_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\magician_bg.png"
+    },
+    {
+      "heroId": 60,
+      "className": "hero_magician",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/magician_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\magician_card_critical.png"
+    },
+    {
+      "heroId": 60,
+      "className": "hero_magician",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/magician_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\magician_card_gloat.png"
+    },
+    {
+      "heroId": 61,
+      "className": "hero_trapper",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/trapper_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\trapper_sm.png"
+    },
+    {
+      "heroId": 61,
+      "className": "hero_trapper",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/trapper_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\trapper_card.png"
+    },
+    {
+      "heroId": 61,
+      "className": "hero_trapper",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/trapper_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\trapper_mm.png"
+    },
+    {
+      "heroId": 61,
+      "className": "hero_trapper",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/trapper_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\trapper_vertical.png"
+    },
+    {
+      "heroId": 62,
+      "className": "hero_operative",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/operative_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\operative_sm.png"
+    },
+    {
+      "heroId": 62,
+      "className": "hero_operative",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/operative_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\operative_card.png"
+    },
+    {
+      "heroId": 62,
+      "className": "hero_operative",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/operative_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\operative_mm.png"
+    },
+    {
+      "heroId": 62,
+      "className": "hero_operative",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/operative_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\operative_vertical.png"
+    },
+    {
+      "heroId": 63,
+      "className": "hero_vampirebat",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/vampirebat_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\vampirebat_sm.png"
+    },
+    {
+      "heroId": 63,
+      "className": "hero_vampirebat",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/vampirebat_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\vampirebat_card.png"
+    },
+    {
+      "heroId": 63,
+      "className": "hero_vampirebat",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/vampirebat_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\vampirebat_mm.png"
+    },
+    {
+      "heroId": 63,
+      "className": "hero_vampirebat",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/mina.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\mina.svg"
+    },
+    {
+      "heroId": 63,
+      "className": "hero_vampirebat",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/vampirebat_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\vampirebat_vertical.png"
+    },
+    {
+      "heroId": 63,
+      "className": "hero_vampirebat",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/mina_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\mina_bg.png"
+    },
+    {
+      "heroId": 63,
+      "className": "hero_vampirebat",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/vampirebat_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\vampirebat_card_critical.png"
+    },
+    {
+      "heroId": 63,
+      "className": "hero_vampirebat",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/vampirebat_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\vampirebat_card_gloat.png"
+    },
+    {
+      "heroId": 64,
+      "className": "hero_drifter",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/drifter_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\drifter_sm.png"
+    },
+    {
+      "heroId": 64,
+      "className": "hero_drifter",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/drifter_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\drifter_card.png"
+    },
+    {
+      "heroId": 64,
+      "className": "hero_drifter",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/drifter_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\drifter_mm.png"
+    },
+    {
+      "heroId": 64,
+      "className": "hero_drifter",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/drifter.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\drifter.svg"
+    },
+    {
+      "heroId": 64,
+      "className": "hero_drifter",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/drifter_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\drifter_vertical.png"
+    },
+    {
+      "heroId": 64,
+      "className": "hero_drifter",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/drifter_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\drifter_bg.png"
+    },
+    {
+      "heroId": 64,
+      "className": "hero_drifter",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/drifter_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\drifter_card_critical.png"
+    },
+    {
+      "heroId": 64,
+      "className": "hero_drifter",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/drifter_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\drifter_card_gloat.png"
+    },
+    {
+      "heroId": 65,
+      "className": "hero_priest",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/priest_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\priest_sm.png"
+    },
+    {
+      "heroId": 65,
+      "className": "hero_priest",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/priest_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\priest_card.png"
+    },
+    {
+      "heroId": 65,
+      "className": "hero_priest",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/priest_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\priest_mm.png"
+    },
+    {
+      "heroId": 65,
+      "className": "hero_priest",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/priest.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\priest.svg"
+    },
+    {
+      "heroId": 65,
+      "className": "hero_priest",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/priest_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\priest_vertical.png"
+    },
+    {
+      "heroId": 65,
+      "className": "hero_priest",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/priest_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\priest_bg.png"
+    },
+    {
+      "heroId": 65,
+      "className": "hero_priest",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/priest_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\priest_card_critical.png"
+    },
+    {
+      "heroId": 65,
+      "className": "hero_priest",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/priest_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\priest_card_gloat.png"
+    },
+    {
+      "heroId": 66,
+      "className": "hero_frank",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/frank_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\frank_sm.png"
+    },
+    {
+      "heroId": 66,
+      "className": "hero_frank",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/frank_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\frank_card.png"
+    },
+    {
+      "heroId": 66,
+      "className": "hero_frank",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/frank_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\frank_mm.png"
+    },
+    {
+      "heroId": 66,
+      "className": "hero_frank",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/victor.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\victor.svg"
+    },
+    {
+      "heroId": 66,
+      "className": "hero_frank",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/frank_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\frank_vertical.png"
+    },
+    {
+      "heroId": 66,
+      "className": "hero_frank",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/victor_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\victor_bg.png"
+    },
+    {
+      "heroId": 66,
+      "className": "hero_frank",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/frank_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\frank_card_critical.png"
+    },
+    {
+      "heroId": 66,
+      "className": "hero_frank",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/frank_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\frank_card_gloat.png"
+    },
+    {
+      "heroId": 67,
+      "className": "hero_bookworm",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/bookworm_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bookworm_sm.png"
+    },
+    {
+      "heroId": 67,
+      "className": "hero_bookworm",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/bookworm_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bookworm_card.png"
+    },
+    {
+      "heroId": 67,
+      "className": "hero_bookworm",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/bookworm_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bookworm_mm.png"
+    },
+    {
+      "heroId": 67,
+      "className": "hero_bookworm",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/paige.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\paige.svg"
+    },
+    {
+      "heroId": 67,
+      "className": "hero_bookworm",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/bookworm_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bookworm_vertical.png"
+    },
+    {
+      "heroId": 67,
+      "className": "hero_bookworm",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/patience_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\patience_bg.png"
+    },
+    {
+      "heroId": 67,
+      "className": "hero_bookworm",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/bookworm_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bookworm_card_critical.png"
+    },
+    {
+      "heroId": 67,
+      "className": "hero_bookworm",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/bookworm_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\bookworm_card_gloat.png"
+    },
+    {
+      "heroId": 68,
+      "className": "hero_boho",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/hornet_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hornet_sm.png"
+    },
+    {
+      "heroId": 68,
+      "className": "hero_boho",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/boho_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\boho_card.png"
+    },
+    {
+      "heroId": 68,
+      "className": "hero_boho",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/boho_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\boho_mm.png"
+    },
+    {
+      "heroId": 68,
+      "className": "hero_boho",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/boho_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\boho_vertical.png"
+    },
+    {
+      "heroId": 69,
+      "className": "hero_doorman",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/doorman_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\doorman_sm.png"
+    },
+    {
+      "heroId": 69,
+      "className": "hero_doorman",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/doorman_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\doorman_card.png"
+    },
+    {
+      "heroId": 69,
+      "className": "hero_doorman",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/doorman_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\doorman_mm.png"
+    },
+    {
+      "heroId": 69,
+      "className": "hero_doorman",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/doorman.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\doorman.svg"
+    },
+    {
+      "heroId": 69,
+      "className": "hero_doorman",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/doorman_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\doorman_vertical.png"
+    },
+    {
+      "heroId": 69,
+      "className": "hero_doorman",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/doorman_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\doorman_bg.png"
+    },
+    {
+      "heroId": 69,
+      "className": "hero_doorman",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/doorman_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\doorman_card_critical.png"
+    },
+    {
+      "heroId": 69,
+      "className": "hero_doorman",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/doorman_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\doorman_card_gloat.png"
+    },
+    {
+      "heroId": 70,
+      "className": "hero_skyrunner",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/skyrunner_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\skyrunner_sm.png"
+    },
+    {
+      "heroId": 70,
+      "className": "hero_skyrunner",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/skyrunner_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\skyrunner_card.png"
+    },
+    {
+      "heroId": 70,
+      "className": "hero_skyrunner",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/skyrunner_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\skyrunner_mm.png"
+    },
+    {
+      "heroId": 70,
+      "className": "hero_skyrunner",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/skyrunner_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\skyrunner_vertical.png"
+    },
+    {
+      "heroId": 71,
+      "className": "hero_swan",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/swan_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\swan_sm.png"
+    },
+    {
+      "heroId": 71,
+      "className": "hero_swan",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/swan_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\swan_card.png"
+    },
+    {
+      "heroId": 71,
+      "className": "hero_swan",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/swan_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\swan_mm.png"
+    },
+    {
+      "heroId": 71,
+      "className": "hero_swan",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/swan_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\swan_vertical.png"
+    },
+    {
+      "heroId": 72,
+      "className": "hero_punkgoat",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/punkgoat_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\punkgoat_sm.png"
+    },
+    {
+      "heroId": 72,
+      "className": "hero_punkgoat",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/punkgoat_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\punkgoat_card.png"
+    },
+    {
+      "heroId": 72,
+      "className": "hero_punkgoat",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/punkgoat_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\punkgoat_mm.png"
+    },
+    {
+      "heroId": 72,
+      "className": "hero_punkgoat",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/billy.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\billy.svg"
+    },
+    {
+      "heroId": 72,
+      "className": "hero_punkgoat",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/punkgoat_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\punkgoat_vertical.png"
+    },
+    {
+      "heroId": 72,
+      "className": "hero_punkgoat",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/billy_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\billy_bg.png"
+    },
+    {
+      "heroId": 72,
+      "className": "hero_punkgoat",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/punkgoat_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\punkgoat_card_critical.png"
+    },
+    {
+      "heroId": 72,
+      "className": "hero_punkgoat",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/punkgoat_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\punkgoat_card_gloat.png"
+    },
+    {
+      "heroId": 73,
+      "className": "hero_druid",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/druid_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\druid_sm.png"
+    },
+    {
+      "heroId": 73,
+      "className": "hero_druid",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/druid_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\druid_card.png"
+    },
+    {
+      "heroId": 73,
+      "className": "hero_druid",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/druid_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\druid_mm.png"
+    },
+    {
+      "heroId": 73,
+      "className": "hero_druid",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/druid_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\druid_vertical.png"
+    },
+    {
+      "heroId": 74,
+      "className": "hero_graf",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/graf_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\graf_sm.png"
+    },
+    {
+      "heroId": 74,
+      "className": "hero_graf",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/graf_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\graf_card.png"
+    },
+    {
+      "heroId": 74,
+      "className": "hero_graf",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/graf_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\graf_mm.png"
+    },
+    {
+      "heroId": 74,
+      "className": "hero_graf",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/graf_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\graf_vertical.png"
+    },
+    {
+      "heroId": 75,
+      "className": "hero_fortuna",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/fortuna_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\fortuna_sm.png"
+    },
+    {
+      "heroId": 75,
+      "className": "hero_fortuna",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/fortuna_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\fortuna_card.png"
+    },
+    {
+      "heroId": 75,
+      "className": "hero_fortuna",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/fortuna_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\fortuna_mm.png"
+    },
+    {
+      "heroId": 75,
+      "className": "hero_fortuna",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/fortuna_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\fortuna_vertical.png"
+    },
+    {
+      "heroId": 76,
+      "className": "hero_necro",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/necro_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\necro_sm.png"
+    },
+    {
+      "heroId": 76,
+      "className": "hero_necro",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/necro_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\necro_card.png"
+    },
+    {
+      "heroId": 76,
+      "className": "hero_necro",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/necro_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\necro_mm.png"
+    },
+    {
+      "heroId": 76,
+      "className": "hero_necro",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/necro.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\necro.svg"
+    },
+    {
+      "heroId": 76,
+      "className": "hero_necro",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/necro_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\necro_vertical.png"
+    },
+    {
+      "heroId": 76,
+      "className": "hero_necro",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/necro_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\necro_bg.png"
+    },
+    {
+      "heroId": 76,
+      "className": "hero_necro",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/necro_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\necro_card_critical.png"
+    },
+    {
+      "heroId": 76,
+      "className": "hero_necro",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/necro_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\necro_card_gloat.png"
+    },
+    {
+      "heroId": 77,
+      "className": "hero_fencer",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/fencer_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\fencer_sm.png"
+    },
+    {
+      "heroId": 77,
+      "className": "hero_fencer",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/fencer_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\fencer_card.png"
+    },
+    {
+      "heroId": 77,
+      "className": "hero_fencer",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/fencer_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\fencer_mm.png"
+    },
+    {
+      "heroId": 77,
+      "className": "hero_fencer",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/fencer.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\fencer.svg"
+    },
+    {
+      "heroId": 77,
+      "className": "hero_fencer",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/fencer_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\fencer_vertical.png"
+    },
+    {
+      "heroId": 77,
+      "className": "hero_fencer",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/fencer_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\fencer_bg.png"
+    },
+    {
+      "heroId": 77,
+      "className": "hero_fencer",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/fencer_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\fencer_card_critical.png"
+    },
+    {
+      "heroId": 77,
+      "className": "hero_fencer",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/fencer_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\fencer_card_gloat.png"
+    },
+    {
+      "heroId": 78,
+      "className": "hero_airheart",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/chrono_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\chrono_sm.png"
+    },
+    {
+      "heroId": 78,
+      "className": "hero_airheart",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/airheart_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\airheart_card.png"
+    },
+    {
+      "heroId": 78,
+      "className": "hero_airheart",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/chrono_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\chrono_mm.png"
+    },
+    {
+      "heroId": 78,
+      "className": "hero_airheart",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/airheart_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\airheart_card.png"
+    },
+    {
+      "heroId": 79,
+      "className": "hero_familiar",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/familiar_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\familiar_sm.png"
+    },
+    {
+      "heroId": 79,
+      "className": "hero_familiar",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/familiar_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\familiar_card.png"
+    },
+    {
+      "heroId": 79,
+      "className": "hero_familiar",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/familiar_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\familiar_mm.png"
+    },
+    {
+      "heroId": 79,
+      "className": "hero_familiar",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/familiar.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\familiar.svg"
+    },
+    {
+      "heroId": 79,
+      "className": "hero_familiar",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/familiar_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\familiar_vertical.png"
+    },
+    {
+      "heroId": 79,
+      "className": "hero_familiar",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/familiar_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\familiar_bg.png"
+    },
+    {
+      "heroId": 79,
+      "className": "hero_familiar",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/familiar_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\familiar_card_critical.png"
+    },
+    {
+      "heroId": 79,
+      "className": "hero_familiar",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/familiar_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\familiar_card_gloat.png"
+    },
+    {
+      "heroId": 80,
+      "className": "hero_werewolf",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/werewolf_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\werewolf_sm.png"
+    },
+    {
+      "heroId": 80,
+      "className": "hero_werewolf",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/werewolf_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\werewolf_card.png"
+    },
+    {
+      "heroId": 80,
+      "className": "hero_werewolf",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/werewolf_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\werewolf_mm.png"
+    },
+    {
+      "heroId": 80,
+      "className": "hero_werewolf",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/werewolf.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\werewolf.svg"
+    },
+    {
+      "heroId": 80,
+      "className": "hero_werewolf",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/werewolf_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\werewolf_vertical.png"
+    },
+    {
+      "heroId": 80,
+      "className": "hero_werewolf",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/werewolf_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\werewolf_bg.png"
+    },
+    {
+      "heroId": 80,
+      "className": "hero_werewolf",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/werewolf_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\werewolf_card_critical.png"
+    },
+    {
+      "heroId": 80,
+      "className": "hero_werewolf",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/werewolf_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\werewolf_card_gloat.png"
+    },
+    {
+      "heroId": 81,
+      "className": "hero_unicorn",
+      "field": "icon_image_small",
+      "webPath": "/assets/heroes/unicorn_sm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\unicorn_sm.png"
+    },
+    {
+      "heroId": 81,
+      "className": "hero_unicorn",
+      "field": "icon_hero_card",
+      "webPath": "/assets/heroes/unicorn_card.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\unicorn_card.png"
+    },
+    {
+      "heroId": 81,
+      "className": "hero_unicorn",
+      "field": "minimap_image",
+      "webPath": "/assets/heroes/unicorn_mm.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\unicorn_mm.png"
+    },
+    {
+      "heroId": 81,
+      "className": "hero_unicorn",
+      "field": "name_image",
+      "webPath": "/assets/heroes/hero_names/unicorn.svg",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\hero_names\\unicorn.svg"
+    },
+    {
+      "heroId": 81,
+      "className": "hero_unicorn",
+      "field": "top_bar_vertical_image",
+      "webPath": "/assets/heroes/unicorn_vertical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\unicorn_vertical.png"
+    },
+    {
+      "heroId": 81,
+      "className": "hero_unicorn",
+      "field": "background_image",
+      "webPath": "/assets/heroes/backgrounds/unicorn_bg.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\backgrounds\\unicorn_bg.png"
+    },
+    {
+      "heroId": 81,
+      "className": "hero_unicorn",
+      "field": "hero_card_critical",
+      "webPath": "/assets/heroes/unicorn_card_critical.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\unicorn_card_critical.png"
+    },
+    {
+      "heroId": 81,
+      "className": "hero_unicorn",
+      "field": "hero_card_gloat",
+      "webPath": "/assets/heroes/unicorn_card_gloat.png",
+      "filePath": "C:\\Users\\abbey.000\\Documents\\deadlock-stats\\public\\assets\\heroes\\unicorn_card_gloat.png"
+    }
+  ],
+  "invalid": [
+    {
+      "heroId": 1,
+      "className": "hero_inferno",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 2,
+      "className": "hero_gigawatt",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 3,
+      "className": "hero_hornet",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 4,
+      "className": "hero_ghost",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 6,
+      "className": "hero_atlas",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 7,
+      "className": "hero_wraith",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 8,
+      "className": "hero_forge",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 10,
+      "className": "hero_chrono",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 11,
+      "className": "hero_dynamo",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 12,
+      "className": "hero_kelvin",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 13,
+      "className": "hero_haze",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 14,
+      "className": "hero_astro",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 15,
+      "className": "hero_bebop",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 16,
+      "className": "hero_nano",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 17,
+      "className": "hero_orion",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 18,
+      "className": "hero_krill",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 19,
+      "className": "hero_shiv",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 20,
+      "className": "hero_tengu",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 21,
+      "className": "hero_kali",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 21,
+      "className": "hero_kali",
+      "field": "top_bar_vertical_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 21,
+      "className": "hero_kali",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 21,
+      "className": "hero_kali",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 21,
+      "className": "hero_kali",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 21,
+      "className": "hero_kali",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 25,
+      "className": "hero_warden",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 27,
+      "className": "hero_yamato",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 31,
+      "className": "hero_lash",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 35,
+      "className": "hero_viscous",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 38,
+      "className": "hero_gunslinger",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 38,
+      "className": "hero_gunslinger",
+      "field": "top_bar_vertical_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 38,
+      "className": "hero_gunslinger",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 38,
+      "className": "hero_gunslinger",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 38,
+      "className": "hero_gunslinger",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 38,
+      "className": "hero_gunslinger",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 39,
+      "className": "hero_yakuza",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 39,
+      "className": "hero_yakuza",
+      "field": "top_bar_vertical_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 39,
+      "className": "hero_yakuza",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 39,
+      "className": "hero_yakuza",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 39,
+      "className": "hero_yakuza",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 39,
+      "className": "hero_yakuza",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 47,
+      "className": "hero_tokamak",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 47,
+      "className": "hero_tokamak",
+      "field": "top_bar_vertical_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 47,
+      "className": "hero_tokamak",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 47,
+      "className": "hero_tokamak",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 47,
+      "className": "hero_tokamak",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 47,
+      "className": "hero_tokamak",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 48,
+      "className": "hero_wrecker",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 48,
+      "className": "hero_wrecker",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 48,
+      "className": "hero_wrecker",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 48,
+      "className": "hero_wrecker",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 48,
+      "className": "hero_wrecker",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 49,
+      "className": "hero_rutger",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 49,
+      "className": "hero_rutger",
+      "field": "top_bar_vertical_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 49,
+      "className": "hero_rutger",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 49,
+      "className": "hero_rutger",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 49,
+      "className": "hero_rutger",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 49,
+      "className": "hero_rutger",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 50,
+      "className": "hero_synth",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 51,
+      "className": "hero_thumper",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 51,
+      "className": "hero_thumper",
+      "field": "top_bar_vertical_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 51,
+      "className": "hero_thumper",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 51,
+      "className": "hero_thumper",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 51,
+      "className": "hero_thumper",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 51,
+      "className": "hero_thumper",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 52,
+      "className": "hero_mirage",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 53,
+      "className": "hero_slork",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 53,
+      "className": "hero_slork",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 53,
+      "className": "hero_slork",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 53,
+      "className": "hero_slork",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 53,
+      "className": "hero_slork",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 54,
+      "className": "hero_cadence",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 54,
+      "className": "hero_cadence",
+      "field": "top_bar_vertical_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 54,
+      "className": "hero_cadence",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 54,
+      "className": "hero_cadence",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 54,
+      "className": "hero_cadence",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 54,
+      "className": "hero_cadence",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 56,
+      "className": "hero_bomber",
+      "field": "icon_image_small",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 56,
+      "className": "hero_bomber",
+      "field": "icon_hero_card",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 56,
+      "className": "hero_bomber",
+      "field": "minimap_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 56,
+      "className": "hero_bomber",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 56,
+      "className": "hero_bomber",
+      "field": "top_bar_vertical_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 56,
+      "className": "hero_bomber",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 56,
+      "className": "hero_bomber",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 56,
+      "className": "hero_bomber",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 56,
+      "className": "hero_bomber",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 57,
+      "className": "hero_shieldguy",
+      "field": "icon_image_small",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 57,
+      "className": "hero_shieldguy",
+      "field": "icon_hero_card",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 57,
+      "className": "hero_shieldguy",
+      "field": "minimap_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 57,
+      "className": "hero_shieldguy",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 57,
+      "className": "hero_shieldguy",
+      "field": "top_bar_vertical_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 57,
+      "className": "hero_shieldguy",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 57,
+      "className": "hero_shieldguy",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 57,
+      "className": "hero_shieldguy",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 57,
+      "className": "hero_shieldguy",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 58,
+      "className": "hero_viper",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 59,
+      "className": "hero_vandal",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 59,
+      "className": "hero_vandal",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 59,
+      "className": "hero_vandal",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 59,
+      "className": "hero_vandal",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 59,
+      "className": "hero_vandal",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 60,
+      "className": "hero_magician",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 61,
+      "className": "hero_trapper",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 61,
+      "className": "hero_trapper",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 61,
+      "className": "hero_trapper",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 61,
+      "className": "hero_trapper",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 61,
+      "className": "hero_trapper",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 62,
+      "className": "hero_operative",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 62,
+      "className": "hero_operative",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 62,
+      "className": "hero_operative",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 62,
+      "className": "hero_operative",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 62,
+      "className": "hero_operative",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 63,
+      "className": "hero_vampirebat",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 64,
+      "className": "hero_drifter",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 65,
+      "className": "hero_priest",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 66,
+      "className": "hero_frank",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 67,
+      "className": "hero_bookworm",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 68,
+      "className": "hero_boho",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 68,
+      "className": "hero_boho",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 68,
+      "className": "hero_boho",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 68,
+      "className": "hero_boho",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 68,
+      "className": "hero_boho",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 69,
+      "className": "hero_doorman",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 70,
+      "className": "hero_skyrunner",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 70,
+      "className": "hero_skyrunner",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 70,
+      "className": "hero_skyrunner",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 70,
+      "className": "hero_skyrunner",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 70,
+      "className": "hero_skyrunner",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 71,
+      "className": "hero_swan",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 71,
+      "className": "hero_swan",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 71,
+      "className": "hero_swan",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 71,
+      "className": "hero_swan",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 71,
+      "className": "hero_swan",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 72,
+      "className": "hero_punkgoat",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 73,
+      "className": "hero_druid",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 73,
+      "className": "hero_druid",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 73,
+      "className": "hero_druid",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 73,
+      "className": "hero_druid",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 73,
+      "className": "hero_druid",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 74,
+      "className": "hero_graf",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 74,
+      "className": "hero_graf",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 74,
+      "className": "hero_graf",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 74,
+      "className": "hero_graf",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 74,
+      "className": "hero_graf",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 75,
+      "className": "hero_fortuna",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 75,
+      "className": "hero_fortuna",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 75,
+      "className": "hero_fortuna",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 75,
+      "className": "hero_fortuna",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 75,
+      "className": "hero_fortuna",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 76,
+      "className": "hero_necro",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 77,
+      "className": "hero_fencer",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 78,
+      "className": "hero_airheart",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 78,
+      "className": "hero_airheart",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 78,
+      "className": "hero_airheart",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 78,
+      "className": "hero_airheart",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 78,
+      "className": "hero_airheart",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 79,
+      "className": "hero_familiar",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 80,
+      "className": "hero_werewolf",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 81,
+      "className": "hero_unicorn",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 82,
+      "className": "hero_opera",
+      "field": "icon_image_small",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 82,
+      "className": "hero_opera",
+      "field": "icon_hero_card",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 82,
+      "className": "hero_opera",
+      "field": "minimap_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 82,
+      "className": "hero_opera",
+      "field": "name_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 82,
+      "className": "hero_opera",
+      "field": "top_bar_vertical_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 82,
+      "className": "hero_opera",
+      "field": "background_image",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 82,
+      "className": "hero_opera",
+      "field": "hero_card_critical",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 82,
+      "className": "hero_opera",
+      "field": "hero_card_gloat",
+      "webPath": null,
+      "filePath": null
+    },
+    {
+      "heroId": 82,
+      "className": "hero_opera",
+      "field": "weapon_image",
+      "webPath": null,
+      "filePath": null
+    }
+  ],
+  "summary": {
+    "checked": 373,
+    "found": 0,
+    "missing": 373,
+    "invalid": 167
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "deadlock-stats",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "auth:secret": "node scripts/generate-nextauth-secret.mjs",
+    "env:check": "node scripts/check-required-env.mjs",
+    "env:check:prod": "node scripts/check-required-env.mjs --prod",
+    "extract:hero-assets": "node scripts/extract-hero-assets.mjs",
+    "extract:hero-assets:py": "python scripts/extract_hero_assets.py",
+    "check:hero-assets:py": "python scripts/check_hero_assets.py",
+    "download:hero-portraits:py": "python scripts/heroportraits.py",
+    "db:cleanup:memberships": "node scripts/cleanup-team-memberships.mjs",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@auth/drizzle-adapter": "^1.11.1",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "drizzle-orm": "^0.45.1",
+    "next": "16.1.6",
+    "next-auth": "^4.24.13",
+    "next-auth-steam": "^0.4.0",
+    "nodemailer": "^7.0.13",
+    "pg": "^8.19.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcrypt": "^6.0.0",
+    "@types/node": "^20",
+    "@types/pg": "^8.16.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.9",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

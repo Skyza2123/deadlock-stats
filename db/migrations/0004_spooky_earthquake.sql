@@ -1,0 +1,1 @@
+ALTER TABLE "matches" ADD COLUMN "saved" integer DEFAULT 0;

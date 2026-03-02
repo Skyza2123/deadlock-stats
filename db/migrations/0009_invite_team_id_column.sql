@@ -1,0 +1,2 @@
+ALTER TABLE invite_codes
+ADD COLUMN IF NOT EXISTS team_id bigint;

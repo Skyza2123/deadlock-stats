@@ -1,0 +1,62 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import Sidebar from "../components/Sidebar";
+import ThemeInitializer from "../components/ThemeInitializer";
+import AuthSessionProvider from "../components/AuthSessionProvider";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Deadlock Stats",
+  description: "Scrim analytics dashboard",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  const year = new Date().getFullYear();
+
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <AuthSessionProvider>
+          <ThemeInitializer />
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <div className="flex min-h-screen flex-1 min-w-0 flex-col border-zinc-900/70 bg-zinc-950/35 pb-16 md:border-l md:pb-0">
+              <div className="w-full flex-1">{children}</div>
+              <footer className="border-t border-zinc-800/80 px-4 py-3 text-xs text-zinc-400 sm:px-6 lg:px-8">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Link href="/privacy" className="hover:text-zinc-200 hover:underline">
+                      Privacy Policy
+                    </Link>
+                    <span aria-hidden>•</span>
+                    <Link href="/terms" className="hover:text-zinc-200 hover:underline">
+                      Terms
+                    </Link>
+                  </div>
+                  <p>© {year} Deadlock Stats. All rights reserved.</p>
+                </div>
+              </footer>
+            </div>
+          </div>
+        </AuthSessionProvider>
+      </body>
+    </html>
+  );
+}

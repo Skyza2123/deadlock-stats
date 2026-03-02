@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1772222062240,
+      "tag": "0000_perfect_lady_deathstrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772224149215,
+      "tag": "0001_striped_piledriver",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772225320384,
+      "tag": "0002_first_victor_mancha",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772227112852,
+      "tag": "0003_windy_glorian",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772227561119,
+      "tag": "0004_spooky_earthquake",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772300062606,
+      "tag": "0005_overrated_sphinx",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772300473980,
+      "tag": "0006_colorful_vanisher",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1772300735806,
+      "tag": "0007_fancy_barracuda",
+      "breakpoints": true
+    }
+  ]
+}
