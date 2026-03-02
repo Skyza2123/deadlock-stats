@@ -1,1 +1,1 @@
-ALTER TABLE "invite_codes" ADD COLUMN "team_id" bigserial NOT NULL;
+ALTER TABLE "invite_codes" ADD COLUMN IF NOT EXISTS "team_id" bigint;

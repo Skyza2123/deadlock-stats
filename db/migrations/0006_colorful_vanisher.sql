@@ -1,4 +1,4 @@
-CREATE TABLE "app_users" (
+CREATE TABLE IF NOT EXISTS "app_users" (
 	"id" bigserial PRIMARY KEY NOT NULL,
 	"email" text NOT NULL,
 	"password_hash" text NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE "app_users" (
 	CONSTRAINT "app_users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-CREATE TABLE "invite_codes" (
+CREATE TABLE IF NOT EXISTS "invite_codes" (
 	"code_hash" text PRIMARY KEY NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"expires_at" timestamp with time zone,
@@ -16,4 +16,4 @@ CREATE TABLE "invite_codes" (
 	"note" text
 );
 --> statement-breakpoint
-ALTER TABLE "matches" ADD COLUMN "scrim_date" timestamp with time zone;
+ALTER TABLE "matches" ADD COLUMN IF NOT EXISTS "scrim_date" timestamp with time zone;
