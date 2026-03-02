@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function JoinComplete() {
+function JoinCompleteContent() {
   const sp = useSearchParams();
   const callbackUrl = sp.get("callbackUrl") || "/";
 
@@ -43,5 +43,23 @@ export default function JoinComplete() {
         </p>
       </section>
     </main>
+  );
+}
+
+export default function JoinComplete() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen w-full grid place-items-center p-6">
+          <section className="panel-premium w-full max-w-md rounded-2xl p-6 text-center">
+            <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">Invite status</p>
+            <h1 className="heading-luxe mt-2 text-2xl font-bold">Team join</h1>
+            <p className="mt-3 text-sm text-zinc-300">Loading…</p>
+          </section>
+        </main>
+      }
+    >
+      <JoinCompleteContent />
+    </Suspense>
   );
 }

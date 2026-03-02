@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSession } from "next-auth/react";
 
-export default function JoinPage() {
+function JoinPageContent() {
   const router = useRouter();
   const sp = useSearchParams();
   const callbackUrl = sp.get("callbackUrl") || "/";
@@ -95,5 +95,24 @@ export default function JoinPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function JoinPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen w-full p-6 md:p-8">
+          <div className="mx-auto w-full max-w-4xl">
+            <section className="panel-premium rounded-2xl p-6 md:p-7">
+              <h2 className="text-lg font-semibold">Invite code</h2>
+              <p className="mt-1 text-xs text-zinc-500">Loading…</p>
+            </section>
+          </div>
+        </main>
+      }
+    >
+      <JoinPageContent />
+    </Suspense>
   );
 }
