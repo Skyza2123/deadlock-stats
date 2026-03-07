@@ -28,6 +28,14 @@ function extractMembershipKey(session: { user?: { id?: string } } | null) {
   return rawUserId;
 }
 
+function isAdminSession(session: { user?: { email?: string | null; isAdmin?: boolean } } | null) {
+  if (Boolean(session?.user?.isAdmin)) return true;
+  const adminEmail = String(process.env.AUTH_EMAIL ?? "").trim().toLowerCase();
+  const tempAdminEmail = String(process.env.TEMP_ADMIN_EMAIL ?? "").trim().toLowerCase();
+  const sessionEmail = String(session?.user?.email ?? "").trim().toLowerCase();
+  return Boolean(sessionEmail) && (sessionEmail === adminEmail || sessionEmail === tempAdminEmail);
+}
+
 type DraftEventRow = {
   heroId: string;
   side: string | null;
@@ -134,8 +142,9 @@ export default async function EnemyTrackingPage({
   const enemyRaw = String(resolved?.enemy ?? "").trim();
 
   const membershipKey = extractMembershipKey(session as { user?: { id?: string } } | null);
+  const isAdmin = isAdminSession(session as { user?: { email?: string | null; isAdmin?: boolean } } | null);
 
-  const canViewTeam = membershipKey
+  const canViewTeam = isAdmin || (membershipKey
     ? (
         await db
           .select({ teamId: teamMemberships.teamId })
@@ -154,7 +163,7 @@ export default async function EnemyTrackingPage({
           )
           .limit(1)
       ).length > 0
-    : false;
+    : false);
 
   if (!canViewTeam) {
     return (

@@ -18,10 +18,12 @@ function extractMembershipKey(session: { user?: { id?: string } } | null) {
   return rawUserId;
 }
 
-function isAdminSession(session: { user?: { email?: string | null } } | null) {
+function isAdminSession(session: { user?: { email?: string | null; isAdmin?: boolean } } | null) {
+  if (Boolean(session?.user?.isAdmin)) return true;
   const adminEmail = String(process.env.AUTH_EMAIL ?? "").trim().toLowerCase();
+  const tempAdminEmail = String(process.env.TEMP_ADMIN_EMAIL ?? "").trim().toLowerCase();
   const sessionEmail = String(session?.user?.email ?? "").trim().toLowerCase();
-  return Boolean(adminEmail) && sessionEmail === adminEmail;
+  return Boolean(sessionEmail) && (sessionEmail === adminEmail || sessionEmail === tempAdminEmail);
 }
 
 function roleRank(role: string | null | undefined) {
@@ -42,7 +44,7 @@ async function getManageContext(teamSlug: string) {
   const session = await getServerSession(authOptions);
   if (!session) return { ok: false as const, reason: "signin" };
 
-  const admin = isAdminSession(session as { user?: { email?: string | null } } | null);
+  const admin = isAdminSession(session as { user?: { email?: string | null; isAdmin?: boolean } } | null);
   const membershipKey = extractMembershipKey(session as { user?: { id?: string } } | null);
 
   const teamRows = await db

@@ -72,6 +72,19 @@ const baseAuthOptions: NextAuthOptions = {
         token.sub = prefix + String(user.id);
       }
 
+      if ((user as any)?.isAdmin) {
+        (token as any).isAdmin = true;
+      }
+
+      if (!(token as any).isAdmin) {
+        const authEmail = String(process.env.AUTH_EMAIL ?? "").trim().toLowerCase();
+        const tempAdminEmail = String(process.env.TEMP_ADMIN_EMAIL ?? "").trim().toLowerCase();
+        const tokenEmail = String(token.email ?? "").trim().toLowerCase();
+        if (tokenEmail && (tokenEmail === authEmail || tokenEmail === tempAdminEmail)) {
+          (token as any).isAdmin = true;
+        }
+      }
+
       if (user?.name) token.name = user.name;
       if (user?.email) token.email = user.email;
       if ((user as any)?.image) (token as any).picture = (user as any).image;
@@ -81,6 +94,7 @@ const baseAuthOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.sub ? String(token.sub) : undefined;
+        (session.user as any).isAdmin = Boolean((token as any).isAdmin);
 
         if (token.name) session.user.name = String(token.name);
         if (token.email) session.user.email = String(token.email);
@@ -119,6 +133,18 @@ export function getAuthOptions(req?: any): NextAuthOptions {
 
         if (!email || !password) return null;
 
+        const tempAdminEmail = process.env.TEMP_ADMIN_EMAIL?.trim().toLowerCase() ?? "";
+        const tempAdminPassword = process.env.TEMP_ADMIN_PASSWORD ?? "";
+
+        if (tempAdminEmail && tempAdminPassword && email === tempAdminEmail && password === tempAdminPassword) {
+          return {
+            id: "temp-admin",
+            email: tempAdminEmail,
+            name: "Temporary Admin",
+            isAdmin: true,
+          };
+        }
+
         const tempEmail = process.env.AUTH_EMAIL?.trim().toLowerCase() ?? "";
         const tempPassword = process.env.AUTH_PASSWORD ?? "";
 
@@ -127,6 +153,7 @@ export function getAuthOptions(req?: any): NextAuthOptions {
             id: "temp-new-user",
             email: tempEmail,
             name: "Temp User",
+            isAdmin: true,
           };
         }
 

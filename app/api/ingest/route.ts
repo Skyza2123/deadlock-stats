@@ -116,6 +116,11 @@ export async function POST(req: Request) {
 
     const rawUserId = String((session?.user as { id?: string } | undefined)?.id ?? "").trim();
     const sessionEmail = String(session?.user?.email ?? "").trim().toLowerCase();
+    const adminEmail = String(process.env.AUTH_EMAIL ?? "").trim().toLowerCase();
+    const tempAdminEmail = String(process.env.TEMP_ADMIN_EMAIL ?? "").trim().toLowerCase();
+    const isAdmin =
+      Boolean((session?.user as any)?.isAdmin) ||
+      (Boolean(sessionEmail) && (sessionEmail === adminEmail || sessionEmail === tempAdminEmail));
     const savedMatchesKey = String(rawUserId || sessionEmail).trim();
     const membershipKey = !rawUserId
       ? ""
@@ -136,7 +141,7 @@ export async function POST(req: Request) {
     }
 
     if (isTeamUpload) {
-      if (!membershipKey) {
+      if (!isAdmin && !membershipKey) {
         return NextResponse.json({ ok: false, error: "Invalid session user" }, { status: 401 });
       }
 
@@ -152,20 +157,22 @@ export async function POST(req: Request) {
 
       const teamIdText = String(teamExists[0].teamId);
 
-      const isMember = await db
-        .select({ teamId: teamMemberships.teamId })
-        .from(teamMemberships)
-        .where(
-          and(
-            sql`(${teamMemberships.teamId} = ${teamSlug} OR ${teamMemberships.teamId} = ${teamIdText})`,
-            eq(teamMemberships.steamId, membershipKey),
-            sql`${teamMemberships.endAt} is null`
+      if (!isAdmin) {
+        const isMember = await db
+          .select({ teamId: teamMemberships.teamId })
+          .from(teamMemberships)
+          .where(
+            and(
+              sql`(${teamMemberships.teamId} = ${teamSlug} OR ${teamMemberships.teamId} = ${teamIdText})`,
+              eq(teamMemberships.steamId, membershipKey),
+              sql`${teamMemberships.endAt} is null`
+            )
           )
-        )
-        .limit(1);
+          .limit(1);
 
-      if (!isMember.length) {
-        return NextResponse.json({ ok: false, error: "Forbidden team" }, { status: 403 });
+        if (!isMember.length) {
+          return NextResponse.json({ ok: false, error: "Forbidden team" }, { status: 403 });
+        }
       }
     }
 

@@ -13,8 +13,11 @@ export async function GET() {
   }
 
   const adminEmail = String(process.env.AUTH_EMAIL ?? "").trim().toLowerCase();
+  const tempAdminEmail = String(process.env.TEMP_ADMIN_EMAIL ?? "").trim().toLowerCase();
   const sessionEmail = String(session.user?.email ?? "").trim().toLowerCase();
-  const isAdmin = Boolean(adminEmail) && sessionEmail === adminEmail;
+  const isAdmin =
+    Boolean((session.user as any)?.isAdmin) ||
+    (Boolean(sessionEmail) && (sessionEmail === adminEmail || sessionEmail === tempAdminEmail));
 
   if (isAdmin) {
     const rows = await db
