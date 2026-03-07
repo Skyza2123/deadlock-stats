@@ -121,6 +121,20 @@ export default async function TeamsPage({
 
     await db.insert(teams).values({ name, slug });
 
+    if (actionMembershipKey) {
+      await db.execute(sql`
+        INSERT INTO team_memberships (team_id, steam_id, role, start_at)
+        SELECT ${slug}, ${actionMembershipKey}, 'owner', now()
+        WHERE NOT EXISTS (
+          SELECT 1
+          FROM team_memberships
+          WHERE team_id = ${slug}
+            AND steam_id = ${actionMembershipKey}
+            AND end_at IS NULL
+        )
+      `);
+    }
+
     revalidatePath("/teams");
     redirect("/teams");
   }
