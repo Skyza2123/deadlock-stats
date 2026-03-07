@@ -147,7 +147,7 @@ export default async function TeamsPage({
         .innerJoin(
           teamMemberships,
           and(
-            eq(teamMemberships.teamId, teams.slug),
+            sql`(${teamMemberships.teamId} = ${teams.slug} OR ${teamMemberships.teamId} = ${teams.teamId}::text)`,
             eq(teamMemberships.steamId, membershipKey),
             isNull(teamMemberships.endAt)
           )

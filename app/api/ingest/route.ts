@@ -141,7 +141,7 @@ export async function POST(req: Request) {
       }
 
       const teamExists = await db
-        .select({ slug: teams.slug })
+        .select({ teamId: teams.teamId, slug: teams.slug })
         .from(teams)
         .where(eq(teams.slug, teamSlug))
         .limit(1);
@@ -150,12 +150,14 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: false, error: "Selected team not found" }, { status: 404 });
       }
 
+      const teamIdText = String(teamExists[0].teamId);
+
       const isMember = await db
         .select({ teamId: teamMemberships.teamId })
         .from(teamMemberships)
         .where(
           and(
-            eq(teamMemberships.teamId, teamSlug),
+            sql`(${teamMemberships.teamId} = ${teamSlug} OR ${teamMemberships.teamId} = ${teamIdText})`,
             eq(teamMemberships.steamId, membershipKey),
             sql`${teamMemberships.endAt} is null`
           )

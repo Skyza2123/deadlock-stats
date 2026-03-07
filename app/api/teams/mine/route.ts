@@ -24,7 +24,7 @@ export async function GET() {
   const { rows } = await pool.query(
     `SELECT t.team_id, t.name, t.slug, tm.role
      FROM team_memberships tm
-     JOIN teams t ON t.slug = tm.team_id
+     JOIN teams t ON (t.slug = tm.team_id OR t.team_id::text = tm.team_id)
      WHERE tm.steam_id = $1 AND tm.end_at IS NULL
      ORDER BY t.team_id DESC`,
     [membershipKey]

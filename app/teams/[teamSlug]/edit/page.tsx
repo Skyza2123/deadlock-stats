@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 
 import BackButton from "../../../../components/BackButton";
@@ -70,12 +70,14 @@ async function getManageContext(teamSlug: string) {
 
   if (!membershipKey) return { ok: false as const, reason: "forbidden" };
 
+  const teamIdText = String(teamRows[0].teamId);
+
   const membershipRows = await db
     .select({ role: teamMemberships.role })
     .from(teamMemberships)
     .where(
       and(
-        eq(teamMemberships.teamId, teamSlug),
+        sql`(${teamMemberships.teamId} = ${teamSlug} OR ${teamMemberships.teamId} = ${teamIdText})`,
         eq(teamMemberships.steamId, membershipKey),
         isNull(teamMemberships.endAt)
       )

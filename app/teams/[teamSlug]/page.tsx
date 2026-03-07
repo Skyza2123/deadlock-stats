@@ -184,7 +184,12 @@ export default async function TeamStatsPage({
           .from(teamMemberships)
           .where(
             and(
-              eq(teamMemberships.teamId, teamSlug),
+              sql`(
+                ${teamMemberships.teamId} = ${teamSlug}
+                OR ${teamMemberships.teamId} IN (
+                  SELECT ${teams.teamId}::text FROM ${teams} WHERE ${teams.slug} = ${teamSlug}
+                )
+              )`,
               eq(teamMemberships.steamId, membershipKey),
               isNull(teamMemberships.endAt)
             )
