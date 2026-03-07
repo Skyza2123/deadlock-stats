@@ -19,6 +19,18 @@ function slugify(value: string) {
     .slice(0, 48);
 }
 
+function extractMembershipKey(session: { user?: { id?: string } } | null) {
+  const rawUserId = String(session?.user?.id ?? "").trim();
+  if (!rawUserId) return "";
+  if (rawUserId.startsWith("steam:")) return rawUserId.slice(6).trim();
+  if (rawUserId.startsWith("user:")) {
+    const value = rawUserId.slice(5).trim();
+    return /^\d{16,20}$/.test(value) ? value : "";
+  }
+  if (/^\d{16,20}$/.test(rawUserId)) return rawUserId;
+  return "";
+}
+
 type DraftEventRow = {
   heroId: string;
   side: string | null;
@@ -124,12 +136,7 @@ export default async function EnemyTrackingPage({
   const toRaw = String(resolved?.to ?? "").trim();
   const enemyRaw = String(resolved?.enemy ?? "").trim();
 
-  const rawUserId = String(((session.user as { id?: string } | undefined)?.id) ?? "");
-  const membershipKey = rawUserId.startsWith("user:")
-    ? rawUserId.slice(5)
-    : rawUserId.startsWith("steam:")
-      ? rawUserId.slice(6)
-      : "";
+  const membershipKey = extractMembershipKey(session as { user?: { id?: string } } | null);
 
   const canViewTeam = membershipKey
     ? (

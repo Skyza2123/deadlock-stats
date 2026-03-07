@@ -119,6 +119,18 @@ function matchNumberFromId(matchId: string | null | undefined): number {
   return Number.isFinite(parsed) ? parsed : Number.NEGATIVE_INFINITY;
 }
 
+function extractMembershipKey(session: { user?: { id?: string } } | null) {
+  const rawUserId = String(session?.user?.id ?? "").trim();
+  if (!rawUserId) return "";
+  if (rawUserId.startsWith("steam:")) return rawUserId.slice(6).trim();
+  if (rawUserId.startsWith("user:")) {
+    const value = rawUserId.slice(5).trim();
+    return /^\d{16,20}$/.test(value) ? value : "";
+  }
+  if (/^\d{16,20}$/.test(rawUserId)) return rawUserId;
+  return "";
+}
+
 function compareByDateThenMatchNumber(
   a: { matchId: string; scrimDate?: Date | null; ingestedAt?: Date | null },
   b: { matchId: string; scrimDate?: Date | null; ingestedAt?: Date | null },
@@ -166,12 +178,7 @@ export default async function TeamStatsPage({
   }
 
   const { teamSlug } = await params;
-  const rawUserId = String(((session.user as { id?: string } | undefined)?.id) ?? "");
-  const membershipKey = rawUserId.startsWith("user:")
-    ? rawUserId.slice(5)
-    : rawUserId.startsWith("steam:")
-      ? rawUserId.slice(6)
-      : "";
+  const membershipKey = extractMembershipKey(session as { user?: { id?: string } } | null);
 
   const canViewTeam = membershipKey
     ? (
