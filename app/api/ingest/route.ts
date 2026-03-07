@@ -114,14 +114,18 @@ export async function POST(req: Request) {
     const scrimDateRaw = String(form.get("scrimDate") ?? "");
     const parsedScrimDate = parseScrimDate(scrimDateRaw);
 
-    const rawUserId = String((session?.user as { id?: string } | undefined)?.id ?? "");
+    const rawUserId = String((session?.user as { id?: string } | undefined)?.id ?? "").trim();
     const sessionEmail = String(session?.user?.email ?? "").trim().toLowerCase();
     const savedMatchesKey = String(rawUserId || sessionEmail).trim();
-    const membershipKey = rawUserId.startsWith("user:")
-      ? rawUserId.slice(5)
+    const membershipKey = !rawUserId
+      ? ""
       : rawUserId.startsWith("steam:")
-        ? rawUserId.slice(6)
-        : "";
+        ? rawUserId.slice(6).trim()
+        : rawUserId.startsWith("user:")
+          ? rawUserId.slice(5).trim()
+          : rawUserId.includes(":")
+            ? ""
+            : rawUserId;
 
     if (!matchId) {
       return NextResponse.json({ ok: false, error: "Missing matchId" }, { status: 400 });

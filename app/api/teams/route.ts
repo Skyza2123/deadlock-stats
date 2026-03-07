@@ -28,12 +28,16 @@ export async function GET() {
     return NextResponse.json({ ok: true, teams: rows });
   }
 
-  const rawUserId = String((session.user as { id?: string } | undefined)?.id ?? "");
-  const membershipKey = rawUserId.startsWith("user:")
-    ? rawUserId.slice(5)
+  const rawUserId = String((session.user as { id?: string } | undefined)?.id ?? "").trim();
+  const membershipKey = !rawUserId
+    ? ""
     : rawUserId.startsWith("steam:")
-      ? rawUserId.slice(6)
-      : "";
+      ? rawUserId.slice(6).trim()
+      : rawUserId.startsWith("user:")
+        ? rawUserId.slice(5).trim()
+        : rawUserId.includes(":")
+          ? ""
+          : rawUserId;
 
   if (!membershipKey) {
     return NextResponse.json({ ok: true, teams: [] });

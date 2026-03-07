@@ -20,12 +20,9 @@ function extractMembershipKey(session: { user?: { id?: string } } | null) {
   const rawUserId = String(session?.user?.id ?? "").trim();
   if (!rawUserId) return "";
   if (rawUserId.startsWith("steam:")) return rawUserId.slice(6).trim();
-  if (rawUserId.startsWith("user:")) {
-    const value = rawUserId.slice(5).trim();
-    return /^\d{16,20}$/.test(value) ? value : "";
-  }
-  if (/^\d{16,20}$/.test(rawUserId)) return rawUserId;
-  return "";
+  if (rawUserId.startsWith("user:")) return rawUserId.slice(5).trim();
+  if (rawUserId.includes(":")) return "";
+  return rawUserId;
 }
 
 function isAdminSession(session: { user?: { email?: string | null } } | null) {
