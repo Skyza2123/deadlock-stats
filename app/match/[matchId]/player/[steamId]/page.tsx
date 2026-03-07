@@ -8,7 +8,9 @@ import PlayerGraphs from "../../../../../components/PlayerGraphs";
 import { db } from "../../../../../db";
 import { matchPlayerItems, matchPlayers, matches, players } from "../../../../../db/schema";
 import { fmtTime, hasItem, heroName, itemName } from "../../../../../lib/deadlockData";
+import { getAbilityMeta } from "../../../../../lib/abilityCatalog";
 import { heroBackgroundPath, heroRenderPath, heroSmallIconPath } from "../../../../../lib/heroIcons";
+import { resolveLiveInventoryEvents } from "../../../../../lib/inventoryTimeline";
 import { itemIconPath } from "../../../../../lib/itemIcons";
 import { buildHeatmapSeriesFromManyPlayerRaw } from "../../../../../lib/mapHeatmap";
 
@@ -18,6 +20,19 @@ type ItemRow = {
   itemId: number;
   soldTimeS: number | null;
   upgradeId: number | null;
+  imbuedAbilityId: number | null;
+};
+
+type AbilityProgressRow = {
+  key: string;
+  abilityId: number | null;
+  abilityName: string;
+  abilityIconSrc: string | null;
+  unlockCount: number;
+  upgradeCount: number;
+  imbueCount: number;
+  maxLevel: number;
+  firstSeenAtS: number;
 };
 
 type PlayerMatchRow = {
@@ -169,6 +184,187 @@ function extractDamageTotal(raw: any): number | null {
     "stats.hero_damage",
     "stats.damage",
   ]);
+}
+
+function firstNumeric(obj: any, keys: string[]) {
+  for (const key of keys) {
+    const value = Number(obj?.[key]);
+    if (Number.isFinite(value)) return value;
+  }
+  return null;
+}
+
+function firstText(obj: any, keys: string[]) {
+  for (const key of keys) {
+    const value = obj?.[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
+}
+
+function detectAbilityEventKind(event: any): "unlock" | "upgrade" | "imbue" {
+  const kindText = String(
+    event?.event_type ??
+      event?.eventType ??
+      event?.kind ??
+      event?.action ??
+      event?.type ??
+      ""
+  )
+    .toLowerCase()
+    .trim();
+
+  if (firstNumeric(event, ["imbued_ability_id", "imbuedAbilityId"]) != null || kindText.includes("imbue")) {
+    return "imbue";
+  }
+
+  if (
+    kindText.includes("unlock") ||
+    kindText.includes("learn") ||
+    kindText.includes("acquire") ||
+    kindText.includes("first")
+  ) {
+    return "unlock";
+  }
+
+  return "upgrade";
+}
+
+function buildAbilityProgressRows(raw: any, itemRows: ItemRow[]): AbilityProgressRow[] {
+  const arrays: any[][] = [
+    raw?.ability_events,
+    raw?.abilityEvents,
+    raw?.ability_casts,
+    raw?.abilityCasts,
+    raw?.cast_events,
+    raw?.casts,
+    raw?.abilities,
+  ].filter(Array.isArray);
+
+  const progress = new Map<string, AbilityProgressRow>();
+  const seenAbilityKeys = new Set<string>();
+
+  const touch = (
+    abilityId: number | null,
+    directName: string | null,
+    directIconSrc: string | null,
+    timeS: number,
+    kind: "unlock" | "upgrade" | "imbue",
+    explicitLevel: number | null,
+  ) => {
+    if (abilityId != null && abilityId <= 0) return;
+
+    const meta = abilityId != null ? getAbilityMeta(abilityId) : null;
+    const abilityName = meta?.name ?? directName ?? (abilityId != null ? `Ability ${abilityId}` : "Unknown ability");
+    if (abilityName === "Ability 0") return;
+    const abilityIconSrc = meta?.iconSrc ?? directIconSrc ?? null;
+    const key = abilityId != null ? `id:${abilityId}` : `name:${abilityName.toLowerCase()}`;
+
+    const row = progress.get(key) ?? {
+      key,
+      abilityId,
+      abilityName,
+      abilityIconSrc,
+      unlockCount: 0,
+      upgradeCount: 0,
+      imbueCount: 0,
+      maxLevel: 0,
+      firstSeenAtS: timeS,
+    };
+
+    if (timeS < row.firstSeenAtS) row.firstSeenAtS = timeS;
+    if (abilityId != null) row.abilityId = abilityId;
+    if (!row.abilityIconSrc && abilityIconSrc) row.abilityIconSrc = abilityIconSrc;
+    if (!row.abilityName || row.abilityName.startsWith("Ability ")) row.abilityName = abilityName;
+
+    if (kind === "unlock") {
+      row.unlockCount += 1;
+      row.maxLevel = Math.min(3, Math.max(row.maxLevel, 1));
+    } else if (kind === "upgrade") {
+      row.upgradeCount += 1;
+      row.maxLevel = Math.min(3, Math.max(row.maxLevel, explicitLevel ?? row.unlockCount + row.upgradeCount));
+    } else {
+      row.imbueCount += 1;
+    }
+
+    progress.set(key, row);
+  };
+
+  for (const eventArray of arrays) {
+    for (const event of eventArray) {
+      const timeS = Math.max(
+        0,
+        firstNumeric(event, ["game_time_s", "time_stamp_s", "time_s", "cast_time_s", "event_time_s", "timestamp_s"]) ?? 0
+      );
+
+      const detectedKind = detectAbilityEventKind(event);
+      const baseAbilityId = firstNumeric(event, ["ability_id", "abilityId", "caster_ability_id", "killer_ability_id"]);
+      const imbuedAbilityId = firstNumeric(event, ["imbued_ability_id", "imbuedAbilityId"]);
+      const effectiveAbilityId = detectedKind === "imbue" ? (imbuedAbilityId ?? baseAbilityId) : baseAbilityId;
+
+      const abilityName = firstText(event, ["ability_name", "abilityName", "killer_ability_name", "cast_name", "name"]);
+      const abilityIcon = firstText(event, ["ability_icon", "abilityIcon", "image", "image_webp", "icon"]);
+      const level = firstNumeric(event, ["upgrade_id", "upgradeId", "ability_level", "abilityLevel", "new_level", "level"]);
+
+      if (effectiveAbilityId != null && Number(effectiveAbilityId) <= 0) continue;
+      if (effectiveAbilityId == null && !abilityName) continue;
+
+      const abilityKey =
+        effectiveAbilityId != null
+          ? `id:${Number(effectiveAbilityId)}`
+          : abilityName
+            ? `name:${abilityName.toLowerCase()}`
+            : null;
+
+      const kind =
+        detectedKind === "imbue"
+          ? "imbue"
+          : abilityKey && seenAbilityKeys.has(abilityKey)
+            ? "upgrade"
+            : "unlock";
+
+      if (abilityKey) seenAbilityKeys.add(abilityKey);
+
+      touch(effectiveAbilityId != null ? Number(effectiveAbilityId) : null, abilityName, abilityIcon, timeS, kind, level != null ? Number(level) : null);
+    }
+  }
+
+  for (const itemEvent of itemRows) {
+    const timeS = Math.max(0, safeNum(itemEvent.gameTimeS));
+    if (!Number.isFinite(Number(itemEvent.itemId)) || Number(itemEvent.itemId) <= 0) continue;
+    const itemAbilityMeta = !hasItem(Number(itemEvent.itemId)) ? getAbilityMeta(Number(itemEvent.itemId)) : null;
+
+    if (itemAbilityMeta) {
+      const abilityId = Number(itemEvent.itemId);
+      const abilityKey = `id:${abilityId}`;
+      const kind: "unlock" | "upgrade" = seenAbilityKeys.has(abilityKey) ? "upgrade" : "unlock";
+      seenAbilityKeys.add(abilityKey);
+      touch(
+        abilityId,
+        itemAbilityMeta.name,
+        itemAbilityMeta.iconSrc,
+        timeS,
+        kind,
+        itemEvent.upgradeId != null ? Number(itemEvent.upgradeId) : null
+      );
+    }
+
+    if (itemEvent.imbuedAbilityId != null && Number.isFinite(Number(itemEvent.imbuedAbilityId))) {
+      const imbuedId = Number(itemEvent.imbuedAbilityId);
+      if (imbuedId > 0) {
+        touch(imbuedId, null, null, timeS, "imbue", null);
+      }
+    }
+  }
+
+  return [...progress.values()].sort((a, b) => {
+    if (b.maxLevel !== a.maxLevel) return b.maxLevel - a.maxLevel;
+    const aEvents = a.unlockCount + a.upgradeCount + a.imbueCount;
+    const bEvents = b.unlockCount + b.upgradeCount + b.imbueCount;
+    if (bEvents !== aEvents) return bEvents - aEvents;
+    if (a.firstSeenAtS !== b.firstSeenAtS) return a.firstSeenAtS - b.firstSeenAtS;
+    return a.abilityName.localeCompare(b.abilityName);
+  });
 }
 
 function buildSuperTimeline(params: {
@@ -370,7 +566,7 @@ export default async function PlayerPage({
     return (
       <main className="w-full p-4 sm:p-6 lg:p-8 space-y-4">
         <BackButton />
-        <section className="rounded-xl border border-zinc-300/50 bg-transparent backdrop-blur-[1px] dark:border-zinc-700/90 dark:bg-zinc-950/70 p-5 shadow-sm">
+        <section className="panel-premium rounded-xl p-5 shadow-sm">
           <h1 className="text-2xl font-bold">Player not found</h1>
           <p className="mt-2 opacity-80">No stats for Steam ID {steamId} in match {matchId}.</p>
         </section>
@@ -393,6 +589,7 @@ export default async function PlayerPage({
       itemId: matchPlayerItems.itemId,
       soldTimeS: matchPlayerItems.soldTimeS,
       upgradeId: matchPlayerItems.upgradeId,
+      imbuedAbilityId: matchPlayerItems.imbuedAbilityId,
     })
     .from(matchPlayerItems)
     .where(and(eq(matchPlayerItems.matchId, matchId), eq(matchPlayerItems.steamId, steamId)));
@@ -518,8 +715,9 @@ export default async function PlayerPage({
   const playerContrib = safeNum(player.kills) + safeNum(player.assists);
   const killParticipation = teamTotalKills > 0 ? (playerContrib / teamTotalKills) * 100 : null;
 
-  const finalItems = itemRows.filter((it) => (!it.soldTimeS || it.soldTimeS === 0) && hasItem(Number(it.itemId)));
+  const finalItems = resolveLiveInventoryEvents(itemRows, durationS).filter((it) => hasItem(Number(it.itemId)));
   const timeline = itemRows.filter((it) => hasItem(Number(it.itemId)));
+  const abilityProgressRows = buildAbilityProgressRows(raw, itemRows);
 
   const snapshots: any[] = Array.isArray(raw?.stats) ? raw.stats : [];
   const superTimeline = buildSuperTimeline({ itemRows: timeline, snapshots });
@@ -667,7 +865,7 @@ export default async function PlayerPage({
       ) : null}
       <div className="pointer-events-none absolute inset-0 z-0 bg-white/0 dark:bg-zinc-950/45" />
 
-      <div className="relative z-10 space-y-6">
+      <div className="relative z-10 space-y-5 sm:space-y-6">
 
       <div className="flex items-center justify-between gap-3">
         <BackButton />
@@ -792,7 +990,7 @@ export default async function PlayerPage({
                             className={`rounded px-2 py-1 text-xs border ${
                               selected
                                 ? "border-emerald-400 bg-emerald-500/10 text-emerald-300"
-                                : "border-zinc-300/50 bg-transparent hover:bg-transparent dark:border-zinc-700/90 dark:bg-zinc-950/65 dark:hover:bg-zinc-950/75"
+                                : "border-zinc-700/80 bg-zinc-900/60 hover:bg-zinc-900/80"
                             }`}
                           >
                             {row.displayName ?? "(unknown)"} ({heroName(row.heroId)})
@@ -801,7 +999,7 @@ export default async function PlayerPage({
                       })}
                       <a
                         href={`/match/${matchId}/player/${steamId}${compareSteamId ? `?${new URLSearchParams({ compare: compareSteamId }).toString()}` : ""}`}
-                        className="rounded px-2 py-1 text-xs border border-zinc-300/50 bg-transparent hover:bg-transparent dark:border-zinc-700/90 dark:bg-zinc-950/65 dark:hover:bg-zinc-950/75"
+                        className="rounded px-2 py-1 text-xs border border-zinc-700/80 bg-zinc-900/60 hover:bg-zinc-900/80"
                       >
                         Auto select
                       </a>
@@ -887,12 +1085,12 @@ export default async function PlayerPage({
             compareLabel={comparePlayer?.displayName ?? "Compare"}
           />
 
-          <section className="rounded-xl border border-zinc-300/50 bg-transparent backdrop-blur-[1px] dark:border-zinc-700/90 dark:bg-zinc-950/70 p-4 md:p-5 shadow-sm">
+          <section className="panel-premium rounded-xl p-4 md:p-5 shadow-sm">
         <h2 className="text-lg font-semibold mb-3">Items</h2>
         <p className="text-sm mb-2">Final build</p>
         <div className="flex flex-wrap gap-2 mb-4">
           {finalItems.length ? finalItems.map((it) => (
-            <span key={`${it.gameTimeS}-${it.itemId}`} className="px-2 py-1 rounded border border-zinc-300/50 bg-transparent text-xs whitespace-nowrap inline-flex items-center gap-1 dark:border-zinc-700/90 dark:bg-zinc-950/65">
+            <span key={`${it.gameTimeS}-${it.itemId}`} className="px-2 py-1 rounded border border-zinc-700/80 bg-zinc-900/60 text-xs whitespace-nowrap inline-flex items-center gap-1">
               {itemIconPath(Number(it.itemId)) ? (
                 <HeroIcon
                   src={itemIconPath(Number(it.itemId))}
@@ -907,31 +1105,38 @@ export default async function PlayerPage({
           )) : <span className="text-sm opacity-70">-</span>}
         </div>
 
-        <p className="text-sm mb-2">Timeline</p>
-        <div className="flex flex-wrap gap-2">
-          {timeline.length ? timeline.map((it) => (
-            <span key={`${it.gameTimeS}-${it.itemId}`} className="px-2 py-1 rounded border border-zinc-300/50 bg-transparent text-xs whitespace-nowrap inline-flex items-center gap-1 dark:border-zinc-700/90 dark:bg-zinc-950/65">
-              {itemIconPath(Number(it.itemId)) ? (
-                <HeroIcon
-                  src={itemIconPath(Number(it.itemId))}
-                  alt={itemName(Number(it.itemId))}
-                  width={14}
-                  height={14}
-                  className="h-3.5 w-3.5 rounded object-contain border border-zinc-700"
-                />
-              ) : null}
-              <span className="font-mono">{fmtTime(it.gameTimeS)}</span>{" "}
-              {itemName(Number(it.itemId))}
-              {it.soldTimeS && it.soldTimeS !== 0 ? ` (sold ${fmtTime(it.soldTimeS)})` : ""}
-            </span>
-          )) : <span className="text-sm opacity-70">-</span>}
-        </div>
+        <p className="text-sm mb-2">Ability progression</p>
+        {abilityProgressRows.length ? (
+          <div className="flex flex-wrap gap-2">
+            {abilityProgressRows.map((ability) => (
+              <span
+                key={ability.key}
+                className="px-2 py-1 rounded border border-zinc-700/80 bg-zinc-900/60 text-xs whitespace-nowrap inline-flex items-center gap-1"
+                title={`${ability.abilityName} • Lvl ${Math.max(ability.maxLevel, ability.unlockCount > 0 ? 1 : 0)} • Unlock ${ability.unlockCount} • Upgrade ${ability.upgradeCount} • Imbue ${ability.imbueCount}`}
+              >
+                {ability.abilityIconSrc ? (
+                  <HeroIcon
+                    src={ability.abilityIconSrc}
+                    alt={ability.abilityName}
+                    width={14}
+                    height={14}
+                    className="h-3.5 w-3.5 rounded object-contain border border-zinc-700"
+                  />
+                ) : null}
+                <span className="font-medium">{ability.abilityName}</span>
+                <span className="font-mono opacity-85">L{Math.max(ability.maxLevel, ability.unlockCount > 0 ? 1 : 0)}</span>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <span className="text-sm opacity-70">No ability upgrade data found.</span>
+        )}
           </section>
 
-          <section id="compare-players-block" className="rounded-xl border border-zinc-300/50 bg-transparent backdrop-blur-[1px] dark:border-zinc-700/90 dark:bg-zinc-950/70 p-4 md:p-5">
+          <section id="compare-players-block" className="panel-premium rounded-xl p-4 md:p-5">
             <h2 className="text-lg font-semibold mb-3">Compare players</h2>
             {compareOptions.length ? (
-              <div className="rounded border border-zinc-300/50 bg-transparent dark:border-zinc-700/90 dark:bg-zinc-950/60 p-3 mb-4">
+              <div className="panel-premium-soft rounded p-3 mb-4">
                 <p className="text-xs uppercase opacity-70 mb-2">Choose opponent</p>
                 <div className="flex flex-wrap gap-2">
                   {compareOptions.map((row) => {
@@ -943,7 +1148,7 @@ export default async function PlayerPage({
                         className={`px-2 py-1 rounded text-xs border ${
                           selected
                             ? "border-emerald-400 bg-emerald-500/10 text-emerald-300"
-                            : "border-zinc-300/50 bg-transparent hover:bg-transparent dark:border-zinc-700/90 dark:bg-zinc-950/65 dark:hover:bg-zinc-950/75"
+                            : "border-zinc-700/80 bg-zinc-900/60 hover:bg-zinc-900/80"
                         }`}
                       >
                         <span className="inline-flex items-center gap-1">
@@ -964,7 +1169,7 @@ export default async function PlayerPage({
                   {comparePlayer ? (
                     <a
                       href={`/match/${matchId}/player/${steamId}`}
-                      className="px-2 py-1 rounded text-xs border border-zinc-300/50 bg-transparent hover:bg-transparent dark:border-zinc-700/90 dark:bg-zinc-950/65 dark:hover:bg-zinc-950/75"
+                      className="px-2 py-1 rounded text-xs border border-zinc-700/80 bg-zinc-900/60 hover:bg-zinc-900/80"
                     >
                       Clear compare
                     </a>
@@ -976,8 +1181,8 @@ export default async function PlayerPage({
             )}
 
             {comparePlayer ? (
-              <div className="rounded border border-zinc-300/50 bg-transparent dark:border-zinc-700/90 dark:bg-zinc-950/65 mb-4 overflow-x-auto">
-                <div className="flex items-center justify-between gap-2 border-b border-zinc-300/50 dark:border-zinc-700/90 px-3 py-2 text-xs">
+              <div className="panel-premium-soft rounded mb-4 overflow-x-auto">
+                <div className="flex items-center justify-between gap-2 border-b border-zinc-700/80 px-3 py-2 text-xs">
                   <p className="opacity-80">Positive Δ favors you</p>
                   <p className="font-mono opacity-70">
                     You: {player.displayName ?? "(unknown)"} • Them: {comparePlayer.displayName ?? "(unknown)"}
@@ -993,7 +1198,7 @@ export default async function PlayerPage({
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-t border-zinc-300/50 odd:bg-transparent dark:border-zinc-700/90 dark:odd:bg-zinc-950/30">
+                    <tr className="border-t border-zinc-700/80 odd:bg-zinc-900/20">
                       <td className="px-3 py-2">KDA</td>
                       <td className="px-3 py-2 text-right font-mono">{fmt1(playerKda)}</td>
                       <td className="px-3 py-2 text-right font-mono">{compareKda != null ? fmt1(compareKda) : "-"}</td>
@@ -1001,7 +1206,7 @@ export default async function PlayerPage({
                         {compareKda != null ? fmtSigned(playerKda - compareKda) : "-"}
                       </td>
                     </tr>
-                    <tr className="border-t border-zinc-300/50 even:bg-transparent dark:border-zinc-700/90 dark:even:bg-zinc-950/30">
+                    <tr className="border-t border-zinc-700/80 even:bg-zinc-900/20">
                       <td className="px-3 py-2">Souls/min</td>
                       <td className="px-3 py-2 text-right font-mono">{fmt1(spm)}</td>
                       <td className="px-3 py-2 text-right font-mono">{compareSpm != null ? fmt1(compareSpm) : "-"}</td>
@@ -1009,7 +1214,7 @@ export default async function PlayerPage({
                         {compareSpm != null ? fmtSigned(spm - compareSpm) : "-"}
                       </td>
                     </tr>
-                    <tr className="border-t border-zinc-300/50 odd:bg-transparent dark:border-zinc-700/90 dark:odd:bg-zinc-950/30">
+                    <tr className="border-t border-zinc-700/80 odd:bg-zinc-900/20">
                       <td className="px-3 py-2">Damage/min</td>
                       <td className="px-3 py-2 text-right font-mono">{dpm != null ? fmt1(dpm) : "-"}</td>
                       <td className="px-3 py-2 text-right font-mono">{compareDpm != null ? fmt1(compareDpm) : "-"}</td>
@@ -1017,7 +1222,7 @@ export default async function PlayerPage({
                         {dpm != null && compareDpm != null ? fmtSigned(dpm - compareDpm) : "-"}
                       </td>
                     </tr>
-                    <tr className="border-t border-zinc-300/50 even:bg-transparent dark:border-zinc-700/90 dark:even:bg-zinc-950/30">
+                    <tr className="border-t border-zinc-700/80 even:bg-zinc-900/20">
                       <td className="px-3 py-2">Kill participation</td>
                       <td className="px-3 py-2 text-right font-mono">{killParticipation != null ? fmtPct(killParticipation) : "-"}</td>
                       <td className="px-3 py-2 text-right font-mono">{compareKillParticipation != null ? fmtPct(compareKillParticipation) : "-"}</td>
@@ -1025,7 +1230,7 @@ export default async function PlayerPage({
                         {killParticipation != null && compareKillParticipation != null ? `${fmtSigned(killParticipation - compareKillParticipation)}%` : "-"}
                       </td>
                     </tr>
-                    <tr className="border-t border-zinc-300/50 odd:bg-transparent dark:border-zinc-700/90 dark:odd:bg-zinc-950/30">
+                    <tr className="border-t border-zinc-700/80 odd:bg-zinc-900/20">
                       <td className="px-3 py-2">Accuracy</td>
                       <td className="px-3 py-2 text-right font-mono">{accuracy != null ? `${fmt1(accuracy)}%` : "-"}</td>
                       <td className="px-3 py-2 text-right font-mono">{compareAccuracy != null ? `${fmt1(compareAccuracy)}%` : "-"}</td>
@@ -1033,7 +1238,7 @@ export default async function PlayerPage({
                         {accuracy != null && compareAccuracy != null ? `${fmtSigned(accuracy - compareAccuracy)}%` : "-"}
                       </td>
                     </tr>
-                    <tr className="border-t border-zinc-300/50 even:bg-transparent dark:border-zinc-700/90 dark:even:bg-zinc-950/30">
+                    <tr className="border-t border-zinc-700/80 even:bg-zinc-900/20">
                       <td className="px-3 py-2">Souls</td>
                       <td className="px-3 py-2 text-right font-mono">{player.netWorth ?? "-"}</td>
                       <td className="px-3 py-2 text-right font-mono">{comparePlayer.netWorth ?? "-"}</td>
@@ -1085,7 +1290,7 @@ export default async function PlayerPage({
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-4 h-fit">
-          <section className="rounded-xl border border-zinc-300/50 bg-transparent backdrop-blur-[1px] dark:border-zinc-700/90 dark:bg-zinc-950/70 p-4">
+          <section className="panel-premium rounded-xl p-4">
             <h3 className="text-sm font-semibold mb-2">Quick insights</h3>
             <div className="space-y-2 text-sm">
               <p>Team size: <span className="font-mono">{teamRows.length}</span></p>
@@ -1096,7 +1301,7 @@ export default async function PlayerPage({
             </div>
           </section>
 
-          <section className="rounded-xl border border-zinc-300/50 bg-transparent backdrop-blur-[1px] dark:border-zinc-700/90 dark:bg-zinc-950/70 p-4">
+          <section className="panel-premium rounded-xl p-4">
             <h3 className="text-sm font-semibold mb-2">Economy source split</h3>
             <div className="space-y-2 text-sm">
               <p>Player gold: <span className="font-mono">{playerGold ?? "-"}</span></p>
@@ -1106,25 +1311,25 @@ export default async function PlayerPage({
             </div>
           </section>
 
-          <section className="rounded-xl border border-zinc-300/50 bg-transparent backdrop-blur-[1px] dark:border-zinc-700/90 dark:bg-zinc-950/70 p-4">
+          <section className="panel-premium rounded-xl p-4">
             <h3 className="text-sm font-semibold mb-2">Power-up buffs</h3>
             <div className="grid gap-2 sm:grid-cols-3 text-xs mb-3">
-              <div className="rounded border border-zinc-300/50 bg-transparent dark:border-zinc-700/90 dark:bg-zinc-950/65 px-2 py-1">
+              <div className="panel-premium-soft rounded px-2 py-1">
                 <p className="uppercase opacity-70">Total</p>
                 <p className="font-mono text-sm">{powerUpBuffs.length}</p>
               </div>
-              <div className="rounded border border-zinc-300/50 bg-transparent dark:border-zinc-700/90 dark:bg-zinc-950/65 px-2 py-1">
+              <div className="panel-premium-soft rounded px-2 py-1">
                 <p className="uppercase opacity-70">Permanent</p>
                 <p className="font-mono text-sm">{permanentBuffs.length} <span className="opacity-70">(v {permanentBuffValue})</span></p>
               </div>
-              <div className="rounded border border-zinc-300/50 bg-transparent dark:border-zinc-700/90 dark:bg-zinc-950/65 px-2 py-1">
+              <div className="panel-premium-soft rounded px-2 py-1">
                 <p className="uppercase opacity-70">Temporary</p>
                 <p className="font-mono text-sm">{temporaryBuffs.length} <span className="opacity-70">(v {temporaryBuffValue})</span></p>
               </div>
             </div>
 
             {powerUpBuffs.length ? (
-              <div className="rounded border border-zinc-300/50 bg-transparent dark:border-zinc-700/90 dark:bg-zinc-950/60 overflow-hidden">
+              <div className="panel-premium-soft rounded overflow-hidden">
                 <table className="w-full text-xs">
                   <thead className="bg-transparent dark:bg-zinc-950/70">
                     <tr>
@@ -1136,7 +1341,7 @@ export default async function PlayerPage({
                   </thead>
                   <tbody>
                     {groupedPowerUpBuffs.map((buff) => (
-                      <tr key={buff.type} className="border-t border-zinc-300/50 odd:bg-transparent dark:border-zinc-700/90 dark:odd:bg-zinc-950/30">
+                      <tr key={buff.type} className="border-t border-zinc-700/80 odd:bg-zinc-900/20">
                         <td className="px-2 py-1 font-medium">{prettifyBuffType(buff.type)}</td>
                         <td className="px-2 py-1 text-right font-mono">{buff.count}</td>
                         <td className="px-2 py-1 text-right font-mono">{buff.permanentCount}</td>
@@ -1151,7 +1356,7 @@ export default async function PlayerPage({
             )}
           </section>
 
-          <section className="rounded-xl border border-zinc-300/50 bg-transparent backdrop-blur-[1px] dark:border-zinc-700/90 dark:bg-zinc-950/70 p-4">
+          <section className="panel-premium rounded-xl p-4">
             <h3 className="text-sm font-semibold mb-2">Combat utility</h3>
             <div className="space-y-2 text-sm">
               <p>Max health: <span className="font-mono">{maxHealth ?? "-"}</span></p>
@@ -1169,7 +1374,7 @@ export default async function PlayerPage({
             deaths={matchHeatmap.deaths}
           />
 
-          <section className="rounded-xl border border-zinc-300/50 bg-transparent backdrop-blur-[1px] dark:border-zinc-700/90 dark:bg-zinc-950/70 p-4">
+          <section className="panel-premium rounded-xl p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h3 className="text-sm font-semibold">Super timeline</h3>
               <p className="text-xs opacity-70">{superTimeline.length} events</p>
@@ -1178,7 +1383,7 @@ export default async function PlayerPage({
               <HeightMatchedScroll
                 targetId="compare-players-block"
                 minHeight={280}
-                className="rounded border border-zinc-300/50 dark:border-zinc-700/90"
+                className="rounded border border-zinc-700/80"
               >
                 <table className="w-full text-xs">
                   <thead className="bg-zinc-900/60">

@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "deploy:prod": "npx vercel --prod --yes",
+    "deploy:preview": "npx vercel",
     "auth:secret": "node scripts/generate-nextauth-secret.mjs",
     "env:check": "node scripts/check-required-env.mjs",
     "env:check:prod": "node scripts/check-required-env.mjs --prod",

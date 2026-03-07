@@ -112,8 +112,44 @@ type PlayerAllMatchRow = {
   level: number | null;
   playerRawJson: unknown;
   matchRawJson: unknown;
+  scrimDate: Date | null;
   ingestedAt: Date | null;
 };
+
+function matchNumberFromId(matchId: string | null | undefined): number {
+  const raw = String(matchId ?? "").trim();
+  if (!raw) return Number.NEGATIVE_INFINITY;
+
+  const direct = Number(raw);
+  if (Number.isFinite(direct)) return direct;
+
+  const digitsOnly = raw.replace(/\D/g, "");
+  const parsed = Number(digitsOnly);
+  return Number.isFinite(parsed) ? parsed : Number.NEGATIVE_INFINITY;
+}
+
+function compareByDateThenMatchNumber(
+  a: { matchId: string; scrimDate?: Date | null; ingestedAt?: Date | null },
+  b: { matchId: string; scrimDate?: Date | null; ingestedAt?: Date | null },
+) {
+  const aDate = a.scrimDate ? new Date(a.scrimDate).getTime() : NaN;
+  const bDate = b.scrimDate ? new Date(b.scrimDate).getTime() : NaN;
+  const aHasDate = Number.isFinite(aDate);
+  const bHasDate = Number.isFinite(bDate);
+
+  if (aHasDate && bHasDate && aDate !== bDate) return bDate - aDate;
+  if (aHasDate !== bHasDate) return aHasDate ? -1 : 1;
+
+  const aMatchNumber = matchNumberFromId(a.matchId);
+  const bMatchNumber = matchNumberFromId(b.matchId);
+  if (aMatchNumber !== bMatchNumber) return bMatchNumber - aMatchNumber;
+
+  const aIngested = a.ingestedAt ? new Date(a.ingestedAt).getTime() : 0;
+  const bIngested = b.ingestedAt ? new Date(b.ingestedAt).getTime() : 0;
+  if (aIngested !== bIngested) return bIngested - aIngested;
+
+  return String(b.matchId).localeCompare(String(a.matchId));
+}
 
 export default async function PlayerAllMatchesPage({
   params,
@@ -131,26 +167,59 @@ export default async function PlayerAllMatchesPage({
     .where(eq(players.steamId, steamId))
     .limit(1);
 
-  const rows: PlayerAllMatchRow[] = await db
-    .select({
-      matchId: matchPlayers.matchId,
-      heroId: matchPlayers.heroId,
-      side: matchPlayers.side,
-      kills: matchPlayers.kills,
-      deaths: matchPlayers.deaths,
-      assists: matchPlayers.assists,
-      netWorth: matchPlayers.netWorth,
-      lastHits: matchPlayers.lastHits,
-      denies: matchPlayers.denies,
-      level: matchPlayers.level,
-      playerRawJson: matchPlayers.rawJson,
-      matchRawJson: matches.rawJson,
-      ingestedAt: matches.ingestedAt,
-    })
-    .from(matchPlayers)
-    .innerJoin(matches, eq(matches.matchId, matchPlayers.matchId))
-    .where(eq(matchPlayers.steamId, steamId))
-    .orderBy(desc(matches.ingestedAt));
+  const scrimDateColumnCheck = await db.execute(
+    `select 1 as ok from information_schema.columns where table_name = 'matches' and column_name = 'scrim_date' limit 1`
+  );
+  const hasScrimDateColumn = scrimDateColumnCheck.rows.length > 0;
+
+  const rows: PlayerAllMatchRow[] = hasScrimDateColumn
+    ? (
+        await db
+          .select({
+            matchId: matchPlayers.matchId,
+            heroId: matchPlayers.heroId,
+            side: matchPlayers.side,
+            kills: matchPlayers.kills,
+            deaths: matchPlayers.deaths,
+            assists: matchPlayers.assists,
+            netWorth: matchPlayers.netWorth,
+            lastHits: matchPlayers.lastHits,
+            denies: matchPlayers.denies,
+            level: matchPlayers.level,
+            playerRawJson: matchPlayers.rawJson,
+            matchRawJson: matches.rawJson,
+            scrimDate: matches.scrimDate,
+            ingestedAt: matches.ingestedAt,
+          })
+          .from(matchPlayers)
+          .innerJoin(matches, eq(matches.matchId, matchPlayers.matchId))
+          .where(eq(matchPlayers.steamId, steamId))
+          .orderBy(desc(matches.ingestedAt))
+      ).sort(compareByDateThenMatchNumber)
+    : (
+        await db
+          .select({
+            matchId: matchPlayers.matchId,
+            heroId: matchPlayers.heroId,
+            side: matchPlayers.side,
+            kills: matchPlayers.kills,
+            deaths: matchPlayers.deaths,
+            assists: matchPlayers.assists,
+            netWorth: matchPlayers.netWorth,
+            lastHits: matchPlayers.lastHits,
+            denies: matchPlayers.denies,
+            level: matchPlayers.level,
+            playerRawJson: matchPlayers.rawJson,
+            matchRawJson: matches.rawJson,
+            ingestedAt: matches.ingestedAt,
+          })
+          .from(matchPlayers)
+          .innerJoin(matches, eq(matches.matchId, matchPlayers.matchId))
+          .where(eq(matchPlayers.steamId, steamId))
+          .orderBy(desc(matches.ingestedAt))
+      )
+        .map((row) => ({ ...row, scrimDate: null as Date | null }))
+        .sort(compareByDateThenMatchNumber);
 
   if (!rows.length) {
     return (

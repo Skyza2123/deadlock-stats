@@ -479,7 +479,7 @@ export default async function EnemyTrackingPage({
   const avgSoulsDelta = selected && selected.matches > 0 ? (selected.teamSouls - selected.enemySouls) / selected.matches : 0;
 
   return (
-    <main className="w-full p-5 md:p-6 space-y-4">
+    <main className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
       <div className="flex items-center justify-between gap-3">
         <BackButton />
         <a href={`/teams/${teamSlug}`} className="text-sm text-zinc-300 hover:underline">
@@ -487,14 +487,14 @@ export default async function EnemyTrackingPage({
         </a>
       </div>
 
-      <header className="panel-premium rounded-xl p-4">
+      <header className="panel-premium rounded-xl p-4 md:p-5">
         <h1 className="heading-luxe text-3xl font-bold tracking-tight">{teamRow[0].name} enemy tracking</h1>
         <p className="mt-1.5 text-sm text-zinc-400">
           Switch opponents to compare performance charts across different enemy teams.
         </p>
       </header>
 
-      <section className="panel-premium rounded-xl p-4">
+      <section className="panel-premium rounded-xl p-4 md:p-5">
         <form method="GET" className="grid gap-2 md:grid-cols-[1fr_1fr_1fr_auto]">
           <input
             name="from"
@@ -544,7 +544,7 @@ export default async function EnemyTrackingPage({
             </div>
           </section>
 
-          <section className="panel-premium rounded-xl p-4">
+          <section className="panel-premium rounded-xl p-4 md:p-5">
             <h2 className="text-lg font-semibold mb-2">Performance charts</h2>
             <div className="space-y-3 text-sm">
               {[{
@@ -574,7 +574,7 @@ export default async function EnemyTrackingPage({
             </div>
           </section>
 
-          <section className="panel-premium rounded-xl p-4">
+          <section className="panel-premium rounded-xl p-4 md:p-5">
             <h2 className="text-lg font-semibold mb-2">Target tendencies</h2>
             <div className="grid gap-3 md:grid-cols-2 text-sm">
               <div className="panel-premium-soft rounded p-3">
@@ -596,7 +596,7 @@ export default async function EnemyTrackingPage({
             </div>
           </section>
 
-          <section className="panel-premium rounded-xl p-4">
+          <section className="panel-premium rounded-xl p-4 md:p-5">
             <h2 className="text-lg font-semibold mb-2">Opponent pool</h2>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {opponents.map((opp) => {
@@ -618,7 +618,7 @@ export default async function EnemyTrackingPage({
           </section>
         </>
       ) : (
-        <section className="panel-premium rounded-xl p-4">
+        <section className="panel-premium rounded-xl p-4 md:p-5">
           <p className="text-sm text-zinc-400">No mapped enemy teams found yet for this roster and filter.</p>
         </section>
       )}

@@ -21,8 +21,10 @@ type RecentMatchRow = {
 };
 
 type Props = {
-  rows: RecentMatchRow[];
+  teamRows: RecentMatchRow[];
+  tournamentRows: RecentMatchRow[];
   viewerKey: string;
+  defaultTab?: "team" | "tournament";
 };
 
 const HOME_RESULT_GROUP_STORAGE_KEY = "deadlock-home-result-group";
@@ -31,10 +33,16 @@ function storageKey(viewerKey: string) {
   return `removed-recent-matches:${viewerKey}`;
 }
 
-export default function HomeRecentPanel({ rows, viewerKey }: Props) {
+export default function HomeRecentPanel({
+  teamRows,
+  tournamentRows,
+  viewerKey,
+  defaultTab = "team",
+}: Props) {
   const router = useRouter();
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
   const [resultGroup, setResultGroup] = useState<"0" | "1">("0");
+  const [tab, setTab] = useState<"team" | "tournament">(defaultTab);
 
   useEffect(() => {
     try {
@@ -81,7 +89,10 @@ export default function HomeRecentPanel({ rows, viewerKey }: Props) {
     return row.winnerKey === resultGroup ? "Won" : "Lost";
   }
 
-  const combinedRows = useMemo(() => rows, [rows]);
+  const combinedRows = useMemo(
+    () => (tab === "team" ? teamRows : tournamentRows),
+    [tab, teamRows, tournamentRows]
+  );
 
   const visibleRows = useMemo(
     () => combinedRows.filter((row) => !removedIds.has(row.matchId)),
@@ -96,6 +107,23 @@ export default function HomeRecentPanel({ rows, viewerKey }: Props) {
         <div className="mb-3 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
           <h2 className="text-lg font-semibold">Recent matches</h2>
           <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex rounded-lg border border-zinc-700/80 bg-zinc-900/70 p-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setTab("team")}
+                className={`rounded px-2 py-1 ${tab === "team" ? "bg-zinc-700/90 text-zinc-100" : "text-zinc-400 hover:text-zinc-200"}`}
+              >
+                Team matches ({teamRows.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("tournament")}
+                className={`rounded px-2 py-1 ${tab === "tournament" ? "bg-zinc-700/90 text-zinc-100" : "text-zinc-400 hover:text-zinc-200"}`}
+              >
+                Tournament matches ({tournamentRows.length})
+              </button>
+            </div>
+
             <div className="inline-flex rounded-lg border border-zinc-700/80 bg-zinc-900/70 p-1 text-xs">
               <button
                 type="button"

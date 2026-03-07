@@ -37,9 +37,9 @@ export default function RootLayout({
           <ThemeInitializer />
           <div className="flex min-h-screen">
             <Sidebar />
-            <div className="flex min-h-screen flex-1 min-w-0 flex-col border-zinc-900/70 bg-zinc-950/35 pb-16 md:border-l md:pb-0">
+            <div className="flex min-h-screen flex-1 min-w-0 flex-col border-zinc-900/55 bg-zinc-950/25 pb-16 md:border-l md:pb-0">
               <div className="w-full flex-1">{children}</div>
-              <footer className="border-t border-zinc-800/80 px-4 py-3 text-xs text-zinc-400 sm:px-6 lg:px-8">
+              <footer className="border-t border-zinc-800/70 px-4 py-3 text-xs text-zinc-400 sm:px-6 lg:px-8">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <Link href="/privacy" className="hover:text-zinc-200 hover:underline">

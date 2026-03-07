@@ -116,7 +116,68 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   min-height: 100vh;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
   animation: ambient-glow-drift 18s ease-in-out infinite;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  width: 100%;
+}
+
+a {
+  transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
+}
+
+button,
+input,
+select,
+textarea {
+  transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="url"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+textarea,
+select {
+  border: 1px solid rgb(82 82 91 / 0.7);
+  border-radius: 0.5rem;
+  background: rgb(9 9 11 / 0.6);
+  color: rgb(228 228 231 / 0.98);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgb(161 161 170 / 0.95);
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+th {
+  letter-spacing: 0.01em;
+}
+
+tbody tr {
+  border-color: rgb(63 63 70 / 0.55);
 }
 
 body::before {
@@ -134,6 +195,7 @@ body::before {
   border: 1px solid rgb(63 63 70 / 0.62);
   background: linear-gradient(145deg, rgb(9 9 11 / 0.72), rgb(24 24 27 / 0.40));
   backdrop-filter: blur(10px);
+  border-radius: 0.75rem;
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.04),
     0 10px 28px rgb(0 0 0 / 0.22);
@@ -143,6 +205,7 @@ body::before {
   border: 1px solid rgb(63 63 70 / 0.5);
   background: linear-gradient(150deg, rgb(9 9 11 / 0.58), rgb(24 24 27 / 0.32));
   backdrop-filter: blur(8px);
+  border-radius: 0.75rem;
 }
 
 .panel-premium:hover {
@@ -294,6 +357,27 @@ textarea:focus-visible,
   border-color: rgb(var(--border-light) / 0.95);
   background: rgb(var(--surface-900) / 0.7);
   color: rgb(var(--text-light-strong));
+}
+
+:root[data-mode="light"] input[type="text"],
+:root[data-mode="light"] input[type="search"],
+:root[data-mode="light"] input[type="email"],
+:root[data-mode="light"] input[type="password"],
+:root[data-mode="light"] input[type="number"],
+:root[data-mode="light"] input[type="url"],
+:root[data-mode="light"] input[type="date"],
+:root[data-mode="light"] input[type="time"],
+:root[data-mode="light"] input[type="datetime-local"],
+:root[data-mode="light"] textarea,
+:root[data-mode="light"] select {
+  border-color: rgb(var(--border-light) / 0.9);
+  background: rgb(var(--surface-950) / 0.72);
+  color: rgb(var(--text-light-strong));
+}
+
+:root[data-mode="light"] input::placeholder,
+:root[data-mode="light"] textarea::placeholder {
+  color: rgb(var(--text-light-muted));
 }
 
 ::selection {

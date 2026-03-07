@@ -1,3 +1,5 @@
+import { DEADLOCK_PATH_GRID_BOUNDS, DEADLOCK_WORLD_BOUNDS } from "./mapBounds";
+
 export type HeatmapPoint = {
   x: number;
   y: number;
@@ -668,19 +670,9 @@ type Normalizer = {
   invertY: boolean;
 };
 
-const PATH_GRID_BOUNDS: CoordBounds = {
-  minX: 0,
-  maxX: 16383,
-  minY: 0,
-  maxY: 16383,
-};
+const PATH_GRID_BOUNDS: CoordBounds = DEADLOCK_PATH_GRID_BOUNDS;
 
-const WORLD_BOUNDS: CoordBounds = {
-  minX: -9000,
-  maxX: 9000,
-  minY: -9000,
-  maxY: 9000,
-};
+const WORLD_BOUNDS: CoordBounds = DEADLOCK_WORLD_BOUNDS;
 
 function resolveBounds(points: HeatmapPoint[]): CoordBounds | null {
   if (!points.length) return null;

@@ -20,6 +20,29 @@ function normalizeEnemyTeamName(value: string) {
   return collapsed.slice(0, 80);
 }
 
+function normalizeScrimName(value: string) {
+  const collapsed = value.replace(/\s+/g, " ").trim();
+  if (!collapsed) return "";
+  return collapsed.slice(0, 80);
+}
+
+function parseScrimDate(value: string) {
+  const trimmed = String(value ?? "").trim();
+  if (!trimmed) return null;
+
+  const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (dateOnlyMatch) {
+    const year = Number(dateOnlyMatch[1]);
+    const month = Number(dateOnlyMatch[2]);
+    const day = Number(dateOnlyMatch[3]);
+    const parsedUtc = new Date(Date.UTC(year, month - 1, day));
+    return Number.isNaN(parsedUtc.getTime()) ? null : parsedUtc;
+  }
+
+  const parsed = new Date(trimmed);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function attachEnemyGroupMetadata(raw: any, teamSlug: string, enemyTeamName: string) {
   if (!enemyTeamName) return raw;
   const source = raw && typeof raw === "object" ? raw : {};
@@ -39,6 +62,18 @@ function attachEnemyGroupMetadata(raw: any, teamSlug: string, enemyTeamName: str
       },
     },
   };
+}
+
+function isMissingSavedMatchesTableError(err: any) {
+  const topCode = String(err?.code ?? "").trim();
+  const causeCode = String(err?.cause?.code ?? "").trim();
+  const topMessage = String(err?.message ?? "").toLowerCase();
+  const causeMessage = String(err?.cause?.message ?? "").toLowerCase();
+
+  if (topCode === "42P01" || causeCode === "42P01") return true;
+
+  const marker = 'relation "saved_matches" does not exist';
+  return topMessage.includes(marker) || causeMessage.includes(marker);
 }
 
 async function fetchPersonaForAccountId(accountId: string, apiKey: string) {
@@ -64,13 +99,24 @@ async function fetchPersonaForAccountId(accountId: string, apiKey: string) {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ ok: false, error: "Sign in required" }, { status: 401 });
+    }
 
     const form = await req.formData();
     const matchId = String(form.get("matchId") ?? "").trim();
     const teamSlug = String(form.get("teamSlug") ?? "").trim();
     const enemyTeamName = normalizeEnemyTeamName(String(form.get("enemyTeamName") ?? ""));
-    const isSignedIn = Boolean(session);
+    const assignmentTypeRaw = String(form.get("assignmentType") ?? "team").trim().toLowerCase();
+    const assignmentType = assignmentTypeRaw === "individual" ? "individual" : "team";
+    const isTeamUpload = assignmentType === "team";
+    const scrimName = normalizeScrimName(String(form.get("scrimName") ?? ""));
+    const scrimDateRaw = String(form.get("scrimDate") ?? "");
+    const parsedScrimDate = parseScrimDate(scrimDateRaw);
+
     const rawUserId = String((session?.user as { id?: string } | undefined)?.id ?? "");
+    const sessionEmail = String(session?.user?.email ?? "").trim().toLowerCase();
+    const savedMatchesKey = String(rawUserId || sessionEmail).trim();
     const membershipKey = rawUserId.startsWith("user:")
       ? rawUserId.slice(5)
       : rawUserId.startsWith("steam:")
@@ -81,11 +127,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Missing matchId" }, { status: 400 });
     }
 
-    if (isSignedIn && !teamSlug) {
+    if (isTeamUpload && !teamSlug) {
       return NextResponse.json({ ok: false, error: "Missing team selection" }, { status: 400 });
     }
 
-    if (isSignedIn) {
+    if (isTeamUpload) {
       if (!membershipKey) {
         return NextResponse.json({ ok: false, error: "Invalid session user" }, { status: 401 });
       }
@@ -124,36 +170,61 @@ export async function POST(req: Request) {
       .limit(1);
 
     if (existingMatch.length > 0) {
-      if (isSignedIn) {
-        if (enemyTeamName) {
-          const existingRaw = await db
-            .select({ rawJson: matches.rawJson })
-            .from(matches)
-            .where(eq(matches.matchId, matchId))
-            .limit(1);
+      const existingRaw = await db
+        .select({ rawJson: matches.rawJson })
+        .from(matches)
+        .where(eq(matches.matchId, matchId))
+        .limit(1);
 
-          if (existingRaw.length) {
-            const mergedRaw = attachEnemyGroupMetadata(existingRaw[0].rawJson, teamSlug, enemyTeamName);
-            await db
-              .update(matches)
-              .set({ rawJson: mergedRaw, ingestedAt: new Date(), saved: 1 })
-              .where(eq(matches.matchId, matchId));
-          }
+      let mergedRaw = attachIngestMetadata(existingRaw[0]?.rawJson ?? {}, {
+        teamSlug: isTeamUpload ? teamSlug : "",
+        assignmentType,
+        ownerId: rawUserId,
+        scrimName,
+        scrimDate: parsedScrimDate,
+      });
+
+      if (isTeamUpload && enemyTeamName) {
+        mergedRaw = attachEnemyGroupMetadata(mergedRaw, teamSlug, enemyTeamName);
+      }
+
+      const updatePayload: {
+        rawJson: unknown;
+        ingestedAt: Date;
+        saved: number;
+        scrimDate?: Date | null;
+      } = {
+        rawJson: mergedRaw,
+        ingestedAt: new Date(),
+        saved: 1,
+      };
+
+      const existingScrimDateColumnCheck = await db.execute(
+        sql`select 1 as ok from information_schema.columns where table_name = 'matches' and column_name = 'scrim_date' limit 1`
+      );
+      const hasExistingScrimDateColumn = existingScrimDateColumnCheck.rows.length > 0;
+      if (hasExistingScrimDateColumn && parsedScrimDate) {
+        updatePayload.scrimDate = parsedScrimDate;
+      }
+
+      await db
+        .update(matches)
+        .set(updatePayload)
+        .where(eq(matches.matchId, matchId));
+
+      if (savedMatchesKey) {
+        try {
+          await db.execute(
+            sql`insert into saved_matches (steam_id, match_id) values (${savedMatchesKey}, ${matchId}) on conflict (steam_id, match_id) do nothing`
+          );
+        } catch (err) {
+          if (!isMissingSavedMatchesTableError(err)) throw err;
         }
-
-        await db
-          .update(matches)
-          .set({ saved: 1, ingestedAt: new Date() })
-          .where(eq(matches.matchId, matchId));
-
-        await db.execute(
-          sql`insert into saved_matches (steam_id, match_id) values (${rawUserId}, ${matchId}) on conflict (steam_id, match_id) do nothing`
-        );
       }
 
       return NextResponse.json({
         ok: true,
-        saved: isSignedIn,
+        saved: true,
         fromDb: true,
         matchId,
         teamSlug: teamSlug || null,
@@ -183,7 +254,15 @@ export async function POST(req: Request) {
     }
 
     let matchJson: any = await res.json();
-    if (isSignedIn && enemyTeamName) {
+    matchJson = attachIngestMetadata(matchJson, {
+      teamSlug: isTeamUpload ? teamSlug : "",
+      assignmentType,
+      ownerId: rawUserId,
+      scrimName,
+      scrimDate: parsedScrimDate,
+    });
+
+    if (isTeamUpload && enemyTeamName) {
       matchJson = attachEnemyGroupMetadata(matchJson, teamSlug, enemyTeamName);
     }
     const participants: any[] = matchJson?.match_info?.players ?? [];
@@ -218,36 +297,47 @@ export async function POST(req: Request) {
     );
     const hasMatchScrimDateColumn = matchScrimDateColumnResult.rows.length > 0;
 
-    if (!isSignedIn) {
-      return NextResponse.json({
-        ok: true,
-        saved: false,
-        matchId,
-        matchJson,
-        redirectTo: `/preview/match/${matchId}`,
-      });
-    }
-
     await db.transaction(async (tx) => {
       // 1) Save raw JSON always
       if (hasMatchScrimDateColumn) {
+        const matchValues: {
+          matchId: string;
+          rawJson: unknown;
+          startedAt: null;
+          endedAt: null;
+          map: null;
+          saved: number;
+          scrimDate?: Date | null;
+        } = {
+          matchId,
+          rawJson: matchJson,
+          startedAt: null,
+          endedAt: null,
+          map: null,
+          saved: 1,
+        };
+        matchValues.scrimDate = parsedScrimDate;
+
+        const updateSet: {
+          rawJson: unknown;
+          ingestedAt: Date;
+          saved: number;
+          scrimDate?: Date | null;
+        } = {
+          rawJson: matchJson,
+          ingestedAt: new Date(),
+          saved: 1,
+        };
+        if (parsedScrimDate) {
+          updateSet.scrimDate = parsedScrimDate;
+        }
+
         await tx
           .insert(matches)
-          .values({
-            matchId,
-            rawJson: matchJson,
-            startedAt: null,
-            endedAt: null,
-            map: null,
-            saved: 1,
-          })
+          .values(matchValues)
           .onConflictDoUpdate({
             target: matches.matchId,
-            set: {
-              rawJson: matchJson,
-              ingestedAt: new Date(),
-              saved: 1,
-            },
+            set: updateSet,
           });
       } else {
         await tx.execute(sql`
@@ -445,23 +535,73 @@ export async function POST(req: Request) {
       }
     });
 
-    if (isSignedIn) {
-      await db.execute(
-        sql`insert into saved_matches (steam_id, match_id) values (${rawUserId}, ${matchId}) on conflict (steam_id, match_id) do nothing`
-      );
+    if (savedMatchesKey) {
+      try {
+        await db.execute(
+          sql`insert into saved_matches (steam_id, match_id) values (${savedMatchesKey}, ${matchId}) on conflict (steam_id, match_id) do nothing`
+        );
+      } catch (err) {
+        if (!isMissingSavedMatchesTableError(err)) throw err;
+      }
     }
 
     return NextResponse.json({
       ok: true,
       saved: true,
       matchId,
-      teamSlug,
+      teamSlug: isTeamUpload ? teamSlug : null,
+      assignmentType,
+      publicUpload: false,
       redirectTo: `/match/${matchId}`,
     });
   } catch (err: any) {
+    const causeMessage = String(err?.cause?.message ?? "").trim();
+    const baseMessage = String(err?.message ?? err ?? "Unknown error").trim();
+    const details = causeMessage || baseMessage;
+
     return NextResponse.json(
-      { ok: false, error: "Server error", details: String(err?.message ?? err) },
+      { ok: false, error: "Server error", details },
       { status: 500 }
     );
   }
+}
+
+function attachIngestMetadata(
+  raw: any,
+  options: {
+    teamSlug?: string;
+    assignmentType?: "team" | "individual";
+    ownerId?: string;
+    scrimName?: string;
+    scrimDate?: Date | null;
+  }
+) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const existingMeta = source.__ingestMeta && typeof source.__ingestMeta === "object" ? source.__ingestMeta : {};
+  const existingTeamSlugsRaw = Array.isArray(existingMeta.teamSlugs) ? existingMeta.teamSlugs : [];
+  const existingTeamSlugs = existingTeamSlugsRaw
+    .map((value: unknown) => String(value ?? "").trim())
+    .filter(Boolean);
+
+  const nextTeamSlugs = new Set(existingTeamSlugs);
+  const teamSlug = String(options.teamSlug ?? "").trim();
+  if (teamSlug) nextTeamSlugs.add(teamSlug);
+
+  const assignmentType = options.assignmentType === "individual" ? "individual" : "team";
+  const ownerId = String(options.ownerId ?? "").trim();
+  const scrimName = normalizeScrimName(String(options.scrimName ?? ""));
+  const scrimDateIso = options.scrimDate ? new Date(options.scrimDate).toISOString() : null;
+
+  return {
+    ...source,
+    __ingestMeta: {
+      ...existingMeta,
+      teamSlugs: [...nextTeamSlugs],
+      assignmentType,
+      ownerId: ownerId || null,
+      scrimName: scrimName || null,
+      scrimDate: scrimDateIso,
+      public: false,
+    },
+  };
 }

@@ -1,17 +1,14 @@
 // app/match/[matchId]/page.tsx
-import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
 import { db } from "../../../db";
 import { matches, matchPlayers, players, matchPlayerItems } from "../../../db/schema";
 import { eq, sql } from "drizzle-orm";
 import { heroName, itemName, fmtTime, hasItem } from "../../../lib/deadlockData";
+import { getAbilityMeta } from "../../../lib/abilityCatalog";
 import { heroSmallIconPath, heroBackgroundPath } from "../../../lib/heroIcons";
 import { itemIconPath } from "../../../lib/itemIcons";
 import BackButton from "../../../components/BackButton";
 import HeroIcon from "../../../components/HeroIcon";
-import { authOptions } from "../../../lib/auth";
-import UploadBansButton from "../../../components/UploadBansButton";
+import MatchTabsNav from "../../../components/MatchTabsNav";
 
 const TEAM_NAMES: Record<string, string> = {
   "0": "Hidden King",
@@ -29,6 +26,7 @@ type PlayerRow = {
   displayName: string | null;
   side: string | null; // "0" | "1"
   heroId: string | null;
+  rawJson: unknown;
 
   kills: number | null;
   deaths: number | null;
@@ -46,7 +44,23 @@ type ItemRow = {
   itemId: number;
   soldTimeS: number | null;
   upgradeId: number | null;
+  imbuedAbilityId: number | null;
 };
+
+type AbilitySummaryRow = {
+  key: string;
+  name: string;
+  iconSrc: string | null;
+  level: number;
+  unlocks: number;
+  upgrades: number;
+  imbues: number;
+};
+
+function clampAbilityLevel(level: number) {
+  if (!Number.isFinite(level)) return 0;
+  return Math.max(0, Math.min(3, Math.floor(level)));
+}
 
 type DraftEventView = {
   heroId: string;
@@ -78,14 +92,6 @@ function winnerText(raw: any) {
   if (side == null) return "Winner: Unknown";
   const key = String(side);
   return `Winner: ${TEAM_NAMES[key] ?? key}`;
-}
-
-function fmtDateInput(value: Date | null | undefined) {
-  if (!value) return "";
-  const y = value.getUTCFullYear();
-  const m = String(value.getUTCMonth() + 1).padStart(2, "0");
-  const d = String(value.getUTCDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
 }
 
 function extractBanCount(raw: any) {
@@ -159,18 +165,238 @@ function draftSideLabel(side: string | null) {
   return normalized;
 }
 
+function numberFromCandidate(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value.replace(/,/g, "").trim());
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function firstNumeric(obj: any, keys: string[]) {
+  for (const key of keys) {
+    const value = numberFromCandidate(obj?.[key]);
+    if (value != null) return value;
+  }
+  return null;
+}
+
+function firstText(obj: any, keys: string[]) {
+  for (const key of keys) {
+    const value = obj?.[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
+}
+
+function detectAbilityEventKind(event: any): "unlock" | "upgrade" | "imbue" {
+  const rawKind = String(
+    event?.event_type ?? event?.eventType ?? event?.kind ?? event?.action ?? event?.type ?? ""
+  )
+    .toLowerCase()
+    .trim();
+
+  if (firstNumeric(event, ["imbued_ability_id", "imbuedAbilityId"]) != null || rawKind.includes("imbue")) {
+    return "imbue";
+  }
+  if (rawKind.includes("unlock") || rawKind.includes("learn") || rawKind.includes("acquire") || rawKind.includes("first")) {
+    return "unlock";
+  }
+  return "upgrade";
+}
+
+function buildAbilitySummaryForPlayer(playerRaw: any, items: ItemRow[]): AbilitySummaryRow[] {
+  const summary = new Map<string, AbilitySummaryRow>();
+  const seenAbilityKeys = new Set<string>();
+
+  const touch = (
+    abilityId: number | null,
+    directName: string | null,
+    directIcon: string | null,
+    kind: "unlock" | "upgrade" | "imbue",
+    levelHint: number | null,
+  ) => {
+    if (abilityId != null && abilityId <= 0) return;
+
+    const meta = abilityId != null ? getAbilityMeta(abilityId) : null;
+    const name = meta?.name ?? directName ?? (abilityId != null ? `Ability ${abilityId}` : "Unknown ability");
+    if (name === "Ability 0") return;
+    const iconSrc = meta?.iconSrc ?? directIcon ?? null;
+    const key = abilityId != null ? `id:${abilityId}` : `name:${name.toLowerCase()}`;
+
+    const row = summary.get(key) ?? {
+      key,
+      name,
+      iconSrc,
+      level: 0,
+      unlocks: 0,
+      upgrades: 0,
+      imbues: 0,
+    };
+
+    if (!row.iconSrc && iconSrc) row.iconSrc = iconSrc;
+
+    if (kind === "unlock") {
+      row.unlocks += 1;
+      row.level = clampAbilityLevel(Math.max(row.level, 1));
+    } else if (kind === "upgrade") {
+      row.upgrades += 1;
+      row.level = clampAbilityLevel(Math.max(row.level, levelHint ?? row.unlocks + row.upgrades));
+    } else {
+      row.imbues += 1;
+    }
+
+    summary.set(key, row);
+  };
+
+  const abilityArrays: any[][] = [
+    playerRaw?.ability_events,
+    playerRaw?.abilityEvents,
+    playerRaw?.ability_casts,
+    playerRaw?.abilityCasts,
+    playerRaw?.cast_events,
+    playerRaw?.casts,
+    playerRaw?.abilities,
+  ].filter(Array.isArray);
+
+  for (const array of abilityArrays) {
+    for (const event of array) {
+      const detectedKind = detectAbilityEventKind(event);
+      const baseAbilityId = firstNumeric(event, ["ability_id", "abilityId", "caster_ability_id", "killer_ability_id"]);
+      const imbuedAbilityId = firstNumeric(event, ["imbued_ability_id", "imbuedAbilityId"]);
+      const abilityId = detectedKind === "imbue" ? (imbuedAbilityId ?? baseAbilityId) : baseAbilityId;
+      const name = firstText(event, ["ability_name", "abilityName", "killer_ability_name", "cast_name", "name"]);
+      const icon = firstText(event, ["ability_icon", "abilityIcon", "image", "image_webp", "icon"]);
+      const levelHint = firstNumeric(event, ["upgrade_id", "upgradeId", "ability_level", "abilityLevel", "new_level", "level"]);
+
+      if (abilityId != null && Number(abilityId) <= 0) continue;
+      if (abilityId == null && !name) continue;
+
+      const abilityKey =
+        abilityId != null
+          ? `id:${Number(abilityId)}`
+          : name
+            ? `name:${name.toLowerCase()}`
+            : null;
+
+      const kind =
+        detectedKind === "imbue"
+          ? "imbue"
+          : abilityKey && seenAbilityKeys.has(abilityKey)
+            ? "upgrade"
+            : "unlock";
+
+      if (abilityKey) seenAbilityKeys.add(abilityKey);
+
+      touch(abilityId != null ? Number(abilityId) : null, name, icon, kind, levelHint != null ? Number(levelHint) : null);
+    }
+  }
+
+  for (const item of items) {
+    const itemId = Number(item.itemId);
+    if (!Number.isFinite(itemId) || itemId <= 0) continue;
+    if (!hasItem(itemId)) {
+      const meta = getAbilityMeta(itemId);
+      if (meta) {
+        const abilityKey = `id:${itemId}`;
+        const kind: "unlock" | "upgrade" = seenAbilityKeys.has(abilityKey) ? "upgrade" : "unlock";
+        seenAbilityKeys.add(abilityKey);
+        touch(itemId, meta.name, meta.iconSrc, kind, item.upgradeId != null ? Number(item.upgradeId) : null);
+      }
+    }
+
+    if (item.imbuedAbilityId != null && Number.isFinite(Number(item.imbuedAbilityId))) {
+      const imbuedId = Number(item.imbuedAbilityId);
+      if (imbuedId > 0) {
+        touch(imbuedId, null, null, "imbue", null);
+      }
+    }
+  }
+
+  return [...summary.values()].sort((a, b) => {
+    if (clampAbilityLevel(b.level) !== clampAbilityLevel(a.level)) return clampAbilityLevel(b.level) - clampAbilityLevel(a.level);
+    const aEvents = a.unlocks + a.upgrades + a.imbues;
+    const bEvents = b.unlocks + b.upgrades + b.imbues;
+    if (bEvents !== aEvents) return bEvents - aEvents;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+function extractRawParticipants(raw: any): any[] {
+  const candidates = [
+    raw?.players,
+    raw?.match_info?.players,
+    raw?.match_info?.participants,
+    raw?.participants,
+    raw?.game_mode?.players,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+  }
+
+  return [];
+}
+
+function extractParticipantSide(participant: any) {
+  return normalizeDraftSide(
+    participant?.side ??
+      participant?.team ??
+      participant?.team_id ??
+      participant?.teamId ??
+      participant?.team_number ??
+      null
+  );
+}
+
+function extractTeamScore(raw: any, side: "0" | "1") {
+  const direct = firstNumeric(raw?.match_info, [
+    side === "0" ? "team0_score" : "team1_score",
+    side === "0" ? "score_team0" : "score_team1",
+  ]);
+  if (direct != null) return direct;
+
+  const indexedSources = [raw?.match_info?.team_scores, raw?.team_scores, raw?.score_by_team];
+  for (const source of indexedSources) {
+    if (Array.isArray(source)) {
+      const fromArray = numberFromCandidate(source[Number(side)]);
+      if (fromArray != null) return fromArray;
+    }
+
+    if (source && typeof source === "object") {
+      const fromObj = numberFromCandidate((source as any)?.[side]);
+      if (fromObj != null) return fromObj;
+    }
+  }
+
+  return null;
+}
+
+function fmtMetric(value: number) {
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
+}
+
+function formatUtcScrimDate(value: Date | null | undefined) {
+  if (!value) return "Not set";
+  return new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    timeZone: "UTC",
+  }).format(value);
+}
+
 export default async function MatchPage({
   params,
   searchParams,
 }: {
   params: Promise<{ matchId: string }>;
-  searchParams?: Promise<{ selectedSteamId?: string; dateStatus?: string }>;
+  searchParams?: Promise<{ selectedSteamId?: string }>;
 }) {
   const { matchId } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const selectedSteamId = resolvedSearchParams?.selectedSteamId ?? undefined;
-  const dateStatus = resolvedSearchParams?.dateStatus ?? "";
-  const session = await getServerSession(authOptions);
 
   const scrimDateColumnCheck = await db.execute(
     sql`select 1 as ok from information_schema.columns where table_name = 'matches' and column_name = 'scrim_date' limit 1`
@@ -191,39 +417,6 @@ export default async function MatchPage({
           .limit(1)
       ).map((row) => ({ ...row, scrimDate: null as Date | null }));
 
-  async function setScrimDateAction(formData: FormData) {
-    "use server";
-
-    const session = await getServerSession(authOptions);
-    if (!session) return;
-
-    const scrimDateColumnCheck = await db.execute(
-      sql`select 1 as ok from information_schema.columns where table_name = 'matches' and column_name = 'scrim_date' limit 1`
-    );
-    if (scrimDateColumnCheck.rows.length === 0) {
-      await db.execute(sql`alter table "matches" add column if not exists "scrim_date" timestamp with time zone`);
-    }
-
-    const scrimDateRaw = String(formData.get("scrimDate") ?? "").trim();
-
-    let scrimDate: Date | null = null;
-    if (scrimDateRaw) {
-      const parsed = new Date(`${scrimDateRaw}T00:00:00.000Z`);
-      if (Number.isFinite(parsed.getTime())) {
-        scrimDate = parsed;
-      }
-    }
-
-    await db
-      .update(matches)
-      .set({ scrimDate })
-      .where(eq(matches.matchId, matchId));
-
-    revalidatePath(`/match/${matchId}`);
-    revalidatePath(`/`);
-    redirect(`/match/${matchId}?dateStatus=${scrimDate ? "saved" : "cleared"}`);
-  }
-
   if (matchRow.length === 0) {
     return (
       <main className="w-full p-4 sm:p-6 lg:p-8 space-y-4">
@@ -242,6 +435,7 @@ export default async function MatchPage({
       displayName: players.displayName,
       side: matchPlayers.side,
       heroId: matchPlayers.heroId,
+      rawJson: matchPlayers.rawJson,
 
       kills: matchPlayers.kills,
       deaths: matchPlayers.deaths,
@@ -263,6 +457,7 @@ export default async function MatchPage({
       itemId: matchPlayerItems.itemId,
       soldTimeS: matchPlayerItems.soldTimeS,
       upgradeId: matchPlayerItems.upgradeId,
+      imbuedAbilityId: matchPlayerItems.imbuedAbilityId,
     })
     .from(matchPlayerItems)
     .where(eq(matchPlayerItems.matchId, matchId));
@@ -289,7 +484,6 @@ export default async function MatchPage({
   // --- derive match duration for Souls/min ---
   // Try to get duration from raw JSON if present, else fallback to max item time
   const raw: any = matchRow[0].rawJson;
-  const banCount = extractBanCount(raw);
   const draftEvents = extractDraftEvents(raw);
   const unknownSideDraftEvents = draftEvents.filter((event) => !["0", "1"].includes(String(event.side ?? "")));
   const rawDuration = Number(
@@ -298,16 +492,84 @@ export default async function MatchPage({
       raw?.duration_s ??
       NaN
   );
+  const observedGameTimes: number[] = [];
+  const pushObservedTime = (value: unknown) => {
+    const n = numberFromCandidate(value);
+    if (n != null && Number.isFinite(n) && n >= 0) observedGameTimes.push(n);
+  };
 
-  const maxItemTime =
-    itemRows.length > 0
-      ? Math.max(...itemRows.map((x) => safeNum(x.gameTimeS)))
-      : 0;
+  for (const itemRow of itemRows) {
+    pushObservedTime(itemRow.gameTimeS);
+    pushObservedTime(itemRow.soldTimeS);
+  }
 
+  const participantsForDuration = extractRawParticipants(raw);
+  for (const participant of participantsForDuration) {
+    const deathDetails = Array.isArray(participant?.death_details) ? participant.death_details : [];
+    for (const death of deathDetails) {
+      pushObservedTime(death?.game_time_s ?? death?.time_s ?? death?.time_stamp_s);
+    }
+
+    const itemEvents = Array.isArray(participant?.items) ? participant.items : [];
+    for (const itemEvent of itemEvents) {
+      pushObservedTime(itemEvent?.game_time_s ?? itemEvent?.time_s ?? itemEvent?.time_stamp_s);
+      pushObservedTime(itemEvent?.sold_time_s ?? itemEvent?.soldTimeS);
+    }
+
+    const abilityEventArrays: any[][] = [
+      participant?.ability_events,
+      participant?.abilityEvents,
+      participant?.ability_casts,
+      participant?.abilityCasts,
+      participant?.cast_events,
+      participant?.casts,
+      participant?.abilities,
+    ].filter(Array.isArray);
+
+    for (const eventArray of abilityEventArrays) {
+      for (const abilityEvent of eventArray) {
+        pushObservedTime(
+          abilityEvent?.game_time_s ??
+            abilityEvent?.time_stamp_s ??
+            abilityEvent?.time_s ??
+            abilityEvent?.cast_time_s ??
+            abilityEvent?.event_time_s ??
+            abilityEvent?.timestamp_s
+        );
+      }
+    }
+
+    const stats = Array.isArray(participant?.stats) ? participant.stats : [];
+    for (const snapshot of stats) {
+      pushObservedTime(snapshot?.time_stamp_s ?? snapshot?.game_time_s ?? snapshot?.time_s);
+    }
+  }
+
+  const observedObjectiveEvents = Array.isArray(raw?.match_info?.objectives)
+    ? raw.match_info.objectives
+    : Array.isArray(raw?.objectives)
+      ? raw.objectives
+      : [];
+  for (const objective of observedObjectiveEvents) {
+    pushObservedTime(objective?.destroyed_time_s ?? objective?.game_time_s ?? objective?.time_s);
+  }
+
+  const observedPauseEvents = Array.isArray(raw?.match_info?.match_pauses)
+    ? raw.match_info.match_pauses
+    : Array.isArray(raw?.match_pauses)
+      ? raw.match_pauses
+      : [];
+  for (const pause of observedPauseEvents) {
+    pushObservedTime(pause?.game_time_s ?? pause?.start_time_s ?? pause?.time_s);
+  }
+
+  const observedDuration = observedGameTimes.length ? Math.max(...observedGameTimes) : null;
   const durationS =
-    Number.isFinite(rawDuration) && rawDuration > 0
-      ? rawDuration
-      : Math.max(1, maxItemTime);
+    observedDuration != null && observedDuration > 0
+      ? observedDuration
+      : Number.isFinite(rawDuration) && rawDuration > 0
+        ? rawDuration
+        : 1;
 
   // --- split rows by team ---
   const bySide = new Map<string, PlayerRow[]>();
@@ -354,6 +616,105 @@ export default async function MatchPage({
     return t;
   }
 
+  const teamRows0 = bySide.get("0") ?? [];
+  const teamRows1 = bySide.get("1") ?? [];
+
+  const kills0 = teamRows0.reduce((sum, row) => sum + safeNum(row.kills), 0);
+  const kills1 = teamRows1.reduce((sum, row) => sum + safeNum(row.kills), 0);
+
+  const participants = extractRawParticipants(raw);
+  const participantDamageBySide: Record<"0" | "1", number> = { "0": 0, "1": 0 };
+  const participantHealingBySide: Record<"0" | "1", number> = { "0": 0, "1": 0 };
+  let hasParticipantCombatData = false;
+
+  for (const participant of participants) {
+    const side = extractParticipantSide(participant);
+    if (side !== "0" && side !== "1") continue;
+
+    const heroDamage =
+      firstNumeric(participant, [
+        "hero_damage_dealt",
+        "hero_damage",
+        "player_damage",
+        "player_damage_dealt",
+      ]) ?? 0;
+
+    const healing =
+      firstNumeric(participant, [
+        "healing_dealt",
+        "healing_done",
+        "player_healing",
+        "healing",
+      ]) ?? 0;
+
+    participantDamageBySide[side] += heroDamage;
+    participantHealingBySide[side] += healing;
+    if (heroDamage > 0 || healing > 0) hasParticipantCombatData = true;
+  }
+
+  const rowDamageBySide: Record<"0" | "1", number> = { "0": 0, "1": 0 };
+  const rowHealingBySide: Record<"0" | "1", number> = { "0": 0, "1": 0 };
+
+  for (const row of rows) {
+    const side = normalizeDraftSide(row.side);
+    if (side !== "0" && side !== "1") continue;
+    const rowRaw = (row.rawJson ?? {}) as any;
+
+    rowDamageBySide[side] +=
+      firstNumeric(rowRaw, [
+        "hero_damage_dealt",
+        "hero_damage",
+        "player_damage",
+        "player_damage_dealt",
+      ]) ?? 0;
+
+    rowHealingBySide[side] +=
+      firstNumeric(rowRaw, [
+        "healing_dealt",
+        "healing_done",
+        "player_healing",
+        "healing",
+      ]) ?? 0;
+  }
+
+  const teamDamage: Record<"0" | "1", number> = hasParticipantCombatData
+    ? participantDamageBySide
+    : rowDamageBySide;
+
+  const teamHealing: Record<"0" | "1", number> = hasParticipantCombatData
+    ? participantHealingBySide
+    : rowHealingBySide;
+
+  const score0 = extractTeamScore(raw, "0") ?? kills0;
+  const score1 = extractTeamScore(raw, "1") ?? kills1;
+
+  const winnerSide = normalizeDraftSide(raw?.match_info?.winning_team ?? raw?.winning_team ?? null);
+  const winnerLabel = winnerSide === "0" || winnerSide === "1" ? TEAM_NAMES[winnerSide] : "Unknown";
+
+  const damageLeadSide = teamDamage["0"] === teamDamage["1"]
+    ? null
+    : teamDamage["0"] > teamDamage["1"]
+      ? "0"
+      : "1";
+
+  const healingLeadSide = teamHealing["0"] === teamHealing["1"]
+    ? null
+    : teamHealing["0"] > teamHealing["1"]
+      ? "0"
+      : "1";
+
+  const topSoulsPlayer = rows.length
+    ? [...rows].sort((a, b) => safeNum(b.netWorth) - safeNum(a.netWorth))[0]
+    : null;
+
+  const topKdaPlayer = rows.length
+    ? [...rows].sort(
+        (a, b) =>
+          kda(safeNum(b.kills), safeNum(b.deaths), safeNum(b.assists)) -
+          kda(safeNum(a.kills), safeNum(a.deaths), safeNum(a.assists))
+      )[0]
+    : null;
+
   return (
     <main className="relative isolate w-full overflow-hidden p-4 sm:p-6 lg:p-8">
       {selectedHeroBg ? (
@@ -366,7 +727,7 @@ export default async function MatchPage({
         </>
       ) : null}
 
-      <div className="relative z-10 space-y-4">
+      <div className="relative z-10 space-y-5 sm:space-y-6">
 
       <div className="flex items-center justify-between gap-3">
         <BackButton />
@@ -398,75 +759,20 @@ export default async function MatchPage({
         </p>
       </div>
 
-      {session ? (
-        <section className="panel-premium rounded-xl p-4 space-y-4">
-          {dateStatus === "saved" ? (
-            <p className="rounded border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
-              Scrim date saved.
-            </p>
-          ) : null}
-          {dateStatus === "cleared" ? (
-            <p className="rounded border border-zinc-700/80 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-300">
-              Scrim date cleared.
-            </p>
-          ) : null}
-          <form action={setScrimDateAction} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <label htmlFor="scrimDate" className="mb-1 block text-sm text-zinc-300">
-                Scrim date (manual)
-              </label>
-              <input
-                id="scrimDate"
-                name="scrimDate"
-                type="date"
-                defaultValue={fmtDateInput(matchRow[0].scrimDate)}
-                className="rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="submit"
-                className="rounded border border-emerald-500/40 bg-emerald-700/90 px-4 py-2 text-sm font-medium hover:bg-emerald-600"
-              >
-                Save date
-              </button>
-              <button
-                type="submit"
-                name="scrimDate"
-                value=""
-                className="rounded border border-zinc-700/80 bg-zinc-900/80 px-4 py-2 text-sm hover:bg-zinc-800"
-              >
-                Clear
-              </button>
-            </div>
-          </form>
-
-          <div className="rounded-lg border border-zinc-800/80 bg-zinc-900/25 p-3">
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <p className="text-sm text-zinc-200">Match bans</p>
-              <span className={`rounded px-2 py-0.5 text-xs ${banCount > 0 ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-300" : "border border-zinc-700/80 bg-zinc-900/60 text-zinc-300"}`}>
-                {banCount > 0 ? `${banCount} uploaded` : "Not uploaded"}
-              </span>
-            </div>
-            <UploadBansButton matchId={matchId} initialBanCount={banCount} />
-          </div>
-        </section>
-      ) : (
-        <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
-          <p className="text-sm text-zinc-400">Sign in to set or edit the manual scrim date and upload bans.</p>
-        </section>
-      )}
+      <section className="relative z-10 -mt-1">
+        <MatchTabsNav matchId={matchId} active="overview" />
+      </section>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/45 p-3">
+        <div className="panel-premium-soft rounded-lg p-3">
           <p className="text-xs uppercase tracking-wide opacity-70">Result</p>
           <p className="mt-1 text-sm font-medium">{winnerText(raw)}</p>
         </div>
-        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/45 p-3">
+        <div className="panel-premium-soft rounded-lg p-3">
           <p className="text-xs uppercase tracking-wide opacity-70">Duration</p>
           <p className="mt-1 text-sm font-medium">{fmtTime(durationS)}</p>
         </div>
-        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/45 p-3">
+        <div className="panel-premium-soft rounded-lg p-3">
           <p className="text-xs uppercase tracking-wide opacity-70">
             Hidden King souls
           </p>
@@ -477,7 +783,7 @@ export default async function MatchPage({
             )}
           </p>
         </div>
-        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/45 p-3">
+        <div className="panel-premium-soft rounded-lg p-3">
           <p className="text-xs uppercase tracking-wide opacity-70">
             Archmother souls
           </p>
@@ -488,15 +794,15 @@ export default async function MatchPage({
             )}
           </p>
         </div>
-        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/45 p-3">
+        <div className="panel-premium-soft rounded-lg p-3">
           <p className="text-xs uppercase tracking-wide opacity-70">Scrim date</p>
           <p className="mt-1 text-sm font-medium">
-            {matchRow[0].scrimDate ? new Date(matchRow[0].scrimDate).toLocaleDateString() : "Not set"}
+            {formatUtcScrimDate(matchRow[0].scrimDate)}
           </p>
         </div>
       </section>
 
-      <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+      <section className="panel-premium rounded-xl p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-base font-semibold">Draft order</h2>
           <p className="text-xs text-zinc-400">{draftEvents.length ? `${draftEvents.length} events` : "No draft uploaded"}</p>
@@ -587,7 +893,7 @@ export default async function MatchPage({
             ) : null}
           </div>
         ) : (
-          <p className="text-sm text-zinc-400">Upload a draft JSON on this match page to show picks and bans timeline.</p>
+          <p className="text-sm text-zinc-400">No draft data is available for this match yet.</p>
         )}
       </section>
 
@@ -621,7 +927,7 @@ export default async function MatchPage({
           return (
             <section
               key={`team-${sideKey}`}
-              className={`rounded-xl border border-zinc-800/80 bg-zinc-950/45 border-l-4 px-4 pt-5 pb-5 ${
+              className={`panel-premium rounded-xl border-l-4 px-4 pt-5 pb-5 ${
                 TEAM_ACCENTS[sideKey] ?? TEAM_ACCENTS.unknown
               }`}
             >
@@ -749,7 +1055,7 @@ export default async function MatchPage({
                         Final items
                       </th>
                       <th className="p-3 text-left sticky top-0 bg-zinc-900/95 z-10">
-                        Timeline
+                        Abilities
                       </th>
                     </tr>
                   </thead>
@@ -785,9 +1091,7 @@ export default async function MatchPage({
                       const final = finalBuild(list).filter((it) =>
                         hasItem(Number(it.itemId))
                       );
-                      const knownTimeline = list.filter((it) =>
-                        hasItem(Number(it.itemId))
-                      );
+                      const abilitySummary = buildAbilitySummaryForPlayer(r.rawJson as any, list);
                       const heroIconPath = heroSmallIconPath(r.heroId);
 
                       const souls = safeNum(r.netWorth);
@@ -877,44 +1181,30 @@ export default async function MatchPage({
                             )}
                           </td>
 
-                          {/* ✅ FIX: lock timeline column width even when expanded */}
+                          {/* Ability progression summary */}
                           <td className="p-3 max-w-[320px] overflow-hidden">
-                            {knownTimeline.length ? (
-                              <details>
-                                <summary className="cursor-pointer select-none opacity-90">
-                                  Show ({knownTimeline.length})
-                                </summary>
-                                <div className="mt-2 flex flex-wrap gap-2 max-w-full overflow-hidden">
-                                  {knownTimeline.map((it) => (
-                                    <span
-                                      key={`${it.gameTimeS}-${it.itemId}`}
-                                      className="px-2 py-1 rounded bg-zinc-900 text-xs whitespace-nowrap inline-flex items-center gap-1"
-                                      title={itemName(Number(it.itemId))}
-                                    >
-                                      <span className="font-mono">
-                                        {fmtTime(it.gameTimeS)}
-                                      </span>
-                                      {itemIconPath(Number(it.itemId)) ? (
-                                        <HeroIcon
-                                          src={itemIconPath(Number(it.itemId))}
-                                          alt={itemName(Number(it.itemId))}
-                                          width={32}
-                                          height={32}
-                                          className="h-8 w-8 rounded object-contain border border-zinc-700"
-                                        />
-                                      ) : (
-                                        <span>-</span>
-                                      )}
-                                      {it.soldTimeS && it.soldTimeS !== 0 ? (
-                                        <span className="opacity-70">
-                                          {" "}
-                                          (sold {fmtTime(it.soldTimeS)})
-                                        </span>
-                                      ) : null}
-                                    </span>
-                                  ))}
-                                </div>
-                              </details>
+                            {abilitySummary.length ? (
+                              <div className="flex flex-wrap gap-2 max-w-full overflow-hidden">
+                                {abilitySummary.map((ability) => (
+                                  <span
+                                    key={ability.key}
+                                    className="px-2 py-1 rounded bg-zinc-900 text-xs whitespace-nowrap inline-flex items-center gap-1"
+                                    title={`${ability.name} • Lvl ${Math.max(ability.level, ability.unlocks > 0 ? 1 : 0)} • U${ability.unlocks}/Up${ability.upgrades}/Im${ability.imbues}`}
+                                  >
+                                    {ability.iconSrc ? (
+                                      <HeroIcon
+                                        src={ability.iconSrc}
+                                        alt={ability.name}
+                                        width={32}
+                                        height={32}
+                                        className="h-8 w-8 rounded object-contain border border-zinc-700"
+                                      />
+                                    ) : null}
+                                    <span>{ability.name}</span>
+                                    <span className="font-mono opacity-80">L{clampAbilityLevel(Math.max(ability.level, ability.unlocks > 0 ? 1 : 0))}</span>
+                                  </span>
+                                ))}
+                              </div>
                             ) : (
                               <span className="opacity-60">-</span>
                             )}

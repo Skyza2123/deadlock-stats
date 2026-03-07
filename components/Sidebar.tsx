@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import {
@@ -15,12 +15,23 @@ import {
 
 const NAV = [
   { href: "/", label: "Home" },
-  { href: "/matches", label: "Matches" },
+  { href: "/scrims", label: "Scrims" },
   { href: "/teams", label: "Teams" },
+  { href: "/matches", label: "Matches" },
   { href: "/players", label: "Players" },
   { href: "/account", label: "Account" },
   { href: "/settings", label: "Settings" },
 ];
+
+type TeamOption = {
+  slug: string;
+  name: string;
+};
+
+type TeamsApiResponse = {
+  ok?: boolean;
+  teams?: Array<{ slug?: unknown; name?: unknown }>;
+};
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -29,11 +40,15 @@ function isActive(pathname: string, href: string) {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session, status } = useSession();
 
   const [collapsed, setCollapsed] = useState(false);
   const [mode, setMode] = useState<ModeOption>("dark");
   const [palette, setPalette] = useState<PaletteOption>("mono");
+  const [teams, setTeams] = useState<TeamOption[]>([]);
+  const [teamsLoading, setTeamsLoading] = useState(false);
+  const [selectedTeamSlug, setSelectedTeamSlug] = useState("");
 
   useEffect(() => {
     const saved = window.localStorage.getItem("sidebar-collapsed");
@@ -49,6 +64,73 @@ export default function Sidebar() {
   useEffect(() => {
     window.localStorage.setItem("sidebar-collapsed", collapsed ? "1" : "0");
   }, [collapsed]);
+
+  useEffect(() => {
+    const savedTeamSlug = window.localStorage.getItem("sidebar-team-slug") ?? "";
+    setSelectedTeamSlug(savedTeamSlug);
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadTeams() {
+      if (!session) {
+        if (!alive) return;
+        setTeams([]);
+        setTeamsLoading(false);
+        return;
+      }
+
+      setTeamsLoading(true);
+      try {
+        const res = await fetch("/api/teams", { cache: "no-store" });
+        const data: TeamsApiResponse | null = await res.json().catch(() => null);
+
+        if (!alive) return;
+        if (!res.ok || !data?.ok || !Array.isArray(data?.teams)) {
+          setTeams([]);
+          return;
+        }
+
+        const nextTeams = data.teams
+          .map((row) => ({
+            slug: String(row?.slug ?? "").trim(),
+            name: String(row?.name ?? row?.slug ?? "").trim(),
+          }))
+          .filter((row: TeamOption) => row.slug);
+
+        setTeams(nextTeams);
+
+        if (!nextTeams.some((row: TeamOption) => row.slug === selectedTeamSlug)) {
+          setSelectedTeamSlug("");
+          window.localStorage.removeItem("sidebar-team-slug");
+        }
+      } catch {
+        if (!alive) return;
+        setTeams([]);
+      } finally {
+        if (alive) setTeamsLoading(false);
+      }
+    }
+
+    void loadTeams();
+
+    return () => {
+      alive = false;
+    };
+  }, [session, selectedTeamSlug]);
+
+  function onSelectTeam(nextSlug: string) {
+    setSelectedTeamSlug(nextSlug);
+    if (nextSlug) {
+      window.localStorage.setItem("sidebar-team-slug", nextSlug);
+      router.push(`/teams/${nextSlug}`);
+      return;
+    }
+
+    window.localStorage.removeItem("sidebar-team-slug");
+    router.push("/teams");
+  }
 
   function toggleMode() {
     const nextMode: ModeOption = mode === "dark" ? "light" : "dark";
@@ -94,12 +176,11 @@ export default function Sidebar() {
         {/* Header */}
         <div className="sidebar-header p-3">
           <div className="flex items-center justify-between gap-2">
-            <div className={collapsed ? "hidden" : "block"}>
-              <div className="heading-luxe text-lg font-semibold tracking-tight">Deadlock Stats</div>
-              <div className="sidebar-muted mt-0.5 text-[11px]">Scrim analytics workspace</div>
+            <div className={collapsed ? "hidden" : "min-w-0"}>
+              <div className="truncate text-sm font-semibold tracking-tight text-zinc-100">Deadlock Stats</div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={toggleMode}
                 className={[
@@ -124,19 +205,35 @@ export default function Sidebar() {
               </button>
             </div>
           </div>
+
+          {!collapsed && session ? (
+            <div className="mt-3 space-y-2">
+              <label className="block text-[11px] uppercase tracking-wide text-zinc-500">Team</label>
+              <select
+                value={selectedTeamSlug}
+                onChange={(event) => onSelectTeam(event.target.value)}
+                disabled={teamsLoading}
+                className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-2.5 py-1.5 text-xs text-zinc-200"
+              >
+                <option value="">Individual</option>
+                {teams.map((team) => (
+                  <option key={`sidebar-team-${team.slug}`} value={team.slug}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+              <Link
+                href="/teams"
+                className="inline-flex w-full items-center justify-center rounded border border-zinc-700/80 bg-zinc-900/70 px-2.5 py-1.5 text-xs text-zinc-200 hover:bg-zinc-800"
+              >
+                Create Team
+              </Link>
+            </div>
+          ) : null}
         </div>
 
         {/* Navigation */}
         <nav className={collapsed ? "p-2 space-y-1.5" : "p-3 space-y-2"}>
-          <div
-            className={[
-              "sidebar-muted px-2 pt-1 pb-1 text-xs font-medium uppercase tracking-wide",
-              collapsed ? "hidden" : "block",
-            ].join(" ")}
-          >
-            Navigation
-          </div>
-
           {NAV.filter((n) => (session ? true : n.href !== "/teams")).map((n) => {
             const active = isActive(pathname, n.href);
             return (
@@ -145,19 +242,12 @@ export default function Sidebar() {
                 href={n.href}
                 title={collapsed ? n.label : undefined}
                 className={[
-                  "group flex items-center gap-2 rounded-lg border text-sm transition-all duration-150 active:scale-[0.99]",
+                  "group flex items-center rounded-lg border text-sm transition-all duration-150 active:scale-[0.99]",
                   collapsed ? "justify-center" : "",
                   collapsed ? "h-11 px-2" : "h-11 px-3",
                   active ? "sidebar-link-active shadow-sm" : "sidebar-link-idle",
                 ].join(" ")}
               >
-                <span
-                  className={[
-                    "rounded-full transition-colors",
-                    active ? "bg-zinc-300 dark:bg-zinc-300" : "bg-zinc-500 opacity-70 dark:bg-zinc-500",
-                    collapsed ? "h-2.5 w-2.5" : "h-2 w-2",
-                  ].join(" ")}
-                />
                 {collapsed ? null : n.label}
               </Link>
             );
@@ -172,7 +262,7 @@ export default function Sidebar() {
           ].join(" ")}
         >
           {status === "loading" ? (
-            <div className="panel-premium-soft sidebar-muted mb-3 w-full rounded px-3 py-2 text-sm">
+            <div className="sidebar-muted mb-2 text-xs">
               Checking login...
             </div>
           ) : session ? (
@@ -185,14 +275,11 @@ export default function Sidebar() {
                     className="h-6 w-6 rounded-full border border-zinc-600/70"
                   />
                 ) : null}
-                <div className="min-w-0">
-                  <div className="sidebar-strong truncate text-xs">{session.user?.name ?? "Signed in"}</div>
-                  <div className="sidebar-muted truncate text-[11px]">{session.user?.email ?? "Steam account"}</div>
-                </div>
+                <div className="sidebar-strong truncate text-xs">{session.user?.name ?? "Signed in"}</div>
               </div>
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
-                className="sidebar-btn mb-3 w-full rounded px-3 py-2 text-left text-sm"
+                className="sidebar-btn w-full rounded px-2.5 py-1.5 text-left text-xs"
               >
                 Sign out
               </button>
@@ -200,13 +287,11 @@ export default function Sidebar() {
           ) : (
             <Link
               href="/login"
-              className="sidebar-btn mb-3 block w-full rounded px-3 py-2 text-left text-sm"
+              className="sidebar-btn block w-full rounded px-2.5 py-1.5 text-left text-xs"
             >
               Sign in
             </Link>
           )}
-          <div className="opacity-80">Tip:</div>
-          <div>Use Teams to map SteamIDs to scrim rosters.</div>
         </div>
       </div>
       </aside>

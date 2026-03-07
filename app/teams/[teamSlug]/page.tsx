@@ -107,6 +107,41 @@ function extractDraftEvents(rawJson: unknown): DraftEventRow[] {
   return events.sort((a, b) => a.order - b.order);
 }
 
+function matchNumberFromId(matchId: string | null | undefined): number {
+  const raw = String(matchId ?? "").trim();
+  if (!raw) return Number.NEGATIVE_INFINITY;
+
+  const direct = Number(raw);
+  if (Number.isFinite(direct)) return direct;
+
+  const digitsOnly = raw.replace(/\D/g, "");
+  const parsed = Number(digitsOnly);
+  return Number.isFinite(parsed) ? parsed : Number.NEGATIVE_INFINITY;
+}
+
+function compareByDateThenMatchNumber(
+  a: { matchId: string; scrimDate?: Date | null; ingestedAt?: Date | null },
+  b: { matchId: string; scrimDate?: Date | null; ingestedAt?: Date | null },
+) {
+  const aDate = a.scrimDate ? new Date(a.scrimDate).getTime() : NaN;
+  const bDate = b.scrimDate ? new Date(b.scrimDate).getTime() : NaN;
+  const aHasDate = Number.isFinite(aDate);
+  const bHasDate = Number.isFinite(bDate);
+
+  if (aHasDate && bHasDate && aDate !== bDate) return bDate - aDate;
+  if (aHasDate !== bHasDate) return aHasDate ? -1 : 1;
+
+  const aMatchNumber = matchNumberFromId(a.matchId);
+  const bMatchNumber = matchNumberFromId(b.matchId);
+  if (aMatchNumber !== bMatchNumber) return bMatchNumber - aMatchNumber;
+
+  const aIngested = a.ingestedAt ? new Date(a.ingestedAt).getTime() : 0;
+  const bIngested = b.ingestedAt ? new Date(b.ingestedAt).getTime() : 0;
+  if (aIngested !== bIngested) return bIngested - aIngested;
+
+  return String(b.matchId).localeCompare(String(a.matchId));
+}
+
 export default async function TeamStatsPage({
   params,
   searchParams,
@@ -117,9 +152,9 @@ export default async function TeamStatsPage({
   const session = await getServerSession(authOptions);
   if (!session) {
     return (
-      <main className="w-full p-6 md:p-8 space-y-4">
+      <main className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
         <BackButton />
-        <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-5">
+        <section className="panel-premium rounded-xl p-4 md:p-5">
           <h1 className="text-2xl font-bold">Sign in required</h1>
           <p className="mt-2 text-zinc-400">Team stats are hidden until you sign in.</p>
           <a href="/login" className="mt-4 inline-block rounded border border-zinc-700/80 bg-zinc-900/80 px-3 py-2 text-sm hover:bg-zinc-800">
@@ -156,9 +191,9 @@ export default async function TeamStatsPage({
 
   if (!canViewTeam) {
     return (
-      <main className="w-full p-6 md:p-8 space-y-4">
+      <main className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
         <BackButton />
-        <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-5">
+        <section className="panel-premium rounded-xl p-4 md:p-5">
           <h1 className="text-2xl font-bold">Forbidden</h1>
           <p className="mt-2 text-zinc-400">You don&apos;t have access to this team.</p>
         </section>
@@ -187,9 +222,9 @@ export default async function TeamStatsPage({
 
   if (!teamRows.length) {
     return (
-      <main className="w-full p-6 md:p-8 space-y-4">
+      <main className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
         <BackButton />
-        <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-5">
+        <section className="panel-premium rounded-xl p-4 md:p-5">
           <h1 className="text-2xl font-bold">Team not found</h1>
           <p className="mt-2 text-zinc-400">No team exists for slug: {teamSlug}</p>
         </section>
@@ -273,14 +308,16 @@ export default async function TeamStatsPage({
     allByMatch.set(row.matchId, list);
   }
 
-  const filteredMatchRows = matchRows.filter((match) => {
+  const filteredMatchRows = matchRows
+    .filter((match) => {
     if (!hasFromDate && !hasToDate) return true;
     if (!match.scrimDate) return false;
     const ts = new Date(match.scrimDate).getTime();
     if (hasFromDate && ts < (fromDate as Date).getTime()) return false;
     if (hasToDate && ts > (toDate as Date).getTime()) return false;
     return true;
-  });
+    })
+    .sort(compareByDateThenMatchNumber);
 
   const filteredMatchIds = new Set(filteredMatchRows.map((row) => row.matchId));
   const teamMatchRowsFiltered = teamMatchRows.filter((row) => filteredMatchIds.has(row.matchId));
@@ -959,7 +996,7 @@ export default async function TeamStatsPage({
   const maxHeroGraphSouls = Math.max(1, ...heroGraphRows.map((entry) => entry.heroAvgSouls));
 
   return (
-    <main className="w-full p-5 md:p-6 space-y-4">
+    <main className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
       <div className="flex items-center justify-between gap-3">
         <BackButton />
         <a href="/teams" className="text-sm text-zinc-300 hover:underline">
@@ -967,22 +1004,28 @@ export default async function TeamStatsPage({
         </a>
       </div>
 
-      <header className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+      <header className="panel-premium rounded-xl p-4 md:p-5">
         <h1 className="text-3xl font-bold tracking-tight">{team.name} stats</h1>
         <p className="mt-1.5 text-sm text-zinc-400">
           Team slug: {team.slug} • Active roster: {rosterRows.length}
         </p>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <a
             href={`/teams/${team.slug}/enemy-tracking`}
             className="inline-flex rounded border border-zinc-700/80 bg-zinc-900/80 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-800"
           >
             Open enemy tracking →
           </a>
+          <a
+            href={`/teams/${team.slug}/edit`}
+            className="inline-flex rounded border border-zinc-700/80 bg-zinc-900/80 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-800"
+          >
+            Edit team
+          </a>
         </div>
       </header>
 
-      <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+      <section className="panel-premium rounded-xl p-4">
         <form className="flex flex-col gap-3 md:flex-row md:items-end" method="GET">
           <input type="hidden" name="teamSlug" value={teamSlug} />
           <div>
@@ -1026,20 +1069,20 @@ export default async function TeamStatsPage({
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/45 p-4">
+        <div className="panel-premium-soft rounded-lg p-4">
           <p className="text-xs uppercase tracking-wide opacity-70">Matches represented</p>
           <p className="mt-1 text-xl font-semibold">{byMatch.size}</p>
         </div>
-        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/45 p-4">
+        <div className="panel-premium-soft rounded-lg p-4">
           <p className="text-xs uppercase tracking-wide opacity-70">Record</p>
           <p className="mt-1 text-xl font-semibold">{wins}-{losses}</p>
           <p className="text-xs text-zinc-500">{undecided} undecided</p>
         </div>
-        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/45 p-4">
+        <div className="panel-premium-soft rounded-lg p-4">
           <p className="text-xs uppercase tracking-wide opacity-70">Win rate</p>
           <p className="mt-1 text-xl font-semibold">{winRate.toFixed(1)}%</p>
         </div>
-        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/45 p-4">
+        <div className="panel-premium-soft rounded-lg p-4">
           <p className="text-xs uppercase tracking-wide opacity-70">Avg K / D / A</p>
           <p className="mt-1 text-xl font-semibold">
             {avgKills.toFixed(2)} / {avgDeaths.toFixed(2)} / {avgAssists.toFixed(2)}
@@ -1047,7 +1090,7 @@ export default async function TeamStatsPage({
         </div>
       </section>
 
-      <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+      <section className="panel-premium rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-2">Player stats</h2>
         <p className="mb-3 text-sm text-zinc-400">Personal performance for active manual roster players in this filtered range.</p>
         {playerStats.length ? (
@@ -1118,7 +1161,7 @@ export default async function TeamStatsPage({
         )}
       </section>
 
-      <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+      <section className="panel-premium rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-2">Averages</h2>
         <div className="space-y-2 text-sm">
           <p>Avg souls per player-entry: <span className="font-mono">{avgSouls.toFixed(0)}</span></p>
@@ -1129,7 +1172,7 @@ export default async function TeamStatsPage({
       </section>
 
       <section className="grid gap-3 lg:grid-cols-2">
-        <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+        <section className="panel-premium rounded-xl p-4">
           <h2 className="text-lg font-semibold mb-2">Top heroes</h2>
           <p className="mb-3 text-sm text-zinc-400">Most impactful heroes for this team in the selected range.</p>
           {topHeroes.length ? (
@@ -1191,7 +1234,7 @@ export default async function TeamStatsPage({
           )}
         </section>
 
-          <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+          <section className="panel-premium rounded-xl p-4">
             <h2 className="text-lg font-semibold mb-2">Top bans</h2>
             <p className="mb-3 text-sm text-zinc-400">Most banned heroes across this team's filtered draft matches.</p>
             {topBannedHeroes.length ? (
@@ -1257,7 +1300,7 @@ export default async function TeamStatsPage({
         </section>
       </section>
 
-      <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+      <section className="panel-premium rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-2">Hero-specific stats</h2>
         <p className="mb-3 text-sm text-zinc-400">Detailed hero performance across the filtered team matches (averages per hero pick).</p>
         {heroRows.length ? (
@@ -1310,7 +1353,7 @@ export default async function TeamStatsPage({
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2 xl:items-start">
-        <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+        <div className="panel-premium rounded-xl p-4">
           <h2 className="text-lg font-semibold mb-2">Item picks</h2>
           <p className="mb-3 text-sm text-zinc-400">Weighted team-side item usage and outcomes in the selected range.</p>
           {topItemRows.length ? (
@@ -1376,7 +1419,7 @@ export default async function TeamStatsPage({
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2 xl:items-start">
-        <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+        <div className="panel-premium rounded-xl p-4">
           <h2 className="text-lg font-semibold mb-2">Situational items</h2>
           <p className="mb-3 text-sm text-zinc-400">Lower-frequency team-side item usage and outcomes in the selected range.</p>
           {topItemRows.length ? (
@@ -1432,7 +1475,7 @@ export default async function TeamStatsPage({
         </div>
       </section>
 
-      <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+      <section className="panel-premium rounded-xl p-4">
         <details>
           <summary className="cursor-pointer list-none select-none text-lg font-semibold">Hero visuals</summary>
           <p className="mb-3 mt-2 text-sm text-zinc-400"> Graphs and charts for pick volume, win rate, KDA, and average souls.</p>
@@ -1509,7 +1552,7 @@ export default async function TeamStatsPage({
         </details>
       </section>
 
-      <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
+      <section className="panel-premium rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-2">Recent team matches</h2>
         <p className="mb-2 text-sm text-zinc-400">Most recent matches where at least one active roster player appeared.</p>
         {recentTeamMatches.length ? (

@@ -1,18 +1,23 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
 function JoinPageContent() {
   const router = useRouter();
   const sp = useSearchParams();
   const callbackUrl = sp.get("callbackUrl") || "/";
+  const codeFromQuery = sp.get("code") || "";
   const { status } = useSession();
 
-  const [inviteCode, setInviteCode] = useState("");
+  const [inviteCode, setInviteCode] = useState(codeFromQuery);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (codeFromQuery) setInviteCode(codeFromQuery);
+  }, [codeFromQuery]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

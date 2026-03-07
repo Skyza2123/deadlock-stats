@@ -111,6 +111,19 @@ export const matchPlayerItems = pgTable(
   })
 );
 
+export const savedMatches = pgTable(
+  "saved_matches",
+  {
+    steamId: text("steam_id").notNull(),
+    matchId: text("match_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.steamId, t.matchId] }),
+    steamCreatedIdx: index("saved_matches_steam_created_idx").on(t.steamId, t.createdAt),
+  })
+);
+
 // AUTH: USERS
 export const appUsers = pgTable("app_users", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
