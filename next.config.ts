@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
+    "/api/hero-images/[heroFolder]/render": ["./deadlock_hero_images/**/*_Render.png"],
+    "/api/hero-images/[heroFolder]/render/route": ["./deadlock_hero_images/**/*_Render.png"],
     "/api/item-icons/**": ["./deadlock_icons/**/*"],
     "/api/item-icons/[fileName]": ["./deadlock_icons/**/*"],
     "/api/item-icons/[fileName]/route": ["./deadlock_icons/**/*"],

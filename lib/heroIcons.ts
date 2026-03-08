@@ -4,7 +4,6 @@ import fs from "node:fs";
 import path from "node:path";
 
 const iconExistsCache = new Map<string, boolean>();
-const renderFileNameCache = new Map<string, string>();
 const DEADLOCK_ASSET_BASE = "https://assets-bucket.deadlock-api.com/assets-api-res/images";
 
 function externalAssetUrlFromWebPath(webPath: string | null) {
@@ -57,14 +56,7 @@ function fallbackHeroRenderPath(heroId: number) {
   const folder = heroFolderFromId(heroId);
   if (!folder) return null;
 
-  const cached = renderFileNameCache.get(folder);
-  if (cached !== undefined) {
-    return `/api/hero-images/${encodeURIComponent(folder)}/${encodeURIComponent(cached)}`;
-  }
-
-  const renderFileName = `${folder}_Render.png`;
-  renderFileNameCache.set(folder, renderFileName);
-  return `/api/hero-images/${encodeURIComponent(folder)}/${encodeURIComponent(renderFileName)}`;
+  return `/api/hero-images/${encodeURIComponent(folder)}/render`;
 }
 
 export function heroSmallIconPath(heroId: string | null | undefined) {
