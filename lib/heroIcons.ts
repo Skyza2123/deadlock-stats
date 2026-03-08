@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const iconExistsCache = new Map<string, boolean>();
-const renderFileNameCache = new Map<string, string | null>();
+const renderFileNameCache = new Map<string, string>();
 
 function iconFileExists(webPath: string | null) {
   if (!webPath) return false;
@@ -35,20 +35,12 @@ function heroFolderFromId(heroId: number) {
 function fallbackSmallIconPath(heroId: number) {
   const folder = heroFolderFromId(heroId);
   if (!folder) return null;
-
-  const diskPath = path.join(process.cwd(), "deadlock_hero_images", folder, "icon_image_small.png");
-  if (!fs.existsSync(diskPath)) return null;
-
   return `/api/hero-images/${encodeURIComponent(folder)}/icon_image_small.png`;
 }
 
 function fallbackHeroAssetPath(heroId: number, fileName: string) {
   const folder = heroFolderFromId(heroId);
   if (!folder) return null;
-
-  const diskPath = path.join(process.cwd(), "deadlock_hero_images", folder, fileName);
-  if (!fs.existsSync(diskPath)) return null;
-
   return `/api/hero-images/${encodeURIComponent(folder)}/${fileName}`;
 }
 
@@ -58,23 +50,11 @@ function fallbackHeroRenderPath(heroId: number) {
 
   const cached = renderFileNameCache.get(folder);
   if (cached !== undefined) {
-    if (!cached) return null;
     return `/api/hero-images/${encodeURIComponent(folder)}/${encodeURIComponent(cached)}`;
   }
 
-  const dirPath = path.join(process.cwd(), "deadlock_hero_images", folder);
-
-  let renderFileName: string | null = null;
-  try {
-    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-    const file = entries.find((entry) => entry.isFile() && /_Render\.png$/i.test(entry.name));
-    renderFileName = file?.name ?? null;
-  } catch {
-    renderFileName = null;
-  }
-
+  const renderFileName = `${folder}_Render.png`;
   renderFileNameCache.set(folder, renderFileName);
-  if (!renderFileName) return null;
   return `/api/hero-images/${encodeURIComponent(folder)}/${encodeURIComponent(renderFileName)}`;
 }
 
