@@ -5,6 +5,15 @@ import path from "node:path";
 
 const iconExistsCache = new Map<string, boolean>();
 const renderFileNameCache = new Map<string, string>();
+const DEADLOCK_ASSET_BASE = "https://assets-bucket.deadlock-api.com/assets-api-res/images";
+
+function externalAssetUrlFromWebPath(webPath: string | null) {
+  if (!webPath) return null;
+  const normalized = webPath.replace(/^\/+/, "");
+  const relative = normalized.startsWith("assets/") ? normalized.slice("assets/".length) : normalized;
+  if (!relative) return null;
+  return `${DEADLOCK_ASSET_BASE}/${relative}`;
+}
 
 function iconFileExists(webPath: string | null) {
   if (!webPath) return false;
@@ -64,6 +73,8 @@ export function heroSmallIconPath(heroId: string | null | undefined) {
   if (!Number.isFinite(id)) return null;
   const webPath = HERO_ASSETS_BY_ID[id]?.iconFields?.icon_image_small?.webPath ?? null;
   if (iconFileExists(webPath)) return webPath;
+  const external = externalAssetUrlFromWebPath(webPath);
+  if (external) return external;
   return fallbackSmallIconPath(id);
 }
 
@@ -73,6 +84,8 @@ function heroAssetPath(heroId: string | null | undefined, field: string) {
   if (!Number.isFinite(id)) return null;
   const webPath = HERO_ASSETS_BY_ID[id]?.iconFields?.[field]?.webPath ?? null;
   if (iconFileExists(webPath)) return webPath;
+  const external = externalAssetUrlFromWebPath(webPath);
+  if (external) return external;
 
   if (field === "background_image") {
     return fallbackHeroAssetPath(id, "background_image.png");
