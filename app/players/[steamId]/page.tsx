@@ -99,6 +99,10 @@ function extractPlayerSlot(raw: any): number | null {
   return Number.isFinite(slot) ? slot : null;
 }
 
+function playerHeroThumbPath(heroId: string | null | undefined) {
+  return heroRenderPath(heroId) ?? heroSmallIconPath(heroId);
+}
+
 type PlayerAllMatchRow = {
   matchId: string;
   heroId: string | null;
@@ -749,9 +753,9 @@ export default async function PlayerAllMatchesPage({
                 <div className="rounded border border-zinc-300/50 bg-transparent dark:border-zinc-700/90 dark:bg-zinc-950/60 p-3">
                   <p className="text-xs uppercase opacity-70">Most played hero</p>
                   <p className="mt-1 font-semibold flex items-center gap-2">
-                    {mostPlayedHeroId && heroSmallIconPath(mostPlayedHeroId) ? (
+                    {mostPlayedHeroId && playerHeroThumbPath(mostPlayedHeroId) ? (
                       <HeroIcon
-                        src={heroSmallIconPath(mostPlayedHeroId)}
+                        src={playerHeroThumbPath(mostPlayedHeroId)}
                         alt={heroName(mostPlayedHeroId)}
                         width={20}
                         height={20}
@@ -830,9 +834,9 @@ export default async function PlayerAllMatchesPage({
                         <tr key={entry.heroId} className="border-t border-zinc-300/50 odd:bg-transparent dark:border-zinc-700/90 dark:odd:bg-zinc-950/30">
                           <td className="px-3 py-2">
                             <span className="inline-flex items-center gap-2">
-                              {heroSmallIconPath(entry.heroId) ? (
+                              {playerHeroThumbPath(entry.heroId) ? (
                                 <HeroIcon
-                                  src={heroSmallIconPath(entry.heroId)}
+                                  src={playerHeroThumbPath(entry.heroId)}
                                   alt={heroName(entry.heroId)}
                                   width={20}
                                   height={20}
@@ -901,9 +905,9 @@ export default async function PlayerAllMatchesPage({
                         <td className="p-0">
                           <a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>
                             <span className="inline-flex items-center gap-2">
-                              {row.heroId && heroSmallIconPath(row.heroId) ? (
+                              {row.heroId && playerHeroThumbPath(row.heroId) ? (
                                 <HeroIcon
-                                  src={heroSmallIconPath(row.heroId)}
+                                  src={playerHeroThumbPath(row.heroId)}
                                   alt={heroName(row.heroId)}
                                   width={20}
                                   height={20}

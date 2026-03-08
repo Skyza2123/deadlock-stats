@@ -230,6 +230,10 @@ function detectAbilityEventKind(event: any): "unlock" | "upgrade" | "imbue" {
   return "upgrade";
 }
 
+function playerHeroThumbPath(heroId: string | null | undefined) {
+  return heroRenderPath(heroId) ?? heroSmallIconPath(heroId);
+}
+
 function buildAbilityProgressRows(raw: any, itemRows: ItemRow[]): AbilityProgressRow[] {
   const arrays: any[][] = [
     raw?.ability_events,
@@ -844,10 +848,10 @@ export default async function PlayerPage({
       ]
     : [];
 
-  const playerHeroIconPath = heroSmallIconPath(player.heroId);
+  const playerHeroIconPath = playerHeroThumbPath(player.heroId);
   const playerHeroBackgroundPath = heroBackgroundPath(player.heroId);
   const playerHeroRenderPath = heroRenderPath(player.heroId);
-  const compareHeroIconPath = heroSmallIconPath(comparePlayer?.heroId);
+  const compareHeroIconPath = playerHeroThumbPath(comparePlayer?.heroId);
 
   return (
     <main className="relative isolate w-full overflow-hidden p-4 sm:p-6 lg:p-8">
@@ -1152,9 +1156,9 @@ export default async function PlayerPage({
                         }`}
                       >
                         <span className="inline-flex items-center gap-1">
-                          {heroSmallIconPath(row.heroId) ? (
+                          {playerHeroThumbPath(row.heroId) ? (
                             <HeroIcon
-                              src={heroSmallIconPath(row.heroId)}
+                              src={playerHeroThumbPath(row.heroId)}
                               alt={heroName(row.heroId)}
                               width={14}
                               height={14}
