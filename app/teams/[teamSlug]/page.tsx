@@ -266,8 +266,12 @@ export default async function TeamStatsPage({
     .leftJoin(players, eq(players.steamId, teamMemberships.steamId))
     .where(
       and(
-        eq(teamMemberships.teamId, teamSlug),
-        eq(teamMemberships.role, "manual"),
+        sql`(
+          ${teamMemberships.teamId} = ${teamSlug}
+          OR ${teamMemberships.teamId} IN (
+            SELECT ${teams.teamId}::text FROM ${teams} WHERE ${teams.slug} = ${teamSlug}
+          )
+        )`,
         isNull(teamMemberships.endAt)
       )
     );

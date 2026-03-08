@@ -197,7 +197,17 @@ export default async function EnemyTrackingPage({
   const rosterRows = await db
     .select({ steamId: teamMemberships.steamId })
     .from(teamMemberships)
-    .where(and(eq(teamMemberships.teamId, teamSlug), eq(teamMemberships.role, "manual"), isNull(teamMemberships.endAt)));
+    .where(
+      and(
+        sql`(
+          ${teamMemberships.teamId} = ${teamSlug}
+          OR ${teamMemberships.teamId} IN (
+            SELECT ${teams.teamId}::text FROM ${teams} WHERE ${teams.slug} = ${teamSlug}
+          )
+        )`,
+        isNull(teamMemberships.endAt)
+      )
+    );
 
   const steamIds = rosterRows.map((row) => row.steamId);
 
