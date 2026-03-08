@@ -35,7 +35,7 @@ export async function GET(
       servedFileName = fallbackFileName;
     }
 
-    return new Response(data, {
+    return new Response(new Uint8Array(data), {
       status: 200,
       headers: {
         "Content-Type": contentType(servedFileName),
