@@ -16,14 +16,29 @@ export async function GET(
     return new Response("Invalid file", { status: 400 });
   }
 
-  const diskPath = path.join(process.cwd(), "deadlock_icons", fileName);
+  const preferredPath = path.join(process.cwd(), "deadlock_icons", fileName);
+  const fallbackFileName = fileName.endsWith(".webp")
+    ? fileName.replace(/\.webp$/i, ".png")
+    : fileName.endsWith(".png")
+      ? fileName.replace(/\.png$/i, ".webp")
+      : fileName;
+  const fallbackPath = path.join(process.cwd(), "deadlock_icons", fallbackFileName);
 
   try {
-    const data = await fs.readFile(diskPath);
+    let data: Buffer;
+    let servedFileName = fileName;
+
+    try {
+      data = await fs.readFile(preferredPath);
+    } catch {
+      data = await fs.readFile(fallbackPath);
+      servedFileName = fallbackFileName;
+    }
+
     return new Response(data, {
       status: 200,
       headers: {
-        "Content-Type": contentType(fileName),
+        "Content-Type": contentType(servedFileName),
         "Cache-Control": "public, max-age=604800, immutable",
       },
     });

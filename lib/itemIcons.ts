@@ -1,5 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
 import { ITEMS } from "./deadlockData";
 
 const itemIconCache = new Map<number, string | null>();
@@ -22,20 +20,10 @@ function candidateBaseNames(itemDisplayName: string) {
   return [...names].filter(Boolean);
 }
 
-function findItemIconFile(itemDisplayName: string) {
+function preferredItemIconFile(itemDisplayName: string) {
   const candidates = candidateBaseNames(itemDisplayName);
-
-  for (const baseName of candidates) {
-    for (const extension of ["webp", "png"] as const) {
-      const fileName = `${baseName}.${extension}`;
-      const diskPath = path.join(process.cwd(), "deadlock_icons", fileName);
-      if (fs.existsSync(diskPath)) {
-        return fileName;
-      }
-    }
-  }
-
-  return null;
+  if (!candidates.length) return null;
+  return `${candidates[0]}.webp`;
 }
 
 export function itemIconPath(itemId: number | null | undefined) {
@@ -50,7 +38,7 @@ export function itemIconPath(itemId: number | null | undefined) {
     return null;
   }
 
-  const fileName = findItemIconFile(itemDisplayName);
+  const fileName = preferredItemIconFile(itemDisplayName);
   const webPath = fileName ? `/api/item-icons/${encodeURIComponent(fileName)}` : null;
 
   itemIconCache.set(itemId, webPath);
