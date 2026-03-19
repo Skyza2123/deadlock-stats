@@ -3,6 +3,7 @@ import { HERO_ASSETS_BY_ID } from "./heroAssets.generated";
 import { HEROES } from "./deadlockData";
 
 const USE_PUBLIC_HERO_ASSETS = process.env.NEXT_PUBLIC_USE_EXTRACTED_HERO_ASSETS === "1";
+const DEADLOCK_ASSET_BASE = "https://assets-bucket.deadlock-api.com/assets-api-res/images";
 
 function normalizeHeroFolderName(name: string) {
   return name
@@ -18,8 +19,16 @@ function heroFolderFromId(heroId: number) {
   return folder || null;
 }
 
+function externalAssetUrlFromWebPath(webPath: string | null) {
+  if (!webPath) return null;
+  const normalized = webPath.replace(/^\/+/, "");
+  const relative = normalized.startsWith("assets/") ? normalized.slice("assets/".length) : normalized;
+  if (!relative) return null;
+  return `${DEADLOCK_ASSET_BASE}/${relative}`;
+}
+
 // Client-safe fallback: just point at your API route.
-// (No disk checks here—API route should return 404 if missing.)
+// (No disk checks here. API route should return 404 if missing.)
 function fallbackSmallIconPath(heroId: number) {
   const folder = heroFolderFromId(heroId);
   if (!folder) return null;
@@ -35,9 +44,7 @@ function fallbackHeroAssetPath(heroId: number, fileName: string) {
 function fallbackHeroRenderPath(heroId: number) {
   const folder = heroFolderFromId(heroId);
   if (!folder) return null;
-  // If your API route supports "render.png" aliasing, use that.
-  // If not, keep your existing server-side render filename discovery (see server file below).
-  return `/api/hero-images/${encodeURIComponent(folder)}/render.png`;
+  return `/api/hero-images/${encodeURIComponent(folder)}/render`;
 }
 
 export function heroSmallIconPath(heroId: string | null | undefined) {
@@ -47,6 +54,8 @@ export function heroSmallIconPath(heroId: string | null | undefined) {
 
   if (USE_PUBLIC_HERO_ASSETS) {
     const webPath = HERO_ASSETS_BY_ID[id]?.iconFields?.icon_image_small?.webPath ?? null;
+    const external = externalAssetUrlFromWebPath(webPath);
+    if (external) return external;
     if (webPath) return webPath;
   }
 
@@ -60,6 +69,8 @@ function heroAssetPath(heroId: string | null | undefined, field: string) {
 
   if (USE_PUBLIC_HERO_ASSETS) {
     const webPath = HERO_ASSETS_BY_ID[id]?.iconFields?.[field]?.webPath ?? null;
+    const external = externalAssetUrlFromWebPath(webPath);
+    if (external) return external;
     if (webPath) return webPath;
   }
 

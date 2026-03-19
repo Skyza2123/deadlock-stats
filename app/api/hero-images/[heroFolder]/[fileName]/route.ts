@@ -39,6 +39,48 @@ export async function GET(
     return new Response("Invalid hero folder", { status: 400 });
   }
 
+  if (fileName === "render.png") {
+    const candidates = [
+      `${heroFolder}_Render.png`,
+      `${heroFolder.replace(/_/g, "_&_")}_Render.png`,
+      `${heroFolder.replace(/_/g, " ")}_Render.png`,
+    ];
+
+    for (const candidate of candidates) {
+      const diskPath = path.join(process.cwd(), "deadlock_hero_images", heroFolder, candidate);
+      try {
+        const data = await fs.readFile(diskPath);
+        return new Response(data, {
+          status: 200,
+          headers: {
+            "Content-Type": "image/png",
+            "Cache-Control": "public, max-age=604800, immutable",
+          },
+        });
+      } catch {
+        // continue
+      }
+    }
+
+    try {
+      const dirPath = path.join(process.cwd(), "deadlock_hero_images", heroFolder);
+      const entries = await fs.readdir(dirPath, { withFileTypes: true });
+      const renderFile = entries.find((entry) => entry.isFile() && /_Render\.png$/i.test(entry.name));
+      if (!renderFile) return new Response("Not found", { status: 404 });
+
+      const data = await fs.readFile(path.join(dirPath, renderFile.name));
+      return new Response(data, {
+        status: 200,
+        headers: {
+          "Content-Type": "image/png",
+          "Cache-Control": "public, max-age=604800, immutable",
+        },
+      });
+    } catch {
+      return new Response("Not found", { status: 404 });
+    }
+  }
+
   if (!ALLOWED_FILES.has(fileName) && !isAllowedRenderFile(fileName)) {
     return new Response("File not allowed", { status: 404 });
   }
