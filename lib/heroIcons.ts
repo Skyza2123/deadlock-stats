@@ -40,18 +40,6 @@ function heroFolderFromId(heroId: number) {
   return folder || null;
 }
 
-function fallbackSmallIconPath(heroId: number) {
-  const folder = heroFolderFromId(heroId);
-  if (!folder) return null;
-  return `/api/hero-images/${encodeURIComponent(folder)}/icon_image_small.png`;
-}
-
-function fallbackHeroAssetPath(heroId: number, fileName: string) {
-  const folder = heroFolderFromId(heroId);
-  if (!folder) return null;
-  return `/api/hero-images/${encodeURIComponent(folder)}/${fileName}`;
-}
-
 function fallbackHeroRenderPath(heroId: number) {
   const folder = heroFolderFromId(heroId);
   if (!folder) return null;
@@ -67,7 +55,7 @@ export function heroSmallIconPath(heroId: string | null | undefined) {
   if (iconFileExists(webPath)) return webPath;
   const external = externalAssetUrlFromWebPath(webPath);
   if (external) return external;
-  return fallbackSmallIconPath(id);
+  return null;
 }
 
 function heroAssetPath(heroId: string | null | undefined, field: string) {
@@ -78,14 +66,6 @@ function heroAssetPath(heroId: string | null | undefined, field: string) {
   if (iconFileExists(webPath)) return webPath;
   const external = externalAssetUrlFromWebPath(webPath);
   if (external) return external;
-
-  if (field === "background_image") {
-    return fallbackHeroAssetPath(id, "background_image.png");
-  }
-
-  if (field === "icon_hero_card") {
-    return fallbackHeroAssetPath(id, "icon_hero_card.png");
-  }
 
   return null;
 }
@@ -98,14 +78,6 @@ export function heroRenderPath(heroId: string | null | undefined) {
   if (!heroId) return null;
   const id = Number(heroId);
   if (!Number.isFinite(id)) return null;
-
-  // Try to get render image from assets data
-  const webPath = HERO_ASSETS_BY_ID[id]?.iconFields?.render_image?.webPath ?? null;
-  if (iconFileExists(webPath)) return webPath;
-  const external = externalAssetUrlFromWebPath(webPath);
-  if (external) return external;
-
-  // Fall back to API endpoint
   return fallbackHeroRenderPath(id);
 }
 

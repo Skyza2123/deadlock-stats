@@ -27,20 +27,6 @@ function externalAssetUrlFromWebPath(webPath: string | null) {
   return `${DEADLOCK_ASSET_BASE}/${relative}`;
 }
 
-// Client-safe fallback: just point at your API route.
-// (No disk checks here. API route should return 404 if missing.)
-function fallbackSmallIconPath(heroId: number) {
-  const folder = heroFolderFromId(heroId);
-  if (!folder) return null;
-  return `/api/hero-images/${encodeURIComponent(folder)}/icon_image_small.png`;
-}
-
-function fallbackHeroAssetPath(heroId: number, fileName: string) {
-  const folder = heroFolderFromId(heroId);
-  if (!folder) return null;
-  return `/api/hero-images/${encodeURIComponent(folder)}/${encodeURIComponent(fileName)}`;
-}
-
 function fallbackHeroRenderPath(heroId: number) {
   const folder = heroFolderFromId(heroId);
   if (!folder) return null;
@@ -58,7 +44,7 @@ export function heroSmallIconPath(heroId: string | null | undefined) {
   const external = externalAssetUrlFromWebPath(webPath);
   if (external) return external;
 
-  return fallbackSmallIconPath(id);
+  return null;
 }
 
 function heroAssetPath(heroId: string | null | undefined, field: string) {
@@ -71,9 +57,6 @@ function heroAssetPath(heroId: string | null | undefined, field: string) {
 
   const external = externalAssetUrlFromWebPath(webPath);
   if (external) return external;
-
-  if (field === "background_image") return fallbackHeroAssetPath(id, "background_image.png");
-  if (field === "icon_hero_card") return fallbackHeroAssetPath(id, "icon_hero_card.png");
 
   return null;
 }
