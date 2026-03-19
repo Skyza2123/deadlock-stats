@@ -23,6 +23,11 @@ const NAV = [
   { href: "/settings", label: "Settings" },
 ];
 
+const GUEST_NAV = [
+  { href: "/", label: "Home" },
+  { href: "/login", label: "Sign In" },
+];
+
 type TeamOption = {
   slug: string;
   name: string;
@@ -42,6 +47,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
+  const isGuestHome = status === "unauthenticated" && pathname === "/";
 
   const [collapsed, setCollapsed] = useState(false);
   const [mode, setMode] = useState<ModeOption>("dark");
@@ -142,39 +148,43 @@ export default function Sidebar() {
     document.documentElement.setAttribute("data-theme", nextThemeId);
   }
 
+  const navItems = session ? NAV : GUEST_NAV;
+
+  if (isGuestHome) {
+    return null;
+  }
+
   return (
     <>
-      {status !== "unauthenticated" || pathname !== "/" ? (
-        <nav className="sidebar-mobile md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-zinc-800/70 bg-zinc-950/95 backdrop-blur-sm">
-          <div className="flex gap-1 overflow-x-auto px-2 py-1.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {NAV.filter((n) => (session ? true : n.href !== "/teams")).map((n) => {
-              const active = isActive(pathname, n.href);
-              return (
-                <Link
-                  key={`mobile-${n.href}`}
-                  href={n.href}
-                  className={[
-                    "flex h-11 shrink-0 items-center justify-center rounded-lg px-4 text-sm font-semibold transition-colors",
-                    active
-                      ? "sidebar-link-active border"
-                      : "sidebar-link-idle hover:text-inherit",
-                  ].join(" ")}
-                >
-                  {n.label}
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      ) : null}
+      <nav className="sidebar-mobile md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-zinc-800/70 bg-zinc-950/95 backdrop-blur-sm">
+        <div className="flex gap-1 overflow-x-auto px-2 py-1.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {navItems.map((n) => {
+            const active = isActive(pathname, n.href);
+            return (
+              <Link
+                key={`mobile-${n.href}`}
+                href={n.href}
+                className={[
+                  "flex h-11 shrink-0 items-center justify-center rounded-lg px-4 text-sm font-semibold transition-colors",
+                  active
+                    ? "sidebar-link-active border"
+                    : "sidebar-link-idle hover:text-inherit",
+                ].join(" ")}
+              >
+                {n.label}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
 
       <aside
-      className={[
-        "sidebar-shell hidden md:block shrink-0 transition-all duration-200",
-        collapsed ? "w-16" : "w-72",
-      ].join(" ")}
-    >
-      <div className="sticky top-0 h-screen flex flex-col">
+        className={[
+          "sidebar-shell hidden md:block shrink-0 transition-all duration-200",
+          collapsed ? "w-16" : "w-72",
+        ].join(" ")}
+      >
+        <div className="sticky top-0 h-screen flex flex-col">
         {/* Header */}
         <div className="sidebar-header p-3">
           <div className="flex items-center justify-between gap-2">
@@ -236,7 +246,7 @@ export default function Sidebar() {
 
         {/* Navigation */}
         <nav className={collapsed ? "p-2 space-y-1.5" : "p-3 space-y-2"}>
-          {NAV.filter((n) => (session ? true : n.href !== "/teams")).map((n) => {
+          {navItems.map((n) => {
             const active = isActive(pathname, n.href);
             return (
               <Link
@@ -250,7 +260,13 @@ export default function Sidebar() {
                   active ? "sidebar-link-active shadow-sm" : "sidebar-link-idle",
                 ].join(" ")}
               >
-                {collapsed ? null : n.label}
+                {collapsed ? (
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded border border-zinc-700/70 bg-zinc-900/70 text-[11px] font-bold tracking-wide">
+                    {n.label.slice(0, 1).toUpperCase()}
+                  </span>
+                ) : (
+                  n.label
+                )}
               </Link>
             );
           })}
@@ -295,7 +311,7 @@ export default function Sidebar() {
             </Link>
           )}
         </div>
-      </div>
+        </div>
       </aside>
     </>
   );
