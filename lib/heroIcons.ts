@@ -98,6 +98,14 @@ export function heroRenderPath(heroId: string | null | undefined) {
   if (!heroId) return null;
   const id = Number(heroId);
   if (!Number.isFinite(id)) return null;
+
+  // Try to get render image from assets data
+  const webPath = HERO_ASSETS_BY_ID[id]?.iconFields?.render_image?.webPath ?? null;
+  if (iconFileExists(webPath)) return webPath;
+  const external = externalAssetUrlFromWebPath(webPath);
+  if (external) return external;
+
+  // Fall back to API endpoint
   return fallbackHeroRenderPath(id);
 }
 
