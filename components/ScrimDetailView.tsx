@@ -511,7 +511,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
                   checked={isPublic}
                   onChange={(e) => setIsPublic(e.target.checked)}
                 />
-                <span>Public scrim (visible on dashboard)</span>
+                <span>Public scrim (visible in matches listing)</span>
               </label>
 
               <div className="flex items-center gap-2">

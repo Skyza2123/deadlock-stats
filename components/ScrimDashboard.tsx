@@ -217,7 +217,6 @@ export default function ScrimDashboard() {
   const visibleScrims = useMemo(() => {
     const term = searchText.trim().toLowerCase();
     return scrims.filter((entry) => {
-      if (!entry.isPublic) return false;
       if (filterMode !== "all" && entry.assignment !== filterMode) return false;
       if (!term) return true;
 
@@ -423,7 +422,7 @@ export default function ScrimDashboard() {
       <div className="rounded-xl border border-zinc-800/70 bg-zinc-950/35 p-3 min-h-70">
         {scrimsLoading ? <p className="px-1 pb-3 text-xs text-zinc-400">Loading scrims...</p> : null}
         {!scrimsLoading && !visibleScrims.length ? (
-          <p className="px-1 pb-3 text-xs text-zinc-500">Only scrims marked Public appear here.</p>
+          <p className="px-1 pb-3 text-xs text-zinc-500">No scrims match your current filters.</p>
         ) : null}
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -564,7 +563,7 @@ export default function ScrimDashboard() {
                   checked={isPublic}
                   onChange={(e) => setIsPublic(e.target.checked)}
                 />
-                <span>Public scrim (visible on dashboard)</span>
+                <span>Public scrim (visible in matches listing)</span>
               </label>
 
               {modalMode === "create" ? (
