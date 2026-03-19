@@ -8,9 +8,13 @@ import {
   type ScrimAssignment,
   type ScrimEntry,
   type ScrimMatch,
+  createScrimInApi,
+  deleteScrimInApi,
+  fetchScrimsFromApi,
   formatScrimDate,
   normalizeScrimDate,
   readScrimsFromStorage,
+  updateScrimInApi,
   writeScrimsToStorage,
 } from "../lib/scrims";
 
@@ -101,6 +105,7 @@ export default function ScrimDashboard() {
   const [teamsLoading, setTeamsLoading] = useState(true);
 
   const [scrims, setScrims] = useState<ScrimEntry[]>([]);
+  const [scrimsLoading, setScrimsLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>("create");
   const [editingScrimId, setEditingScrimId] = useState<string | null>(null);
@@ -111,6 +116,7 @@ export default function ScrimDashboard() {
   const [scrimDate, setScrimDate] = useState(todayIsoDate());
   const [firstMapCode, setFirstMapCode] = useState("");
   const [firstBansFile, setFirstBansFile] = useState<File | null>(null);
+  const [isPublic, setIsPublic] = useState(true);
 
   const [filterMode, setFilterMode] = useState<"all" | ScrimAssignment>("all");
   const [searchText, setSearchText] = useState("");
@@ -154,13 +160,51 @@ export default function ScrimDashboard() {
   }, []);
 
   useEffect(() => {
-    setScrims(readScrimsFromStorage());
-  }, []);
+    let alive = true;
 
-  function persistScrims(next: ScrimEntry[]) {
-    setScrims(next);
-    writeScrimsToStorage(next);
-  }
+    async function loadScrims() {
+      setScrimsLoading(true);
+      try {
+        const remote = await fetchScrimsFromApi();
+        if (!alive) return;
+
+        if (remote.length) {
+          setScrims(remote);
+          writeScrimsToStorage([]);
+          return;
+        }
+
+        const local = readScrimsFromStorage();
+        if (!local.length) {
+          setScrims([]);
+          return;
+        }
+
+        for (const scrim of local) {
+          const migrated: ScrimEntry = {
+            ...scrim,
+            isPublic: typeof scrim.isPublic === "boolean" ? scrim.isPublic : true,
+          };
+          await createScrimInApi(migrated);
+        }
+
+        if (!alive) return;
+        setScrims(await fetchScrimsFromApi());
+        writeScrimsToStorage([]);
+        setNotice("Migrated local scrims to your account.");
+      } catch (err: any) {
+        if (!alive) return;
+        setError(String(err?.message ?? err));
+      } finally {
+        if (alive) setScrimsLoading(false);
+      }
+    }
+
+    void loadScrims();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const teamNameBySlug = useMemo(() => {
     const map = new Map<string, string>();
@@ -173,6 +217,7 @@ export default function ScrimDashboard() {
   const visibleScrims = useMemo(() => {
     const term = searchText.trim().toLowerCase();
     return scrims.filter((entry) => {
+      if (!entry.isPublic) return false;
       if (filterMode !== "all" && entry.assignment !== filterMode) return false;
       if (!term) return true;
 
@@ -240,6 +285,7 @@ export default function ScrimDashboard() {
     setScrimDate(normalizeScrimDate(todayIsoDate(), todayIsoDate()));
     setFirstMapCode("");
     setFirstBansFile(null);
+    setIsPublic(true);
     setEditingScrimId(null);
   }
 
@@ -256,6 +302,7 @@ export default function ScrimDashboard() {
     setAssignment(scrim.assignment);
     setTeamSlug(scrim.teamSlug);
     setScrimDate(normalizeScrimDate(scrim.scrimDate, todayIsoDate()));
+    setIsPublic(scrim.isPublic);
     setFirstMapCode("");
     setFirstBansFile(null);
     setModalOpen(true);
@@ -273,7 +320,6 @@ export default function ScrimDashboard() {
 
     const trimmedName = scrimName.trim();
     const trimmedFirstMapCode = firstMapCode.trim();
-
     const normalizedScrimDate = normalizeScrimDate(scrimDate, todayIsoDate());
 
     if (!trimmedName || !normalizedScrimDate) return;
@@ -289,20 +335,21 @@ export default function ScrimDashboard() {
         const selectedTeamName =
           assignment === "team" ? (teamNameBySlug.get(teamSlug.trim()) ?? teamSlug.trim()) : "Individual";
 
-        const next = scrims.map((entry) =>
-          entry.id === editingScrimId
-            ? {
-                ...entry,
-                name: trimmedName,
-                assignment,
-                teamSlug: assignment === "team" ? teamSlug.trim() : "",
-                teamName: selectedTeamName,
-                scrimDate: normalizedScrimDate,
-              }
-            : entry
-        );
+        const updated = scrims.find((entry) => entry.id === editingScrimId);
+        if (!updated) throw new Error("Scrim not found");
 
-        persistScrims(next);
+        const nextEntry: ScrimEntry = {
+          ...updated,
+          name: trimmedName,
+          assignment,
+          teamSlug: assignment === "team" ? teamSlug.trim() : "",
+          teamName: selectedTeamName,
+          scrimDate: normalizedScrimDate,
+          isPublic,
+        };
+
+        await updateScrimInApi(nextEntry);
+        setScrims(scrims.map((entry) => (entry.id === nextEntry.id ? nextEntry : entry)));
         setNotice(`Updated ${trimmedName}.`);
         closeModal();
         return;
@@ -326,12 +373,13 @@ export default function ScrimDashboard() {
         teamSlug: assignment === "team" ? teamSlug.trim() : "",
         teamName: assignment === "team" ? selectedTeamName : "Individual",
         scrimDate: normalizedScrimDate,
+        isPublic,
         matches: [firstMatch],
         createdAt: new Date().toISOString(),
       };
 
-      const next = [nextEntry, ...scrims];
-      persistScrims(next);
+      await createScrimInApi(nextEntry);
+      setScrims([nextEntry, ...scrims]);
       setNotice(`Scrim \"${trimmedName}\" added.`);
       closeModal();
       resetForm();
@@ -343,9 +391,9 @@ export default function ScrimDashboard() {
     }
   }
 
-  function removeScrim(scrimId: string) {
-    const next = scrims.filter((entry) => entry.id !== scrimId);
-    persistScrims(next);
+  async function removeScrim(scrimId: string) {
+    await deleteScrimInApi(scrimId);
+    setScrims(scrims.filter((entry) => entry.id !== scrimId));
   }
 
   return (
@@ -373,6 +421,11 @@ export default function ScrimDashboard() {
       {notice ? <p className="text-xs text-emerald-300">{notice}</p> : null}
 
       <div className="rounded-xl border border-zinc-800/70 bg-zinc-950/35 p-3 min-h-70">
+        {scrimsLoading ? <p className="px-1 pb-3 text-xs text-zinc-400">Loading scrims...</p> : null}
+        {!scrimsLoading && !visibleScrims.length ? (
+          <p className="px-1 pb-3 text-xs text-zinc-500">Only scrims marked Public appear here.</p>
+        ) : null}
+
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {visibleScrims.map((scrim) => (
             <article
@@ -403,9 +456,10 @@ export default function ScrimDashboard() {
                   <p>{formatScrimDate(scrim.scrimDate)}</p>
                   <p>{scrim.assignment === "team" ? scrim.teamName : "Individual"}</p>
                   <p>{scrim.matches.length} matches</p>
+                  <p>{scrim.isPublic ? "Public" : "Private"}</p>
                 </div>
 
-                <div className="h-2 w-2 rounded-full bg-emerald-400/80" />
+                <div className={`h-2 w-2 rounded-full ${scrim.isPublic ? "bg-emerald-400/80" : "bg-zinc-500/80"}`} />
               </div>
 
               <button
@@ -413,7 +467,7 @@ export default function ScrimDashboard() {
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  removeScrim(scrim.id);
+                  void removeScrim(scrim.id);
                 }}
                 className="absolute bottom-2 right-2 z-20 rounded border border-rose-500/50 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-300 opacity-0 transition-opacity hover:bg-rose-500/20 group-hover:opacity-100"
                 title="Remove scrim"
@@ -503,6 +557,15 @@ export default function ScrimDashboard() {
                   ))}
                 </select>
               ) : null}
+
+              <label className="flex items-center gap-2 rounded border border-zinc-700/70 bg-zinc-900/60 px-3 py-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={isPublic}
+                  onChange={(e) => setIsPublic(e.target.checked)}
+                />
+                <span>Public scrim (visible on dashboard)</span>
+              </label>
 
               {modalMode === "create" ? (
                 <>

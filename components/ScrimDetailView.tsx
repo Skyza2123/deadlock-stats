@@ -9,10 +9,11 @@ import {
   type ScrimAssignment,
   type ScrimEntry,
   type ScrimMatch,
+  deleteScrimInApi,
+  fetchScrimsFromApi,
   formatScrimDate,
   normalizeScrimDate,
-  readScrimsFromStorage,
-  writeScrimsToStorage,
+  updateScrimInApi,
 } from "../lib/scrims";
 
 type IconProps = {
@@ -110,6 +111,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
   const [assignment, setAssignment] = useState<ScrimAssignment>("team");
   const [teamSlug, setTeamSlug] = useState("");
   const [scrimDate, setScrimDate] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
 
   const [matchCode, setMatchCode] = useState("");
   const [bansFile, setBansFile] = useState<File | null>(null);
@@ -124,7 +126,24 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
   const [showAddMapForm, setShowAddMapForm] = useState(false);
 
   useEffect(() => {
-    setScrims(readScrimsFromStorage());
+    let alive = true;
+
+    async function loadScrims() {
+      try {
+        const rows = await fetchScrimsFromApi();
+        if (!alive) return;
+        setScrims(rows);
+      } catch (err: any) {
+        if (!alive) return;
+        setError(String(err?.message ?? err));
+      }
+    }
+
+    void loadScrims();
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -166,6 +185,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
     setAssignment(scrim.assignment);
     setTeamSlug(scrim.teamSlug);
     setScrimDate(normalizeScrimDate(scrim.scrimDate, todayIsoDate()));
+    setIsPublic(scrim.isPublic);
   }, [scrim]);
 
   const teamNameBySlug = useMemo(() => {
@@ -175,11 +195,6 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
     }
     return map;
   }, [teams]);
-
-  function persist(next: ScrimEntry[]) {
-    setScrims(next);
-    writeScrimsToStorage(next);
-  }
 
   async function ingestMatch(args: {
     matchId: string;
@@ -263,20 +278,18 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
           ? (teamNameBySlug.get(teamSlug.trim()) ?? teamSlug.trim())
           : "Individual";
 
-      const next = scrims.map((entry) =>
-        entry.id === scrim.id
-          ? {
-              ...entry,
-              name,
-              assignment,
-              teamSlug: assignment === "team" ? teamSlug.trim() : "",
-              teamName: selectedTeamName,
-              scrimDate: normalizedDate,
-            }
-          : entry
-      );
+      const nextEntry: ScrimEntry = {
+        ...scrim,
+        name,
+        assignment,
+        teamSlug: assignment === "team" ? teamSlug.trim() : "",
+        teamName: selectedTeamName,
+        scrimDate: normalizedDate,
+        isPublic,
+      };
 
-      persist(next);
+      await updateScrimInApi(nextEntry);
+      setScrims(scrims.map((entry) => (entry.id === scrim.id ? nextEntry : entry)));
       setNotice("Scrim details updated and all map dates synced.");
       setIsEditOpen(false);
       router.refresh();
@@ -308,16 +321,13 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
         bansFile,
       });
 
-      const next = scrims.map((entry) =>
-        entry.id === scrim.id
-          ? {
-              ...entry,
-              matches: [match, ...entry.matches],
-            }
-          : entry
-      );
+      const nextEntry: ScrimEntry = {
+        ...scrim,
+        matches: [match, ...scrim.matches],
+      };
 
-      persist(next);
+      await updateScrimInApi(nextEntry);
+      setScrims(scrims.map((entry) => (entry.id === scrim.id ? nextEntry : entry)));
       setMatchCode("");
       setBansFile(null);
       setNotice(`Added match ${trimmed}.`);
@@ -350,18 +360,15 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
         throw new Error(detail);
       }
 
-      const next = scrims.map((entry) =>
-        entry.id === scrim.id
-          ? {
-              ...entry,
-              matches: entry.matches.map((match) =>
-                match.matchId === matchId ? { ...match, bansUploaded: true } : match
-              ),
-            }
-          : entry
-      );
+      const nextEntry: ScrimEntry = {
+        ...scrim,
+        matches: scrim.matches.map((match) =>
+          match.matchId === matchId ? { ...match, bansUploaded: true } : match
+        ),
+      };
 
-      persist(next);
+      await updateScrimInApi(nextEntry);
+      setScrims(scrims.map((entry) => (entry.id === scrim.id ? nextEntry : entry)));
 
       const banCount = Number(bansData?.banCount ?? 0);
       setNotice(
@@ -375,7 +382,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
     }
   }
 
-  function onDeleteScrim() {
+  async function onDeleteScrim() {
     if (!scrim) return;
 
     const confirmed = window.confirm(`Delete scrim \"${scrim.name}\"? This cannot be undone.`);
@@ -383,10 +390,16 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
 
     setDeleting(true);
 
-    const next = scrims.filter((entry) => entry.id !== scrim.id);
-    persist(next);
-    router.push("/");
-    router.refresh();
+    try {
+      await deleteScrimInApi(scrim.id);
+      setScrims(scrims.filter((entry) => entry.id !== scrim.id));
+      router.push("/");
+      router.refresh();
+    } catch (err: any) {
+      setError(String(err?.message ?? err));
+    } finally {
+      setDeleting(false);
+    }
   }
 
   if (!scrim) {
@@ -492,6 +505,15 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
                 </div>
               ) : null}
 
+              <label className="flex items-center gap-2 rounded border border-zinc-700/70 bg-zinc-900/60 px-3 py-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={isPublic}
+                  onChange={(e) => setIsPublic(e.target.checked)}
+                />
+                <span>Public scrim (visible on dashboard)</span>
+              </label>
+
               <div className="flex items-center gap-2">
                 <button
                   type="submit"
@@ -522,7 +544,9 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
               <p className="mt-1 text-xs text-zinc-400">Once deleted, this scrim cannot be recovered.</p>
               <button
                 type="button"
-                onClick={onDeleteScrim}
+                onClick={() => {
+                  void onDeleteScrim();
+                }}
                 disabled={deleting}
                 className="mt-3 rounded border border-rose-500/50 bg-rose-500/10 px-3 py-1.5 text-sm text-rose-300 hover:bg-rose-500/20 disabled:opacity-60"
               >
