@@ -52,12 +52,11 @@ export function heroSmallIconPath(heroId: string | null | undefined) {
   const id = Number(heroId);
   if (!Number.isFinite(id)) return null;
 
-  if (USE_PUBLIC_HERO_ASSETS) {
-    const webPath = HERO_ASSETS_BY_ID[id]?.iconFields?.icon_image_small?.webPath ?? null;
-    const external = externalAssetUrlFromWebPath(webPath);
-    if (external) return external;
-    if (webPath) return webPath;
-  }
+  const webPath = HERO_ASSETS_BY_ID[id]?.iconFields?.icon_image_small?.webPath ?? null;
+  if (USE_PUBLIC_HERO_ASSETS && webPath) return webPath;
+
+  const external = externalAssetUrlFromWebPath(webPath);
+  if (external) return external;
 
   return fallbackSmallIconPath(id);
 }
@@ -67,12 +66,11 @@ function heroAssetPath(heroId: string | null | undefined, field: string) {
   const id = Number(heroId);
   if (!Number.isFinite(id)) return null;
 
-  if (USE_PUBLIC_HERO_ASSETS) {
-    const webPath = HERO_ASSETS_BY_ID[id]?.iconFields?.[field]?.webPath ?? null;
-    const external = externalAssetUrlFromWebPath(webPath);
-    if (external) return external;
-    if (webPath) return webPath;
-  }
+  const webPath = HERO_ASSETS_BY_ID[id]?.iconFields?.[field]?.webPath ?? null;
+  if (USE_PUBLIC_HERO_ASSETS && webPath) return webPath;
+
+  const external = externalAssetUrlFromWebPath(webPath);
+  if (external) return external;
 
   if (field === "background_image") return fallbackHeroAssetPath(id, "background_image.png");
   if (field === "icon_hero_card") return fallbackHeroAssetPath(id, "icon_hero_card.png");
