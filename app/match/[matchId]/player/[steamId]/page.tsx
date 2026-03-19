@@ -9,7 +9,7 @@ import { db } from "../../../../../db";
 import { matchPlayerItems, matchPlayers, matches, players } from "../../../../../db/schema";
 import { fmtTime, hasItem, heroName, itemName } from "../../../../../lib/deadlockData";
 import { getAbilityMeta } from "../../../../../lib/abilityCatalog";
-import { heroBackgroundPath, heroRenderPath, heroSmallIconPath } from "../../../../../lib/heroIcons";
+import { heroBackgroundPath, heroCardIconPath, heroRenderPath, heroSmallIconPath } from "../../../../../lib/heroIcons";
 import { resolveLiveInventoryEvents } from "../../../../../lib/inventoryTimeline";
 import { itemIconPath } from "../../../../../lib/itemIcons";
 import { buildHeatmapSeriesFromManyPlayerRaw } from "../../../../../lib/mapHeatmap";
@@ -231,7 +231,7 @@ function detectAbilityEventKind(event: any): "unlock" | "upgrade" | "imbue" {
 }
 
 function playerHeroThumbPath(heroId: string | null | undefined) {
-  return heroRenderPath(heroId) ?? heroSmallIconPath(heroId);
+  return heroCardIconPath(heroId) ?? heroSmallIconPath(heroId);
 }
 
 function buildAbilityProgressRows(raw: any, itemRows: ItemRow[]): AbilityProgressRow[] {

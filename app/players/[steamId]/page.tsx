@@ -6,7 +6,7 @@ import PlayerGraphs from "../../../components/PlayerGraphs";
 import { db } from "../../../db";
 import { matchPlayerItems, matchPlayers, matches, players } from "../../../db/schema";
 import { fmtTime, hasItem, heroName, itemName } from "../../../lib/deadlockData";
-import { heroBackgroundPath, heroRenderPath, heroSmallIconPath } from "../../../lib/heroIcons";
+import { heroBackgroundPath, heroCardIconPath, heroRenderPath, heroSmallIconPath } from "../../../lib/heroIcons";
 import { itemIconPath } from "../../../lib/itemIcons";
 import { buildHeatmapSeriesFromManyPlayerRaw } from "../../../lib/mapHeatmap";
 
@@ -100,7 +100,7 @@ function extractPlayerSlot(raw: any): number | null {
 }
 
 function playerHeroThumbPath(heroId: string | null | undefined) {
-  return heroRenderPath(heroId) ?? heroSmallIconPath(heroId);
+  return heroCardIconPath(heroId) ?? heroSmallIconPath(heroId);
 }
 
 type PlayerAllMatchRow = {
