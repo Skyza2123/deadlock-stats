@@ -15,12 +15,6 @@ const TEAM_NAMES: Record<string, string> = {
   "1": "Archmother",
 };
 
-const TEAM_ACCENTS: Record<string, string> = {
-  "0": "border-l-yellow-400",
-  "1": "border-l-blue-500",
-  unknown: "border-l-zinc-500",
-};
-
 type PlayerRow = {
   steamId: string;
   displayName: string | null;
@@ -716,7 +710,7 @@ export default async function MatchPage({
     : null;
 
   return (
-    <main className="relative isolate w-full overflow-hidden p-4 sm:p-6 lg:p-8">
+    <main className="match-shell relative isolate w-full overflow-hidden p-4 sm:p-6 lg:p-8">
       {selectedHeroBg ? (
         <>
           <div
@@ -734,7 +728,7 @@ export default async function MatchPage({
       </div>
 
       {selectedPlayer ? (
-        <section className="panel-premium relative overflow-hidden rounded-xl p-4">
+        <section className="match-shell-panel relative overflow-hidden rounded-xl p-4">
           {selectedHeroBg ? (
             <div
               className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-20"
@@ -752,7 +746,7 @@ export default async function MatchPage({
         </section>
       ) : null}
 
-      <div className="panel-premium rounded-xl p-4 md:p-5">
+      <div className="match-shell-panel rounded-xl p-4 md:p-5">
         <h1 className="heading-luxe text-3xl font-bold tracking-tight">Match {matchId}</h1>
         <p className="text-sm text-zinc-400">
           Duration: {fmtTime(durationS)} • Players: {rows.length}
@@ -764,15 +758,15 @@ export default async function MatchPage({
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="panel-premium-soft rounded-lg p-3">
+        <div className="match-shell-stat rounded-lg p-3">
           <p className="text-xs uppercase tracking-wide opacity-70">Result</p>
           <p className="mt-1 text-sm font-medium">{winnerText(raw)}</p>
         </div>
-        <div className="panel-premium-soft rounded-lg p-3">
+        <div className="match-shell-stat rounded-lg p-3">
           <p className="text-xs uppercase tracking-wide opacity-70">Duration</p>
           <p className="mt-1 text-sm font-medium">{fmtTime(durationS)}</p>
         </div>
-        <div className="panel-premium-soft rounded-lg p-3">
+        <div className="match-shell-stat rounded-lg p-3">
           <p className="text-xs uppercase tracking-wide opacity-70">
             Hidden King souls
           </p>
@@ -783,7 +777,7 @@ export default async function MatchPage({
             )}
           </p>
         </div>
-        <div className="panel-premium-soft rounded-lg p-3">
+        <div className="match-shell-stat rounded-lg p-3">
           <p className="text-xs uppercase tracking-wide opacity-70">
             Archmother souls
           </p>
@@ -794,7 +788,7 @@ export default async function MatchPage({
             )}
           </p>
         </div>
-        <div className="panel-premium-soft rounded-lg p-3">
+        <div className="match-shell-stat rounded-lg p-3">
           <p className="text-xs uppercase tracking-wide opacity-70">Scrim date</p>
           <p className="mt-1 text-sm font-medium">
             {formatUtcScrimDate(matchRow[0].scrimDate)}
@@ -802,7 +796,7 @@ export default async function MatchPage({
         </div>
       </section>
 
-      <section className="panel-premium rounded-xl p-4">
+      <section className="match-shell-panel rounded-xl p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-base font-semibold">Draft order</h2>
           <p className="text-xs text-zinc-400">{draftEvents.length ? `${draftEvents.length} events` : "No draft uploaded"}</p>
@@ -817,7 +811,7 @@ export default async function MatchPage({
                 const bans = sideEvents.filter((event) => event.type === "ban");
 
                 return (
-                  <div key={`draft-side-${sideKey}`} className="rounded-lg border border-zinc-800/80 bg-zinc-900/25 p-3">
+                    <div key={`draft-side-${sideKey}`} className="match-shell-stat rounded-lg p-3">
                     <h3 className="text-sm font-medium text-center">{draftSideLabel(sideKey)}</h3>
 
                     <div className="mt-3 space-y-3">
@@ -869,7 +863,7 @@ export default async function MatchPage({
             </div>
 
             {unknownSideDraftEvents.length ? (
-              <div className="rounded-lg border border-zinc-800/80 bg-zinc-900/25 p-3">
+              <div className="match-shell-stat rounded-lg p-3">
                 <h3 className="text-sm font-medium text-center">Unknown side</h3>
                 <div className="mt-3 flex flex-wrap justify-center gap-2">
                   {unknownSideDraftEvents.map((event) => {
@@ -927,8 +921,12 @@ export default async function MatchPage({
           return (
             <section
               key={`team-${sideKey}`}
-              className={`panel-premium rounded-xl border-l-4 px-4 pt-5 pb-5 ${
-                TEAM_ACCENTS[sideKey] ?? TEAM_ACCENTS.unknown
+              className={`match-shell-team rounded-xl px-4 pt-5 pb-5 ${
+                sideKey === "0"
+                  ? "match-shell-team-amber"
+                  : sideKey === "1"
+                    ? "match-shell-team-sapphire"
+                    : ""
               }`}
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -940,7 +938,7 @@ export default async function MatchPage({
                 </h2>
                 <div className="flex flex-wrap gap-2 text-xs">
                   {topSouls ? (
-                    <span className="rounded px-2 py-1 inline-flex items-center gap-1">
+                    <span className="match-shell-pill rounded px-2 py-1 inline-flex items-center gap-1">
                       <span className="inline-block w-14">Top souls:</span>
                       {heroSmallIconPath(topSouls.heroId) ? (
                         <HeroIcon
@@ -956,7 +954,7 @@ export default async function MatchPage({
                     </span>
                   ) : null}
                   {topKda ? (
-                    <span className="rounded px-2 py-1 inline-flex items-center gap-1">
+                    <span className="match-shell-pill rounded px-2 py-1 inline-flex items-center gap-1">
                       <span className="inline-block w-14">Top KDA:</span>
                       {heroSmallIconPath(topKda.heroId) ? (
                         <HeroIcon
@@ -972,7 +970,7 @@ export default async function MatchPage({
                     </span>
                   ) : null}
                   {topSpm ? (
-                    <span className="rounded px-2 py-1 inline-flex items-center gap-1">
+                    <span className="match-shell-pill rounded px-2 py-1 inline-flex items-center gap-1">
                       <span className="inline-block w-14">Top S/min:</span>
                       {heroSmallIconPath(topSpm.heroId) ? (
                         <HeroIcon
@@ -990,7 +988,7 @@ export default async function MatchPage({
                 </div>
               </div>
 
-              <div className="overflow-x-auto rounded-lg border border-zinc-800/80 bg-zinc-950/35">
+              <div className="match-shell-table overflow-x-auto rounded-lg">
                 {/* ✅ FIX: lock layout + explicit column widths */}
                 <table className="w-full text-sm table-fixed">
                   <colgroup>

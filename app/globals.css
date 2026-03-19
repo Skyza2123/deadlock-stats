@@ -433,3 +433,74 @@ textarea:focus-visible,
 :root[data-mode="light"] .text-white {
   color: rgb(var(--text-light-strong)) !important;
 }
+
+.match-shell {
+  --match-accent: 105 231 153;
+  --match-bg-a: 10 10 11;
+  --match-bg-b: 18 18 20;
+  --match-card-edge: 255 255 255;
+  --match-muted: 161 161 170;
+}
+
+.match-shell .match-shell-panel {
+  border: 1px solid rgb(var(--match-card-edge) / 0.12);
+  background: linear-gradient(145deg, rgb(var(--match-bg-b) / 0.92), rgb(var(--match-bg-a) / 0.9));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 10px 28px rgb(0 0 0 / 0.32);
+  backdrop-filter: blur(8px);
+}
+
+.match-shell .match-shell-stat {
+  border: 1px solid rgb(var(--match-card-edge) / 0.1);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.02));
+}
+
+.match-shell .match-shell-table {
+  border: 1px solid rgb(var(--match-card-edge) / 0.12);
+  background: linear-gradient(180deg, rgb(var(--match-bg-a) / 0.84), rgb(var(--match-bg-b) / 0.78));
+}
+
+.match-shell .match-shell-table thead tr {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.04));
+}
+
+.match-shell .match-shell-pill {
+  border: 1px solid rgb(var(--match-card-edge) / 0.14);
+  background: rgb(255 255 255 / 0.05);
+  color: rgb(var(--match-muted));
+}
+
+.match-shell .match-shell-tabs {
+  border: 1px solid rgb(var(--match-card-edge) / 0.14);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.02));
+}
+
+.match-shell .match-shell-tab {
+  border: 1px solid transparent;
+  background: rgb(255 255 255 / 0.03);
+}
+
+.match-shell .match-shell-tab:hover {
+  border-color: rgb(var(--match-card-edge) / 0.16);
+  background: rgb(255 255 255 / 0.06);
+}
+
+.match-shell .match-shell-tab-active {
+  border-color: rgb(var(--match-accent) / 0.7);
+  background: linear-gradient(180deg, rgb(var(--match-accent) / 0.24), rgb(var(--match-accent) / 0.1));
+  color: rgb(236 253 245 / 0.95);
+}
+
+.match-shell .match-shell-team {
+  border-top: 1px solid rgb(var(--match-card-edge) / 0.1);
+  border-right: 1px solid rgb(var(--match-card-edge) / 0.1);
+  border-bottom: 1px solid rgb(var(--match-card-edge) / 0.1);
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02));
+}
+
+.match-shell .match-shell-team-amber {
+  box-shadow: inset 4px 0 0 rgb(250 204 21 / 0.95);
+}
+
+.match-shell .match-shell-team-sapphire {
+  box-shadow: inset 4px 0 0 rgb(59 130 246 / 0.95);
+}
