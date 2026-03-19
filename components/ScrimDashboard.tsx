@@ -445,14 +445,14 @@ export default function ScrimDashboard() {
       </div>
 
       {modalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4">
-          <div className="panel-premium w-full max-w-xl rounded-xl p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-base font-semibold">{modalMode === "create" ? "Create scrim" : "Edit scrim"}</h3>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/55 p-4 overflow-y-auto">
+          <div className="panel-premium w-full max-w-xl rounded-t-xl sm:rounded-xl p-4 sm:p-6 my-auto relative max-h-[85vh] sm:max-h-none overflow-y-auto">
+            <div className="mb-4 flex items-center justify-between sticky top-0 bg-inherit -m-4 sm:-m-6 p-4 sm:p-6 pb-4 sm:pb-4 border-b border-zinc-700/50">
+              <h3 className="text-base sm:text-lg font-semibold">{modalMode === "create" ? "Create scrim" : "Edit scrim"}</h3>
               <button
                 type="button"
                 onClick={closeModal}
-                className="rounded border border-zinc-700/80 bg-zinc-900 px-2 py-1 text-xs hover:bg-zinc-800"
+                className="rounded border border-zinc-700/80 bg-zinc-900 px-2 py-1 text-xs hover:bg-zinc-800 shrink-0"
                 aria-label="Close modal"
               >
                 <XIcon className="h-3.5 w-3.5" />

@@ -21,8 +21,10 @@ export default function HeroIcon({ src, alt, width, height, className }: HeroIco
       alt={alt}
       width={width}
       height={height}
-      className={className}
+      loading="lazy"
+      className={`${className || ""} block`}
       onError={() => setHidden(true)}
+      style={{ display: "block" }}
     />
   );
 }

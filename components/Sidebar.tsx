@@ -144,27 +144,29 @@ export default function Sidebar() {
 
   return (
     <>
-      <nav className="sidebar-mobile md:hidden fixed bottom-0 inset-x-0 z-40">
-        <div className="flex gap-1 overflow-x-auto px-2 py-1.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          {NAV.filter((n) => (session ? true : n.href !== "/teams")).map((n) => {
-            const active = isActive(pathname, n.href);
-            return (
-              <Link
-                key={`mobile-${n.href}`}
-                href={n.href}
-                className={[
-                  "flex h-11 shrink-0 items-center justify-center rounded-lg px-4 text-sm font-semibold transition-colors",
-                  active
-                    ? "sidebar-link-active border"
-                    : "sidebar-link-idle hover:text-inherit",
-                ].join(" ")}
-              >
-                {n.label}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      {status !== "unauthenticated" || pathname !== "/" ? (
+        <nav className="sidebar-mobile md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-zinc-800/70 bg-zinc-950/95 backdrop-blur-sm">
+          <div className="flex gap-1 overflow-x-auto px-2 py-1.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {NAV.filter((n) => (session ? true : n.href !== "/teams")).map((n) => {
+              const active = isActive(pathname, n.href);
+              return (
+                <Link
+                  key={`mobile-${n.href}`}
+                  href={n.href}
+                  className={[
+                    "flex h-11 shrink-0 items-center justify-center rounded-lg px-4 text-sm font-semibold transition-colors",
+                    active
+                      ? "sidebar-link-active border"
+                      : "sidebar-link-idle hover:text-inherit",
+                  ].join(" ")}
+                >
+                  {n.label}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      ) : null}
 
       <aside
       className={[
