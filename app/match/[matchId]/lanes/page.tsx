@@ -1,6 +1,7 @@
 import BackButton from "../../../../components/BackButton";
-import MatchExperienceTabs from "../../../../components/MatchExperienceTabs";
-import { loadMatchExperienceData } from "../../../../lib/matchExperienceData";
+import MatchLanesView from "../../../../components/MatchLanesView";
+import MatchTabsNav from "../../../../components/MatchTabsNav";
+import { loadMatchLanesData } from "../../../../lib/matchLanesData";
 
 export default async function MatchLanesPage({
   params,
@@ -8,12 +9,13 @@ export default async function MatchLanesPage({
   params: Promise<{ matchId: string }>;
 }) {
   const { matchId } = await params;
-  const data = await loadMatchExperienceData(matchId);
+  const data = await loadMatchLanesData(matchId);
 
   return (
     <main className="w-full p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-5">
       <BackButton />
-      <MatchExperienceTabs activeTab="lanes" basePath={`/match/${matchId}`} {...data} />
+      <MatchTabsNav matchId={matchId} active="lanes" />
+      <MatchLanesView matchId={matchId} laneSummary={data.laneSummary} />
     </main>
   );
 }
