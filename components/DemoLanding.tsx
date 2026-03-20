@@ -3,6 +3,54 @@
 import Link from "next/link";
 
 export default function DemoLanding() {
+  const demoReplayId = "68623064";
+  const cardBaseClass =
+    "group relative overflow-hidden rounded-xl border border-zinc-800/50 bg-zinc-900/30 transition-all duration-200 hover:border-zinc-700/80 hover:bg-zinc-900/50";
+
+  const primaryFeatures = [
+    {
+      title: "Scrim Analytics",
+      description: "Track matches, analyze hero picks, and monitor team performance across scrims.",
+      glowClass: "bg-blue-500/10",
+      badgeClass: "bg-blue-500/20",
+      iconClass: "text-blue-400",
+      iconPath:
+        "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+    },
+    {
+      title: "Team Management",
+      description: "Create teams, manage rosters, and collaborate with teammates seamlessly.",
+      glowClass: "bg-emerald-500/10",
+      badgeClass: "bg-emerald-500/20",
+      iconClass: "text-emerald-400",
+      iconPath:
+        "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+    },
+    {
+      title: "Real-time Insights",
+      description: "Get instant statistics, heatmaps, and performance trends in real-time.",
+      glowClass: "bg-blue-500/10",
+      badgeClass: "bg-blue-500/20",
+      iconClass: "text-blue-400",
+      iconPath: "M13 10V3L4 14h7v7l9-11h-7z",
+    },
+  ];
+
+  const statsCards = [
+    { value: "40+", label: "Playable Heroes", valueClass: "text-emerald-400", glowClass: "bg-emerald-500/10" },
+    { value: "Real-time", label: "Match Tracking", valueClass: "text-blue-400", glowClass: "bg-blue-500/10" },
+    { value: "∞", label: "Free to Use", valueClass: "text-emerald-400", glowClass: "bg-emerald-500/10" },
+  ];
+
+  const demoFeatureList = [
+    "Overview dashboard",
+    "Timeline events",
+    "Lane performance",
+    "Charts and trends",
+    "Player compare view",
+    "Notes and VOD links",
+  ];
+
   return (
     <div className="min-h-screen bg-linear-to-br from-zinc-950 via-zinc-900 to-zinc-950">
       {/* Hero Section */}
@@ -29,10 +77,16 @@ export default function DemoLanding() {
           {/* CTA Buttons */}
           <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:gap-4">
             <Link
-              href="/login"
+              href="/demo"
               className="inline-flex items-center justify-center rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-6 py-3 font-semibold text-white transition-all duration-200 hover:from-blue-700 hover:to-blue-600 active:scale-95 sm:px-8 sm:py-4"
             >
-              Get Started
+              Try Demo
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center rounded-lg border border-emerald-500/40 bg-emerald-900/30 px-6 py-3 font-semibold text-emerald-200 transition-all duration-200 hover:border-emerald-400/60 hover:bg-emerald-800/40 sm:px-8 sm:py-4"
+            >
+              Sign In
             </Link>
             <a
               href="#features"
@@ -58,89 +112,20 @@ export default function DemoLanding() {
 
           {/* Feature Grid - Mobile responsive */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Feature 1 */}
-            <div className="group relative overflow-hidden rounded-xl border border-zinc-800/50 bg-zinc-900/30 p-6 transition-all duration-200 hover:border-zinc-700/80 hover:bg-zinc-900/50 sm:p-8">
-              <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-blue-500/10 blur-2xl transition-all duration-200 group-hover:blur-3xl" />
-              <div className="relative">
-                <div className="mb-4 inline-flex rounded-lg bg-blue-500/20 p-3">
-                  <svg
-                    className="h-6 w-6 text-blue-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
+            {primaryFeatures.map((feature) => (
+              <div key={feature.title} className={`${cardBaseClass} p-6 sm:p-8`}>
+                <div className={`absolute -right-12 -top-12 h-32 w-32 rounded-full ${feature.glowClass} blur-2xl transition-all duration-200 group-hover:blur-3xl`} />
+                <div className="relative">
+                  <div className={`mb-4 inline-flex rounded-lg ${feature.badgeClass} p-3`}>
+                    <svg className={`h-6 w-6 ${feature.iconClass}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={feature.iconPath} />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-white sm:text-xl">{feature.title}</h3>
+                  <p className="mt-2 text-sm text-zinc-400 sm:text-base">{feature.description}</p>
                 </div>
-                <h3 className="text-lg font-semibold text-white sm:text-xl">
-                  Scrim Analytics
-                </h3>
-                <p className="mt-2 text-sm text-zinc-400 sm:text-base">
-                  Track matches, analyze hero picks, and monitor team performance across scrims.
-                </p>
               </div>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="group relative overflow-hidden rounded-xl border border-zinc-800/50 bg-zinc-900/30 p-6 transition-all duration-200 hover:border-zinc-700/80 hover:bg-zinc-900/50 sm:p-8">
-              <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-emerald-500/10 blur-2xl transition-all duration-200 group-hover:blur-3xl" />
-              <div className="relative">
-                <div className="mb-4 inline-flex rounded-lg bg-emerald-500/20 p-3">
-                  <svg
-                    className="h-6 w-6 text-emerald-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-white sm:text-xl">
-                  Team Management
-                </h3>
-                <p className="mt-2 text-sm text-zinc-400 sm:text-base">
-                  Create teams, manage rosters, and collaborate with teammates seamlessly.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="group relative overflow-hidden rounded-xl border border-zinc-800/50 bg-zinc-900/30 p-6 transition-all duration-200 hover:border-zinc-700/80 hover:bg-zinc-900/50 sm:p-8">
-              <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-purple-500/10 blur-2xl transition-all duration-200 group-hover:blur-3xl" />
-              <div className="relative">
-                <div className="mb-4 inline-flex rounded-lg bg-purple-500/20 p-3">
-                  <svg
-                    className="h-6 w-6 text-purple-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-white sm:text-xl">
-                  Real-time Insights
-                </h3>
-                <p className="mt-2 text-sm text-zinc-400 sm:text-base">
-                  Get instant statistics, heatmaps, and performance trends in real-time.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -149,29 +134,32 @@ export default function DemoLanding() {
       <section className="relative w-full px-4 py-12 sm:py-16 md:py-20">
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-6 sm:grid-cols-3">
-            <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/30 p-6 text-center sm:p-8">
-              <div className="text-3xl font-bold text-emerald-400 sm:text-4xl">
-                40+
+            {statsCards.map((stat) => (
+              <div key={stat.label} className={`${cardBaseClass} p-6 text-center sm:p-8`}>
+                <div className={`pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full ${stat.glowClass} blur-2xl`} />
+                <div className={`relative text-3xl font-bold sm:text-4xl ${stat.valueClass}`}>{stat.value}</div>
+                <p className="relative mt-2 text-sm text-zinc-400 sm:text-base">{stat.label}</p>
               </div>
-              <p className="mt-2 text-sm text-zinc-400 sm:text-base">
-                Playable Heroes
-              </p>
-            </div>
-            <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/30 p-6 text-center sm:p-8">
-              <div className="text-3xl font-bold text-blue-400 sm:text-4xl">
-                Real-time
-              </div>
-              <p className="mt-2 text-sm text-zinc-400 sm:text-base">
-                Match Tracking
-              </p>
-            </div>
-            <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/30 p-6 text-center sm:p-8">
-              <div className="text-3xl font-bold text-purple-400 sm:text-4xl">
-                ∞
-              </div>
-              <p className="mt-2 text-sm text-zinc-400 sm:text-base">
-                Free to Use
-              </p>
+            ))}
+          </div>
+
+          <div className="mt-10">
+            <h3 className="text-center text-2xl font-bold text-white sm:text-3xl">Features</h3>
+            <p className="mt-2 text-center text-sm text-zinc-400 sm:text-base">
+              Built-in analysis views available in the live demo match.
+            </p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {demoFeatureList.map((feature, index) => (
+                <div
+                  key={feature}
+                  className={`${cardBaseClass} p-5`}
+                >
+                  <div
+                    className={`pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full ${index % 2 === 0 ? "bg-blue-500/10" : "bg-emerald-500/10"} blur-2xl transition-all duration-200 group-hover:blur-3xl`}
+                  />
+                  <p className="relative text-sm font-medium text-zinc-100 sm:text-base">{feature}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

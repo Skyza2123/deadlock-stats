@@ -12,7 +12,7 @@ export default function MatchTabsNav({
   const base = `/match/${matchId}`;
 
   const tabs: Array<{ key: MatchTabKey; label: string; href: string }> = [
-    { key: "overview", label: "Overview (main page)", href: base },
+    { key: "overview", label: "Overview", href: base },
     { key: "timeline", label: "Timeline", href: `${base}/timeline` },
     { key: "lanes", label: "Lanes", href: `${base}/lanes` },
     { key: "charts", label: "Charts", href: `${base}/charts` },

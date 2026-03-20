@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET ?? "local-dev-auth-secret-change-me";
-const PUBLIC_PATH_PREFIXES = ["/login", "/api/auth", "/_next", "/favicon.ico", "/privacy", "/terms"];
+const PUBLIC_PATH_PREFIXES = ["/login", "/api/auth", "/_next", "/favicon.ico", "/privacy", "/terms", "/demo", "/match/68623064"];
 const PUBLIC_EXACT_PATHS = ["/"];
 
 function isPublicPath(pathname: string) {

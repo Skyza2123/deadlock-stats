@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import BackButton from "../../../components/BackButton";
 import HeroIcon from "../../../components/HeroIcon";
 import MapHeatmap from "../../../components/MapHeatmap";
+import TeamStatsTabsShell from "../../../components/TeamStatsTabsShell";
 import { db } from "../../../db";
 import { matchPlayerItems, matchPlayers, matches, players, teamMemberships, teams } from "../../../db/schema";
 import { fmtTime, hasItem, heroName, itemName } from "../../../lib/deadlockData";
@@ -164,7 +166,7 @@ export default async function TeamStatsPage({
   searchParams,
 }: {
   params: Promise<{ teamSlug: string }>;
-  searchParams?: Promise<{ from?: string; to?: string }>;
+  searchParams?: Promise<{ from?: string; to?: string; section?: string }>;
 }) {
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -219,8 +221,13 @@ export default async function TeamStatsPage({
     );
   }
 
-  const fromRaw = (searchParams ? (await searchParams).from : undefined) ?? "";
-  const toRaw = (searchParams ? (await searchParams).to : undefined) ?? "";
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const fromRaw = resolvedSearchParams?.from ?? "";
+  const toRaw = resolvedSearchParams?.to ?? "";
+  const requestedSection = String(resolvedSearchParams?.section ?? "overview").trim().toLowerCase();
+
+  const allowedSections = new Set(["overview", "performance", "heroes", "trends", "items"]);
+  const activeSection = allowedSections.has(requestedSection) ? requestedSection : "overview";
 
   const fromDate = fromRaw ? new Date(`${fromRaw}T00:00:00.000Z`) : null;
   const toDate = toRaw ? new Date(`${toRaw}T23:59:59.999Z`) : null;
@@ -866,6 +873,8 @@ export default async function TeamStatsPage({
       heroId: string;
       picks: number;
       bans: number;
+      pickWins: number;
+      pickLosses: number;
       banWins: number;
       banLosses: number;
       teamPicks: number;
@@ -887,6 +896,8 @@ export default async function TeamStatsPage({
         heroId: event.heroId,
         picks: 0,
         bans: 0,
+        pickWins: 0,
+        pickLosses: 0,
         banWins: 0,
         banLosses: 0,
         teamPicks: 0,
@@ -897,6 +908,8 @@ export default async function TeamStatsPage({
 
       if (event.type === "pick") {
         heroStat.picks += 1;
+        if (match.result === "Win") heroStat.pickWins += 1;
+        if (match.result === "Loss") heroStat.pickLosses += 1;
       }
 
       if (event.type === "ban") {
@@ -943,7 +956,6 @@ export default async function TeamStatsPage({
   const topBannedHeroes = draftHeroRows
     .filter((entry) => entry.bans > 0)
     .sort((a, b) => b.bans - a.bans)
-    .slice(0, 8)
     .map((entry) => {
       const banWinRateBase = entry.banWins + entry.banLosses;
       const banWinRate = banWinRateBase > 0 ? (entry.banWins / banWinRateBase) * 100 : 0;
@@ -1011,44 +1023,94 @@ export default async function TeamStatsPage({
       };
     });
 
-  const heroGraphRows = heroRows;
+  const sectionTabs = [
+    { id: "overview", label: "Overview" },
+    { id: "performance", label: "Performance" },
+    { id: "heroes", label: "Heroes" },
+    { id: "trends", label: "Trends" },
+    { id: "items", label: "Items" },
+  ] as const;
 
-  const maxHeroGraphPicks = Math.max(1, ...heroGraphRows.map((entry) => entry.picks));
-  const maxHeroGraphKda = Math.max(1, ...heroGraphRows.map((entry) => entry.heroKda));
-  const maxHeroGraphSouls = Math.max(1, ...heroGraphRows.map((entry) => entry.heroAvgSouls));
+  const topBannedHeroesTop = topBannedHeroes.slice(0, 10);
+  const topBannedHeroesExtra = topBannedHeroes.slice(10);
+  const draftVisualPickRows = heroRows
+    .filter((entry) => entry.picks > 0)
+    .sort((a, b) => b.picks - a.picks)
+    .slice(0, 12)
+    .map((entry) => ({
+      heroId: entry.heroId,
+      picks: entry.picks,
+    }));
+  const draftVisualBanRows = draftHeroRows
+    .filter((entry) => entry.bans > 0)
+    .sort((a, b) => b.bans - a.bans)
+    .slice(0, 12);
+  const heroRowsTop = heroRows.slice(0, 10);
+  const heroRowsExtra = heroRows.slice(10);
+  const draftHeroRowsTop = draftHeroRows.slice(0, 10);
+  const draftHeroRowsExtra = draftHeroRows.slice(10);
+  const maxDraftVisualPicksRaw = Math.max(1, ...draftVisualPickRows.map((entry) => entry.picks));
+  const maxDraftVisualBansRaw = Math.max(1, ...draftVisualBanRows.map((entry) => entry.bans));
+  const maxDraftVisualPicks = maxDraftVisualPicksRaw;
+  const maxDraftVisualBans = maxDraftVisualBansRaw;
+
+  const buildAxisTicks = (maxValue: number): number[] => {
+    if (maxValue <= 0) return [0];
+
+    if (maxValue <= 6) {
+      return Array.from({ length: maxValue + 1 }, (_, idx) => maxValue - idx);
+    }
+
+    const desiredTickCount = 6;
+    const step = Math.max(1, Math.ceil(maxValue / (desiredTickCount - 1)));
+    const top = Math.ceil(maxValue / step) * step;
+    const ticks: number[] = [];
+
+    for (let value = top; value >= 0; value -= step) {
+      ticks.push(value);
+    }
+
+    if (ticks[ticks.length - 1] !== 0) ticks.push(0);
+    return ticks;
+  };
+
+  const draftVisualPickTicks = buildAxisTicks(maxDraftVisualPicks);
+  const draftVisualBanTicks = buildAxisTicks(maxDraftVisualBans);
 
   return (
-    <main className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
+    <main id="main-content" className="team-stats-shell w-full">
+      <div className="flex-col md:flex">
+      <div className="flex-1 space-y-5 p-4 pt-6 sm:space-y-6 sm:p-6 lg:p-8">
       <div className="flex items-center justify-between gap-3">
         <BackButton />
-        <a href="/teams" className="text-sm text-zinc-300 hover:underline">
+        <Link href="/teams" className="text-sm text-zinc-300 hover:underline">
           Back to teams
-        </a>
+        </Link>
       </div>
 
-      <header className="panel-premium rounded-xl p-4 md:p-5">
+      <header className="panel-premium team-stats-section rounded-xl p-4 md:p-5">
         <h1 className="text-3xl font-bold tracking-tight">{team.name} stats</h1>
         <p className="mt-1.5 text-sm text-zinc-400">
           Team slug: {team.slug} • Active roster: {rosterRows.length}
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <a
+          <Link
             href={`/teams/${team.slug}/enemy-tracking`}
             className="inline-flex rounded border border-zinc-700/80 bg-zinc-900/80 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-800"
           >
             Open enemy tracking →
-          </a>
-          <a
+          </Link>
+          <Link
             href={`/teams/${team.slug}/edit`}
             className="inline-flex rounded border border-zinc-700/80 bg-zinc-900/80 px-3 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-800"
           >
             Edit team
-          </a>
+          </Link>
         </div>
       </header>
 
-      <section className="panel-premium rounded-xl p-4">
-        <form className="flex flex-col gap-3 md:flex-row md:items-end" method="GET">
+        <section className="panel-premium team-stats-section rounded-xl p-4">
+          <form className="flex flex-col gap-3 md:flex-row md:items-end" method="GET">
           <input type="hidden" name="teamSlug" value={teamSlug} />
           <div>
             <label htmlFor="from" className="mb-1 block text-sm text-zinc-300">From (scrim date)</label>
@@ -1077,47 +1139,272 @@ export default async function TeamStatsPage({
             >
               Apply
             </button>
-            <a
+            <Link
               href={`/teams/${team.slug}`}
               className="rounded border border-zinc-700/80 bg-zinc-900/80 px-4 py-2 text-sm hover:bg-zinc-800"
             >
               Reset
-            </a>
+            </Link>
           </div>
         </form>
         <p className="mt-2 text-xs text-zinc-500">
           Filters use the manually set scrim date on each match.
         </p>
+        </section>
+
+      <TeamStatsTabsShell
+        initialSection={activeSection as "overview" | "performance" | "heroes" | "trends" | "items"}
+        tabs={sectionTabs}
+        from={fromRaw || undefined}
+        to={toRaw || undefined}
+      >
+
+        <section data-section="overview" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="panel-premium-soft team-stats-kpi rounded-lg p-4">
+            <p className="text-xs uppercase tracking-wide opacity-70">Matches represented</p>
+            <p className="mt-1 text-xl font-semibold">{byMatch.size}</p>
+          </div>
+          <div className="panel-premium-soft team-stats-kpi rounded-lg p-4">
+            <p className="text-xs uppercase tracking-wide opacity-70">Record</p>
+            <p className="mt-1 text-xl font-semibold">{wins}-{losses}</p>
+            <p className="text-xs text-zinc-500">{undecided} undecided</p>
+          </div>
+          <div className="panel-premium-soft team-stats-kpi rounded-lg p-4">
+            <p className="text-xs uppercase tracking-wide opacity-70">Win rate</p>
+            <p className="mt-1 text-xl font-semibold">{winRate.toFixed(1)}%</p>
+          </div>
+          <div className="panel-premium-soft team-stats-kpi rounded-lg p-4">
+            <p className="text-xs uppercase tracking-wide opacity-70">Avg K / D / A</p>
+            <p className="mt-1 text-xl font-semibold">
+              {avgKills.toFixed(2)} / {avgDeaths.toFixed(2)} / {avgAssists.toFixed(2)}
+            </p>
+          </div>
+        </section>
+
+        <section data-section="overview" className="panel-premium team-stats-section rounded-xl p-4">
+        <h2 className="text-lg font-semibold">Summary</h2>
+        <p className="mt-1 text-sm text-zinc-400">Snapshot of team context including active roster for this date range.</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-lg border border-zinc-800/75 bg-zinc-900/35 p-3">
+            <p className="text-xs uppercase tracking-wide text-zinc-400">Roster size</p>
+            <p className="mt-1 text-2xl font-semibold">{rosterRows.length}</p>
+          </div>
+          <div className="rounded-lg border border-zinc-800/75 bg-zinc-900/35 p-3 sm:col-span-2 lg:col-span-2">
+            <p className="text-xs uppercase tracking-wide text-zinc-400">Roster</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+                      {rosterRows.length ? (
+                        rosterRows.map((row, index) => (
+                          <span key={`overview-roster-${row.steamId}-${index}`} className="rounded border border-zinc-700/80 bg-zinc-900/70 px-2 py-0.5 text-xs text-zinc-200">
+                    {row.displayName ?? row.steamId}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-zinc-500">No active roster players.</span>
+              )}
+            </div>
+          </div>
+        </div>
+        </section>
+
+        <div data-section="overview" className="grid gap-4 xl:grid-cols-2">
+          <section data-section="overview" className="panel-premium team-stats-section rounded-xl p-4">
+            <h2 className="text-lg font-semibold mb-2">Top 5 heroes</h2>
+            <p className="mb-3 text-sm text-zinc-400">Most played heroes in the selected range.</p>
+            {topHeroes.length ? (
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                {topHeroes.slice(0, 5).map((entry, index) => (
+                  <div key={`overview-hero-${entry.heroId}`} className="rounded-lg border border-zinc-800/80 bg-zinc-900/35 px-2.5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                    <div className="flex items-center gap-2.5">
+                      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/15 bg-zinc-950/85 text-xs font-semibold text-zinc-100">
+                        #{index + 1}
+                      </span>
+                      {heroCardIconPath(entry.heroId) ? (
+                        <HeroIcon
+                          src={heroCardIconPath(entry.heroId)}
+                          alt={heroName(entry.heroId)}
+                          width={60}
+                          height={60}
+                          className="h-14 w-14 shrink-0 rounded object-cover border border-zinc-700"
+                        />
+                      ) : heroSmallIconPath(entry.heroId) ? (
+                        <HeroIcon
+                          src={heroSmallIconPath(entry.heroId)}
+                          alt={heroName(entry.heroId)}
+                          width={56}
+                          height={56}
+                          className="h-14 w-14 shrink-0 rounded object-cover border border-zinc-700"
+                        />
+                      ) : (
+                        <div className="h-14 w-14 shrink-0 rounded border border-zinc-700 bg-zinc-900/60" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="truncate text-sm font-semibold text-zinc-100">{heroName(entry.heroId)}</p>
+                          <span className="shrink-0 text-xs font-mono text-zinc-300">{entry.picks} picks</span>
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-1 text-xs">
+                          <span className="rounded border border-zinc-700 bg-zinc-900/70 px-1.5 py-0.5 font-mono text-zinc-200">WR {entry.winRate.toFixed(0)}%</span>
+                          <span className="rounded border border-zinc-700 bg-zinc-900/70 px-1.5 py-0.5 font-mono text-zinc-200">KDA {entry.heroKda.toFixed(2)}</span>
+                          <span className="rounded border border-zinc-700 bg-zinc-900/70 px-1.5 py-0.5 font-mono text-zinc-200">Souls {entry.avgSouls.toFixed(0)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-zinc-400">No hero data yet.</p>
+            )}
+          </section>
+
+          <section data-section="overview" className="panel-premium team-stats-section rounded-xl p-4">
+            <h2 className="text-lg font-semibold mb-2">Top 5 items</h2>
+            <p className="mb-3 text-sm text-zinc-400">Most used items in the selected range.</p>
+            {topItemRows.length ? (
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                {topItemRows.slice(0, 5).map((entry, index) => (
+                  <div key={`overview-item-${entry.itemId}`} className="rounded-lg border border-zinc-800/80 bg-zinc-900/35 px-2.5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                    <div className="flex items-center gap-2.5">
+                      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/15 bg-zinc-950/85 text-xs font-semibold text-zinc-100">
+                        #{index + 1}
+                      </span>
+                      {itemIconPath(entry.itemId) ? (
+                        <HeroIcon
+                          src={itemIconPath(entry.itemId)}
+                          alt={itemName(entry.itemId)}
+                          width={56}
+                          height={56}
+                          className="h-14 w-14 shrink-0 rounded object-contain border border-zinc-700 p-1"
+                        />
+                      ) : (
+                        <div className="h-14 w-14 shrink-0 rounded border border-zinc-700 bg-zinc-900/60" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="truncate text-sm font-semibold text-zinc-100">{itemName(entry.itemId)}</p>
+                          <span className="shrink-0 text-xs font-mono text-zinc-300">{entry.buys} buys</span>
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-1 text-xs">
+                          <span className="rounded border border-zinc-700 bg-zinc-900/70 px-1.5 py-0.5 font-mono text-zinc-200">WR {entry.winRateWhenPicked.toFixed(0)}%</span>
+                          <span className="rounded border border-zinc-700 bg-zinc-900/70 px-1.5 py-0.5 font-mono text-zinc-200">Weight {entry.weightPct.toFixed(1)}%</span>
+                          <span className="rounded border border-zinc-700 bg-zinc-900/70 px-1.5 py-0.5 font-mono text-zinc-200">Avg {fmtTime(entry.avgBuyTimeS)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-zinc-400">No item data yet.</p>
+            )}
+          </section>
+        </div>
+
+        <section data-section="overview" className="panel-premium team-stats-section rounded-xl p-4">
+          <h2 className="text-lg font-semibold mb-2">Recent team matches</h2>
+          <p className="mb-2 text-sm text-zinc-400">Most recent matches where at least one active roster player appeared.</p>
+          {recentTeamMatches.length ? (
+            <div className="overflow-x-auto rounded-lg border border-zinc-800/70">
+              <table className="team-stats-table w-full text-sm">
+                <thead className="bg-zinc-900/70">
+                  <tr>
+                    <th className="p-3 text-left">Match</th>
+                    <th className="p-3 text-left">Result</th>
+                    <th className="p-3 text-left">Side</th>
+                    <th className="p-3 text-left">Players</th>
+                    <th className="p-3 text-left">Duration</th>
+                    <th className="p-3 text-left">Draft</th>
+                    <th className="p-3 text-left">Open</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentTeamMatches.map((match) => (
+                    <tr key={match.matchId} className="border-t border-zinc-800/80 odd:bg-zinc-900/20 hover:bg-zinc-900/40">
+                      <td className="p-0 font-mono"><Link className="block px-3 py-3" href={`/match/${match.matchId}`}>{match.matchId}</Link></td>
+                      <td className="p-0">
+                        <Link className="block px-3 py-3" href={`/match/${match.matchId}`}>
+                          <span
+                            className={
+                              match.result === "Win"
+                                ? "text-emerald-300"
+                                : match.result === "Loss"
+                                  ? "text-rose-300"
+                                  : "text-zinc-400"
+                            }
+                          >
+                            {match.result}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="p-0"><Link className="block px-3 py-3" href={`/match/${match.matchId}`}>{match.side != null ? TEAM_NAMES[match.side] ?? match.side : "Unknown"}</Link></td>
+                      <td className="p-0"><Link className="block px-3 py-3" href={`/match/${match.matchId}`}>{match.playersRepresented}</Link></td>
+                      <td className="p-0 font-mono"><Link className="block px-3 py-3" href={`/match/${match.matchId}`}>{match.durationText}</Link></td>
+                      <td className="p-3">
+                        {match.draftCount ? (
+                          <Link className="block" href={`/match/${match.matchId}`}>
+                            <div className="mb-1 text-xs text-zinc-400">{match.draftCount} events</div>
+                            <div className="flex flex-wrap gap-1">
+                              {match.draftEvents.slice(0, 12).map((event) => {
+                                const icon = heroSmallIconPath(event.heroId);
+                                const tone = event.type === "ban" ? "border-rose-500/40 bg-rose-500/10" : "border-emerald-500/40 bg-emerald-500/10";
+                                const sideLabel = event.side === "0" ? "HK" : event.side === "1" ? "AM" : "?";
+                                return (
+                                  <span key={`${match.matchId}-${event.order}-${event.type}-${event.heroId}`} className={`inline-flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] ${tone}`} title={`#${event.order} ${event.type.toUpperCase()} ${heroName(event.heroId)} • ${sideLabel}`}>
+                                    {icon ? (
+                                      <HeroIcon
+                                        src={icon}
+                                        alt={heroName(event.heroId)}
+                                        width={14}
+                                        height={14}
+                                        className="h-3.5 w-3.5 rounded object-cover"
+                                      />
+                                    ) : null}
+                                    <span>{sideLabel}</span>
+                                  </span>
+                                );
+                              })}
+                              {match.draftEvents.length > 12 ? (
+                                <span className="inline-flex items-center rounded border border-zinc-700/80 bg-zinc-900/60 px-1.5 py-1 text-[10px] text-zinc-300">
+                                  +{match.draftEvents.length - 12}
+                                </span>
+                              ) : null}
+                            </div>
+                          </Link>
+                        ) : (
+                          <Link className="block text-xs text-zinc-500" href={`/match/${match.matchId}`}>No draft</Link>
+                        )}
+                      </td>
+                      <td className="p-0">
+                        <Link className="block px-3 py-3 text-emerald-300 hover:text-emerald-200 hover:underline" href={`/match/${match.matchId}`}>
+                          View →
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-zinc-400">No matches found for this team roster yet.</p>
+          )}
+        </section>
+
+      <section data-section="performance" className="panel-premium team-stats-section rounded-xl p-4">
+        <h2 className="text-lg font-semibold mb-2">Averages</h2>
+        <div className="space-y-2 text-sm">
+          <p>Avg souls per player-entry: <span className="font-mono">{avgSouls.toFixed(0)}</span></p>
+          <p>Avg kills per player-entry: <span className="font-mono">{avgKills.toFixed(2)}</span></p>
+          <p>Avg deaths per player-entry: <span className="font-mono">{avgDeaths.toFixed(2)}</span></p>
+          <p>Avg assists per player-entry: <span className="font-mono">{avgAssists.toFixed(2)}</span></p>
+        </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="panel-premium-soft rounded-lg p-4">
-          <p className="text-xs uppercase tracking-wide opacity-70">Matches represented</p>
-          <p className="mt-1 text-xl font-semibold">{byMatch.size}</p>
-        </div>
-        <div className="panel-premium-soft rounded-lg p-4">
-          <p className="text-xs uppercase tracking-wide opacity-70">Record</p>
-          <p className="mt-1 text-xl font-semibold">{wins}-{losses}</p>
-          <p className="text-xs text-zinc-500">{undecided} undecided</p>
-        </div>
-        <div className="panel-premium-soft rounded-lg p-4">
-          <p className="text-xs uppercase tracking-wide opacity-70">Win rate</p>
-          <p className="mt-1 text-xl font-semibold">{winRate.toFixed(1)}%</p>
-        </div>
-        <div className="panel-premium-soft rounded-lg p-4">
-          <p className="text-xs uppercase tracking-wide opacity-70">Avg K / D / A</p>
-          <p className="mt-1 text-xl font-semibold">
-            {avgKills.toFixed(2)} / {avgDeaths.toFixed(2)} / {avgAssists.toFixed(2)}
-          </p>
-        </div>
-      </section>
-
-      <section className="panel-premium rounded-xl p-4">
+      <section data-section="performance" id="performance" className="panel-premium team-stats-section scroll-mt-24 rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-2">Player stats</h2>
         <p className="mb-3 text-sm text-zinc-400">Personal performance for active manual roster players in this filtered range.</p>
         {playerStats.length ? (
           <div className="overflow-x-auto rounded-lg border border-zinc-800/70">
-            <table className="w-full text-sm">
+            <table className="team-stats-table w-full text-sm">
               <thead className="bg-zinc-900/70">
                 <tr>
                   <th className="p-3 text-left">Player</th>
@@ -1183,18 +1470,8 @@ export default async function TeamStatsPage({
         )}
       </section>
 
-      <section className="panel-premium rounded-xl p-4">
-        <h2 className="text-lg font-semibold mb-2">Averages</h2>
-        <div className="space-y-2 text-sm">
-          <p>Avg souls per player-entry: <span className="font-mono">{avgSouls.toFixed(0)}</span></p>
-          <p>Avg kills per player-entry: <span className="font-mono">{avgKills.toFixed(2)}</span></p>
-          <p>Avg deaths per player-entry: <span className="font-mono">{avgDeaths.toFixed(2)}</span></p>
-          <p>Avg assists per player-entry: <span className="font-mono">{avgAssists.toFixed(2)}</span></p>
-        </div>
-      </section>
-
-      <section className="grid gap-3 lg:grid-cols-2">
-        <section className="panel-premium rounded-xl p-4">
+      <section data-section="heroes" id="heroes" className="scroll-mt-24 grid gap-3 lg:grid-cols-2">
+        <section className="panel-premium team-stats-section rounded-xl p-4">
           <h2 className="text-lg font-semibold mb-2">Top heroes</h2>
           <p className="mb-3 text-sm text-zinc-400">Most impactful heroes for this team in the selected range.</p>
           {topHeroes.length ? (
@@ -1256,12 +1533,13 @@ export default async function TeamStatsPage({
           )}
         </section>
 
-          <section className="panel-premium rounded-xl p-4">
+          <section className="panel-premium team-stats-section rounded-xl p-4">
             <h2 className="text-lg font-semibold mb-2">Top bans</h2>
             <p className="mb-3 text-sm text-zinc-400">Most banned heroes across this team's filtered draft matches.</p>
             {topBannedHeroes.length ? (
+              <>
               <div className="grid gap-3 sm:grid-cols-2">
-            {topBannedHeroes.map((entry, index) => (
+            {topBannedHeroesTop.map((entry, index) => (
               <div
                 key={`top-ban-${entry.heroId}`}
                 className={`rounded border bg-zinc-900/40 p-3 ${
@@ -1316,66 +1594,402 @@ export default async function TeamStatsPage({
               </div>
             ))}
             </div>
+            {topBannedHeroesExtra.length ? (
+              <details className="mt-3">
+                <summary className="inline-flex cursor-pointer select-none items-center rounded-md border border-zinc-700 bg-zinc-900/40 px-3 py-1.5 text-sm font-medium text-zinc-200 hover:bg-zinc-800/50">
+                  See more bans ({topBannedHeroesExtra.length})
+                </summary>
+                <div className="mt-2 overflow-x-auto rounded border border-zinc-800/70">
+                  <table className="team-stats-table w-full text-xs">
+                    <thead className="bg-zinc-900/70">
+                      <tr>
+                        <th className="p-2 text-left">Hero</th>
+                        <th className="p-2 text-left">Bans</th>
+                        <th className="p-2 text-left">Ban WR</th>
+                        <th className="p-2 text-left">Team</th>
+                        <th className="p-2 text-left">Enemy</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topBannedHeroesExtra.map((entry) => (
+                        <tr key={`top-ban-extra-${entry.heroId}`} className="border-t border-zinc-800/80 odd:bg-zinc-900/20">
+                          <td className="p-2">
+                            <span className="inline-flex items-center gap-2">
+                              {heroSmallIconPath(entry.heroId) ? (
+                                <HeroIcon
+                                  src={heroSmallIconPath(entry.heroId)}
+                                  alt={heroName(entry.heroId)}
+                                  width={16}
+                                  height={16}
+                                  className="h-4 w-4 rounded object-cover border border-zinc-700"
+                                />
+                              ) : null}
+                              <span>{heroName(entry.heroId)}</span>
+                            </span>
+                          </td>
+                          <td className="p-2 font-mono">{entry.bans}</td>
+                          <td className="p-2 font-mono">{entry.banWinRate.toFixed(1)}%</td>
+                          <td className="p-2 font-mono text-emerald-300">{entry.teamBans}</td>
+                          <td className="p-2 font-mono text-blue-300">{entry.enemyBans}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            ) : null}
+            </>
           ) : (
             <p className="text-sm text-zinc-400">No bans data yet.</p>
           )}
         </section>
       </section>
 
-      <section className="panel-premium rounded-xl p-4">
-        <h2 className="text-lg font-semibold mb-2">Hero-specific stats</h2>
-        <p className="mb-3 text-sm text-zinc-400">Detailed hero performance across the filtered team matches (averages per hero pick).</p>
-        {heroRows.length ? (
-          <div className="overflow-x-auto rounded-lg border border-zinc-800/70">
-            <table className="w-full text-sm">
-              <thead className="bg-zinc-900/70">
-                <tr>
-                  <th className="p-3 text-left">Hero</th>
-                  <th className="p-3 text-left">Picks</th>
-                  <th className="p-3 text-left">Record</th>
-                  <th className="p-3 text-left">Win %</th>
-                  <th className="p-3 text-left">Avg K / D / A</th>
-                  <th className="p-3 text-left">Total K / D / A</th>
-                  <th className="p-3 text-left">KDA</th>
-                  <th className="p-3 text-left">Avg souls</th>
-                </tr>
-              </thead>
-              <tbody>
-                {heroRows.map((entry) => (
-                  <tr key={`hero-row-${entry.heroId}`} className="border-t border-zinc-800/80 odd:bg-zinc-900/20">
-                    <td className="p-3">
-                      <span className="inline-flex items-center gap-2">
-                        {heroSmallIconPath(entry.heroId) ? (
-                          <HeroIcon
-                            src={heroSmallIconPath(entry.heroId)}
-                            alt={heroName(entry.heroId)}
-                            width={20}
-                            height={20}
-                            className="h-5 w-5 rounded object-cover border border-zinc-700"
-                          />
-                        ) : null}
-                        <span>{heroName(entry.heroId)}</span>
+      <section data-section="heroes" className="grid gap-3 xl:grid-cols-2 xl:items-stretch">
+        <section className="panel-premium team-stats-section h-full rounded-xl p-4">
+          <h2 className="text-lg font-semibold mb-2">Hero-specific stats</h2>
+          <p className="mb-3 text-sm text-zinc-400">Detailed hero performance across the filtered team matches (averages per hero pick).</p>
+          {heroRows.length ? (
+            <>
+                  <div className="overflow-x-auto rounded-lg border border-zinc-800/70">
+                <table className="team-stats-table w-full text-xs">
+                  <thead className="bg-zinc-900/70">
+                    <tr>
+                      <th className="p-2 text-left">Hero</th>
+                      <th className="p-2 text-left">Picks</th>
+                      <th className="p-2 text-left">Record</th>
+                      <th className="p-2 text-left">Win %</th>
+                      <th className="p-2 text-left">Avg K / D / A</th>
+                      <th className="p-2 text-left">KDA</th>
+                      <th className="p-2 text-left">Avg souls</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {heroRowsTop.map((entry) => (
+                      <tr key={`hero-row-${entry.heroId}`} className="border-t border-zinc-800/80 odd:bg-zinc-900/20">
+                        <td className="p-2">
+                          <span className="inline-flex items-center gap-2">
+                            {heroSmallIconPath(entry.heroId) ? (
+                              <HeroIcon
+                                src={heroSmallIconPath(entry.heroId)}
+                                alt={heroName(entry.heroId)}
+                                width={16}
+                                height={16}
+                                className="h-4 w-4 rounded object-cover border border-zinc-700"
+                              />
+                            ) : null}
+                            <span>{heroName(entry.heroId)}</span>
+                          </span>
+                        </td>
+                        <td className="p-2 font-mono">{entry.picks}</td>
+                        <td className="p-2 font-mono">{entry.wins}-{entry.losses}</td>
+                        <td className="p-2 font-mono">{entry.heroWinRate.toFixed(1)}%</td>
+                        <td className="p-2 font-mono">{entry.avgKills.toFixed(2)} / {entry.avgDeaths.toFixed(2)} / {entry.avgAssists.toFixed(2)}</td>
+                        <td className="p-2 font-mono">{entry.heroKda.toFixed(2)}</td>
+                        <td className="p-2 font-mono">{entry.heroAvgSouls.toFixed(0)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {heroRowsExtra.length ? (
+                <details className="mt-3 mb-4">
+                  <summary className="inline-flex cursor-pointer select-none items-center rounded-md border border-zinc-700 bg-zinc-900/40 px-3 py-1.5 text-sm font-medium text-zinc-200 hover:bg-zinc-800/50">
+                    See more heroes ({heroRowsExtra.length})
+                  </summary>
+                  <div className="mt-2 overflow-x-auto rounded border border-zinc-800/70">
+                    <table className="team-stats-table w-full text-xs">
+                      <thead className="bg-zinc-900/70">
+                        <tr>
+                          <th className="p-2 text-left">Hero</th>
+                          <th className="p-2 text-left">Picks</th>
+                          <th className="p-2 text-left">Record</th>
+                          <th className="p-2 text-left">Win %</th>
+                          <th className="p-2 text-left">Avg K / D / A</th>
+                          <th className="p-2 text-left">KDA</th>
+                          <th className="p-2 text-left">Avg souls</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {heroRowsExtra.map((entry) => (
+                          <tr key={`hero-row-extra-${entry.heroId}`} className="border-t border-zinc-800/80 odd:bg-zinc-900/20">
+                            <td className="p-2">
+                              <span className="inline-flex items-center gap-2">
+                                {heroSmallIconPath(entry.heroId) ? (
+                                  <HeroIcon
+                                    src={heroSmallIconPath(entry.heroId)}
+                                    alt={heroName(entry.heroId)}
+                                    width={16}
+                                    height={16}
+                                    className="h-4 w-4 rounded object-cover border border-zinc-700"
+                                  />
+                                ) : null}
+                                <span>{heroName(entry.heroId)}</span>
+                              </span>
+                            </td>
+                            <td className="p-2 font-mono">{entry.picks}</td>
+                            <td className="p-2 font-mono">{entry.wins}-{entry.losses}</td>
+                            <td className="p-2 font-mono">{entry.heroWinRate.toFixed(1)}%</td>
+                            <td className="p-2 font-mono">{entry.avgKills.toFixed(2)} / {entry.avgDeaths.toFixed(2)} / {entry.avgAssists.toFixed(2)}</td>
+                            <td className="p-2 font-mono">{entry.heroKda.toFixed(2)}</td>
+                            <td className="p-2 font-mono">{entry.heroAvgSouls.toFixed(0)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
+              ) : null}
+            </>
+          ) : (
+            <p className="text-sm text-zinc-400">No hero-specific stats available yet.</p>
+          )}
+        </section>
+
+        <section className="panel-premium team-stats-section h-full rounded-xl p-4">
+          <h2 className="text-lg font-semibold mb-2">Draft stats</h2>
+          <p className="mb-3 text-sm text-zinc-400">Draft trends from matches in the current filter range.</p>
+
+          {draftMatches.length ? (
+            <>
+              <div className="overflow-x-auto rounded-lg border border-zinc-800/70">
+                <table className="team-stats-table w-full text-xs">
+                  <thead className="bg-zinc-900/70">
+                    <tr>
+                      <th className="p-2 text-left">Hero</th>
+                      <th className="p-2 text-left">Picks</th>
+                      <th className="p-2 text-left">Pick WR</th>
+                      <th className="p-2 text-left">Bans</th>
+                      <th className="p-2 text-left">Ban WR</th>
+                      <th className="p-2 text-left">Team</th>
+                      <th className="p-2 text-left">Enemy</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                      {draftHeroRowsTop.map((entry) => (
+                      <tr key={`draft-hero-${entry.heroId}`} className="border-t border-zinc-800/80 odd:bg-zinc-900/20">
+                        <td className="p-2">
+                          <span className="inline-flex items-center gap-2">
+                            {heroSmallIconPath(entry.heroId) ? (
+                              <HeroIcon
+                                src={heroSmallIconPath(entry.heroId)}
+                                alt={heroName(entry.heroId)}
+                                width={16}
+                                height={16}
+                                className="h-4 w-4 rounded object-cover border border-zinc-700"
+                              />
+                            ) : null}
+                            <span>{heroName(entry.heroId)}</span>
+                          </span>
+                        </td>
+                        <td className="p-2 font-mono">{entry.picks}</td>
+                        <td className="p-2 font-mono">
+                          {entry.picks > 0
+                            ? `${((entry.pickWins / Math.max(1, entry.pickWins + entry.pickLosses)) * 100).toFixed(1)}%`
+                            : "-"}
+                        </td>
+                        <td className="p-2 font-mono">{entry.bans}</td>
+                        <td className="p-2 font-mono">
+                          {entry.bans > 0
+                            ? `${((entry.banWins / Math.max(1, entry.banWins + entry.banLosses)) * 100).toFixed(1)}%`
+                            : "-"}
+                        </td>
+                        <td className="p-2 font-mono text-emerald-300">{entry.teamPicks} / {entry.teamBans}</td>
+                        <td className="p-2 font-mono text-blue-300">{entry.enemyPicks} / {entry.enemyBans}</td>
+                      </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+                {draftHeroRowsExtra.length ? (
+                  <details className="mt-3">
+                    <summary className="inline-flex cursor-pointer select-none items-center rounded-md border border-zinc-700 bg-zinc-900/40 px-3 py-1.5 text-sm font-medium text-zinc-200 hover:bg-zinc-800/50">
+                      See more draft bans/picks ({draftHeroRowsExtra.length})
+                    </summary>
+                    <div className="mt-2 overflow-x-auto rounded border border-zinc-800/70">
+                      <table className="team-stats-table w-full text-xs">
+                        <thead className="bg-zinc-900/70">
+                          <tr>
+                            <th className="p-2 text-left">Hero</th>
+                            <th className="p-2 text-left">Picks</th>
+                            <th className="p-2 text-left">Pick WR</th>
+                            <th className="p-2 text-left">Bans</th>
+                            <th className="p-2 text-left">Ban WR</th>
+                            <th className="p-2 text-left">Team</th>
+                            <th className="p-2 text-left">Enemy</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {draftHeroRowsExtra.map((entry) => (
+                            <tr key={`draft-hero-extra-${entry.heroId}`} className="border-t border-zinc-800/80 odd:bg-zinc-900/20">
+                              <td className="p-2">
+                                <span className="inline-flex items-center gap-2">
+                                  {heroSmallIconPath(entry.heroId) ? (
+                                    <HeroIcon
+                                      src={heroSmallIconPath(entry.heroId)}
+                                      alt={heroName(entry.heroId)}
+                                      width={16}
+                                      height={16}
+                                      className="h-4 w-4 rounded object-cover border border-zinc-700"
+                                    />
+                                  ) : null}
+                                  <span>{heroName(entry.heroId)}</span>
+                                </span>
+                              </td>
+                              <td className="p-2 font-mono">{entry.picks}</td>
+                              <td className="p-2 font-mono">
+                                {entry.picks > 0
+                                  ? `${((entry.pickWins / Math.max(1, entry.pickWins + entry.pickLosses)) * 100).toFixed(1)}%`
+                                  : "-"}
+                              </td>
+                              <td className="p-2 font-mono">{entry.bans}</td>
+                              <td className="p-2 font-mono">
+                                {entry.bans > 0
+                                  ? `${((entry.banWins / Math.max(1, entry.banWins + entry.banLosses)) * 100).toFixed(1)}%`
+                                  : "-"}
+                              </td>
+                              <td className="p-2 font-mono text-emerald-300">{entry.teamPicks} / {entry.teamBans}</td>
+                              <td className="p-2 font-mono text-blue-300">{entry.enemyPicks} / {entry.enemyBans}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </details>
+                ) : null}
+            </>
+          ) : (
+            <p className="text-sm text-zinc-400">No draft data found for this team in the selected range.</p>
+          )}
+        </section>
+      </section>
+
+      <section data-section="heroes" className="panel-premium team-stats-section rounded-xl p-4">
+        <h3 className="text-lg font-semibold">Hero visuals</h3>
+        <p className="mb-3 mt-1 text-sm text-zinc-400">Hero names on the X-axis and total picks/bans on the Y-axis.</p>
+        {draftVisualPickRows.length || draftVisualBanRows.length ? (
+          <div className="grid gap-3 xl:grid-cols-2">
+            <section className="rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-3">
+              <p className="mb-3 text-sm font-medium">Hero picks</p>
+              <div className="overflow-x-auto">
+                <div className="grid min-w-240 grid-cols-[44px_1fr] gap-2">
+                  <div
+                    className="grid h-64 text-[10px] text-zinc-500"
+                    style={{ gridTemplateRows: `repeat(${draftVisualPickTicks.length}, minmax(0, 1fr))` }}
+                  >
+                    {draftVisualPickTicks.map((tick, index) => (
+                      <span
+                        key={`pick-tick-${index}`}
+                        className={`-translate-y-1/2 text-right ${index === draftVisualPickTicks.length - 1 ? "translate-y-1/2" : ""}`}
+                      >
+                        {tick}
                       </span>
-                    </td>
-                    <td className="p-3 font-mono">{entry.picks}</td>
-                    <td className="p-3 font-mono">{entry.wins}-{entry.losses}</td>
-                    <td className="p-3 font-mono">{entry.heroWinRate.toFixed(1)}%</td>
-                    <td className="p-3 font-mono">{entry.avgKills.toFixed(2)} / {entry.avgDeaths.toFixed(2)} / {entry.avgAssists.toFixed(2)}</td>
-                    <td className="p-3 font-mono">{entry.kills} / {entry.deaths} / {entry.assists}</td>
-                    <td className="p-3 font-mono">{entry.heroKda.toFixed(2)}</td>
-                    <td className="p-3 font-mono">{entry.heroAvgSouls.toFixed(0)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    ))}
+                  </div>
+                  <div className="relative h-64 rounded border border-zinc-800/70 bg-zinc-950/45 px-3 pb-2 pt-2">
+                    <div
+                      className="pointer-events-none absolute inset-x-2 top-2 bottom-2 grid"
+                      style={{ gridTemplateRows: `repeat(${Math.max(1, draftVisualPickTicks.length - 1)}, minmax(0, 1fr))` }}
+                    >
+                      {Array.from({ length: Math.max(1, draftVisualPickTicks.length - 1) }).map((_, index) => (
+                        <span key={`pick-grid-${index}`} className="border-b border-zinc-800/70" />
+                      ))}
+                    </div>
+                    <div className="relative z-10 inline-flex min-w-full items-end gap-3">
+                      {draftVisualPickRows.map((entry) => (
+                        <div key={`bars-picks-${entry.heroId}`} className="flex w-20 shrink-0 flex-col items-center gap-1">
+                          <span className="text-xs font-mono text-zinc-300">{entry.picks}</span>
+                          <div className="flex h-44 w-full items-end">
+                            <div
+                              className="w-full rounded-t bg-emerald-400"
+                              style={{ height: `${Math.max(0, (entry.picks / maxDraftVisualPicks) * 100)}%` }}
+                              title={`${heroName(entry.heroId)} picks: ${entry.picks}`}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div />
+                  <div className="inline-flex min-w-full items-start gap-3 pt-1">
+                    {draftVisualPickRows.map((entry) => (
+                      <span
+                        key={`x-picks-${entry.heroId}`}
+                        className="w-20 shrink-0 truncate text-center text-[10px] text-zinc-400"
+                        title={heroName(entry.heroId)}
+                      >
+                        {heroName(entry.heroId)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-3">
+              <p className="mb-3 text-sm font-medium">Hero bans</p>
+              <div className="overflow-x-auto">
+                <div className="grid min-w-240 grid-cols-[44px_1fr] gap-2">
+                  <div
+                    className="grid h-64 text-[10px] text-zinc-500"
+                    style={{ gridTemplateRows: `repeat(${draftVisualBanTicks.length}, minmax(0, 1fr))` }}
+                  >
+                    {draftVisualBanTicks.map((tick, index) => (
+                      <span
+                        key={`ban-tick-${index}`}
+                        className={`-translate-y-1/2 text-right ${index === draftVisualBanTicks.length - 1 ? "translate-y-1/2" : ""}`}
+                      >
+                        {tick}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="relative h-64 rounded border border-zinc-800/70 bg-zinc-950/45 px-3 pb-2 pt-2">
+                    <div
+                      className="pointer-events-none absolute inset-x-2 top-2 bottom-2 grid"
+                      style={{ gridTemplateRows: `repeat(${Math.max(1, draftVisualBanTicks.length - 1)}, minmax(0, 1fr))` }}
+                    >
+                      {Array.from({ length: Math.max(1, draftVisualBanTicks.length - 1) }).map((_, index) => (
+                        <span key={`ban-grid-${index}`} className="border-b border-zinc-800/70" />
+                      ))}
+                    </div>
+                    <div className="relative z-10 inline-flex min-w-full items-end gap-3">
+                      {draftVisualBanRows.map((entry) => (
+                        <div key={`bars-bans-${entry.heroId}`} className="flex w-20 shrink-0 flex-col items-center gap-1">
+                          <span className="text-xs font-mono text-zinc-300">{entry.bans}</span>
+                          <div className="flex h-44 w-full items-end">
+                            <div
+                              className="w-full rounded-t bg-rose-400"
+                              style={{ height: `${Math.max(0, (entry.bans / maxDraftVisualBans) * 100)}%` }}
+                              title={`${heroName(entry.heroId)} bans: ${entry.bans}`}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div />
+                  <div className="inline-flex min-w-full items-start gap-3 pt-1">
+                    {draftVisualBanRows.map((entry) => (
+                      <span
+                        key={`x-bans-${entry.heroId}`}
+                        className="w-20 shrink-0 truncate text-center text-[10px] text-zinc-400"
+                        title={heroName(entry.heroId)}
+                      >
+                        {heroName(entry.heroId)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
         ) : (
-          <p className="text-sm text-zinc-400">No hero-specific stats available yet.</p>
+          <p className="text-sm text-zinc-400">No hero visual data yet.</p>
         )}
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-2 xl:items-start">
-        <div className="panel-premium rounded-xl p-4">
+      <section data-section="items" id="items" className="scroll-mt-24 grid gap-4 xl:grid-cols-2 xl:items-start">
+        <div className="panel-premium team-stats-section rounded-xl p-4">
           <h2 className="text-lg font-semibold mb-2">Item picks</h2>
           <p className="mb-3 text-sm text-zinc-400">Weighted team-side item usage and outcomes in the selected range.</p>
           {topItemRows.length ? (
@@ -1383,7 +1997,7 @@ export default async function TeamStatsPage({
               <h3 className="text-sm font-semibold mb-2">Core items</h3>
               {coreItemRows.length ? (
                 <div className="overflow-x-auto rounded border border-zinc-800/70">
-                  <table className="w-full text-xs">
+                  <table className="team-stats-table w-full text-xs">
                     <thead className="bg-zinc-900/70">
                       <tr>
                         <th className="p-2 text-left">Item</th>
@@ -1430,18 +2044,10 @@ export default async function TeamStatsPage({
           )}
         </div>
 
-        <div className="w-full">
-          <MapHeatmap
-            title="Map heatmap"
-            description="Kill and death density across team-side players in the selected range. Hover a dot to see who killed whom and when."
-            kills={teamHeatmap.kills}
-            deaths={teamHeatmap.deaths}
-          />
-        </div>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-2 xl:items-start">
-        <div className="panel-premium rounded-xl p-4">
+      <section data-section="items" className="grid gap-4 xl:grid-cols-2 xl:items-start">
+        <div className="panel-premium team-stats-section rounded-xl p-4">
           <h2 className="text-lg font-semibold mb-2">Situational items</h2>
           <p className="mb-3 text-sm text-zinc-400">Lower-frequency team-side item usage and outcomes in the selected range.</p>
           {topItemRows.length ? (
@@ -1449,7 +2055,7 @@ export default async function TeamStatsPage({
               <h3 className="text-sm font-semibold mb-2">Situational items</h3>
               {situationalItemRows.length ? (
                 <div className="overflow-x-auto rounded border border-zinc-800/70">
-                  <table className="w-full text-xs">
+                  <table className="team-stats-table w-full text-xs">
                     <thead className="bg-zinc-900/70">
                       <tr>
                         <th className="p-2 text-left">Item</th>
@@ -1497,244 +2103,18 @@ export default async function TeamStatsPage({
         </div>
       </section>
 
-      <section className="panel-premium rounded-xl p-4">
-        <details>
-          <summary className="cursor-pointer list-none select-none text-lg font-semibold">Hero visuals</summary>
-          <p className="mb-3 mt-2 text-sm text-zinc-400"> Graphs and charts for pick volume, win rate, KDA, and average souls.</p>
-          {heroGraphRows.length ? (
-            <div className="grid gap-3 xl:grid-cols-2">
-            <div className="rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-3">
-              <p className="text-sm mb-3">Pick rate + Win rate</p>
-              <div className="space-y-2">
-                {heroGraphRows.map((entry) => (
-                  <div key={`pick-win-${entry.heroId}`} className="space-y-1.5">
-                    <div className="flex items-center justify-between gap-2 text-xs">
-                      <span className="inline-flex items-center gap-2 truncate">
-                        {heroSmallIconPath(entry.heroId) ? (
-                          <HeroIcon
-                            src={heroSmallIconPath(entry.heroId)}
-                            alt={heroName(entry.heroId)}
-                            width={18}
-                            height={18}
-                            className="h-4.5 w-4.5 rounded object-cover border border-zinc-700"
-                          />
-                        ) : null}
-                        <span className="truncate">{heroName(entry.heroId)}</span>
-                      </span>
-                      <span className="font-mono">{entry.picks} • {entry.heroWinRate.toFixed(0)}%</span>
-                    </div>
-                    <div className="h-2 rounded bg-zinc-800 overflow-hidden">
-                      <div className="h-full bg-emerald-400" style={{ width: `${(entry.picks / maxHeroGraphPicks) * 100}%` }} />
-                    </div>
-                    <div className="h-1.5 rounded bg-zinc-800 overflow-hidden">
-                      <div className="h-full bg-blue-400" style={{ width: `${entry.heroWinRate}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-3">
-              <p className="text-sm mb-3">KDA / Avg Souls</p>
-              <div className="space-y-3">
-                {heroGraphRows.map((entry) => (
-                  <div key={`kda-${entry.heroId}`} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="inline-flex items-center gap-2 truncate">
-                        {heroSmallIconPath(entry.heroId) ? (
-                          <HeroIcon
-                            src={heroSmallIconPath(entry.heroId)}
-                            alt={heroName(entry.heroId)}
-                            width={18}
-                            height={18}
-                            className="h-4.5 w-4.5 rounded object-cover border border-zinc-700"
-                          />
-                        ) : null}
-                        <span className="truncate">{heroName(entry.heroId)}</span>
-                      </span>
-                      <span className="font-mono">KDA {entry.heroKda.toFixed(2)}</span>
-                    </div>
-                    <div className="h-2 rounded bg-zinc-800 overflow-hidden">
-                      <div className="h-full bg-amber-400" style={{ width: `${(entry.heroKda / maxHeroGraphKda) * 100}%` }} />
-                    </div>
-                    <div className="text-[11px] text-zinc-500 text-right">
-                      Avg souls {entry.heroAvgSouls.toFixed(0)}
-                    </div>
-                    <div className="h-1.5 rounded bg-zinc-800 overflow-hidden">
-                      <div className="h-full bg-violet-400" style={{ width: `${(entry.heroAvgSouls / maxHeroGraphSouls) * 100}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            </div>
-          ) : (
-            <p className="text-sm text-zinc-400">No hero visual data yet.</p>
-          )}
-        </details>
+      <section data-section="trends" id="trends" className="panel-premium team-stats-section scroll-mt-24 rounded-xl p-4">
+        <MapHeatmap
+          title="Map heatmap"
+          description="Kill and death density across team-side players in the selected range. Hover a dot to see who killed whom and when."
+          kills={teamHeatmap.kills}
+          deaths={teamHeatmap.deaths}
+        />
       </section>
 
-      <section className="panel-premium rounded-xl p-4">
-        <h2 className="text-lg font-semibold mb-2">Recent team matches</h2>
-        <p className="mb-2 text-sm text-zinc-400">Most recent matches where at least one active roster player appeared.</p>
-        {recentTeamMatches.length ? (
-          <div className="overflow-x-auto rounded-lg border border-zinc-800/70">
-            <table className="w-full text-sm">
-              <thead className="bg-zinc-900/70">
-                <tr>
-                  <th className="p-3 text-left">Match</th>
-                  <th className="p-3 text-left">Result</th>
-                  <th className="p-3 text-left">Side</th>
-                  <th className="p-3 text-left">Players</th>
-                  <th className="p-3 text-left">Duration</th>
-                  <th className="p-3 text-left">Draft</th>
-                  <th className="p-3 text-left">Open</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentTeamMatches.map((match) => (
-                  <tr key={match.matchId} className="border-t border-zinc-800/80 odd:bg-zinc-900/20 hover:bg-zinc-900/40">
-                    <td className="p-0 font-mono"><a className="block px-3 py-3" href={`/match/${match.matchId}`}>{match.matchId}</a></td>
-                    <td className="p-0">
-                      <a className="block px-3 py-3" href={`/match/${match.matchId}`}>
-                        <span
-                          className={
-                            match.result === "Win"
-                              ? "text-emerald-300"
-                              : match.result === "Loss"
-                                ? "text-rose-300"
-                                : "text-zinc-400"
-                          }
-                        >
-                          {match.result}
-                        </span>
-                      </a>
-                    </td>
-                    <td className="p-0"><a className="block px-3 py-3" href={`/match/${match.matchId}`}>{match.side != null ? TEAM_NAMES[match.side] ?? match.side : "Unknown"}</a></td>
-                    <td className="p-0"><a className="block px-3 py-3" href={`/match/${match.matchId}`}>{match.playersRepresented}</a></td>
-                    <td className="p-0 font-mono"><a className="block px-3 py-3" href={`/match/${match.matchId}`}>{match.durationText}</a></td>
-                    <td className="p-3">
-                      {match.draftCount ? (
-                        <a className="block" href={`/match/${match.matchId}`}>
-                          <div className="mb-1 text-xs text-zinc-400">{match.draftCount} events</div>
-                          <div className="flex flex-wrap gap-1">
-                            {match.draftEvents.slice(0, 12).map((event) => {
-                              const icon = heroSmallIconPath(event.heroId);
-                              const tone = event.type === "ban" ? "border-rose-500/40 bg-rose-500/10" : "border-emerald-500/40 bg-emerald-500/10";
-                              const sideLabel = event.side === "0" ? "HK" : event.side === "1" ? "AM" : "?";
-                              return (
-                                <span key={`${match.matchId}-${event.order}-${event.type}-${event.heroId}`} className={`inline-flex items-center gap-1 rounded border px-1.5 py-1 text-[10px] ${tone}`} title={`#${event.order} ${event.type.toUpperCase()} ${heroName(event.heroId)} • ${sideLabel}`}>
-                                  {icon ? (
-                                    <HeroIcon
-                                      src={icon}
-                                      alt={heroName(event.heroId)}
-                                      width={14}
-                                      height={14}
-                                      className="h-3.5 w-3.5 rounded object-cover"
-                                    />
-                                  ) : null}
-                                  <span>{sideLabel}</span>
-                                </span>
-                              );
-                            })}
-                            {match.draftEvents.length > 12 ? (
-                              <span className="inline-flex items-center rounded border border-zinc-700/80 bg-zinc-900/60 px-1.5 py-1 text-[10px] text-zinc-300">
-                                +{match.draftEvents.length - 12}
-                              </span>
-                            ) : null}
-                          </div>
-                        </a>
-                      ) : (
-                        <a className="block text-xs text-zinc-500" href={`/match/${match.matchId}`}>No draft</a>
-                      )}
-                    </td>
-                    <td className="p-0">
-                      <a className="block px-3 py-3 text-emerald-300 hover:text-emerald-200 hover:underline" href={`/match/${match.matchId}`}>
-                        View →
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-sm text-zinc-400">No matches found for this team roster yet.</p>
-        )}
-      </section>
-
-      <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
-        <h2 className="text-lg font-semibold mb-2">Draft stats</h2>
-        <p className="mb-3 text-sm text-zinc-400">Draft trends from matches in the current filter range.</p>
-
-        {draftMatches.length ? (
-          <>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-4">
-              <div className="rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-3">
-                <p className="text-xs uppercase tracking-wide opacity-70">Drafted matches</p>
-                <p className="mt-1 text-xl font-semibold">{draftMatches.length}</p>
-              </div>
-              <div className="rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-3">
-                <p className="text-xs uppercase tracking-wide opacity-70">Total events</p>
-                <p className="mt-1 text-xl font-semibold">{totalDraftEvents}</p>
-              </div>
-              <div className="rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-3">
-                <p className="text-xs uppercase tracking-wide opacity-70">Picks / Bans</p>
-                <p className="mt-1 text-xl font-semibold">{totalDraftPicks} / {totalDraftBans}</p>
-              </div>
-              <div className="rounded-lg border border-zinc-800/80 bg-zinc-900/30 p-3">
-                <p className="text-xs uppercase tracking-wide opacity-70">Team-side picks / bans</p>
-                <p className="mt-1 text-xl font-semibold">{teamSidePicks} / {teamSideBans}</p>
-                <p className="text-xs text-zinc-500">Enemy: {enemySidePicks} / {enemySideBans}</p>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto rounded-lg border border-zinc-800/70">
-              <table className="w-full text-sm">
-                <thead className="bg-zinc-900/70">
-                  <tr>
-                    <th className="p-3 text-left">Hero</th>
-                    <th className="p-3 text-left">Total picks</th>
-                    <th className="p-3 text-left">Total bans</th>
-                    <th className="p-3 text-left">Team picks</th>
-                    <th className="p-3 text-left">Team bans</th>
-                    <th className="p-3 text-left">Enemy picks</th>
-                    <th className="p-3 text-left">Enemy bans</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {draftHeroRows.map((entry) => (
-                    <tr key={`draft-hero-${entry.heroId}`} className="border-t border-zinc-800/80 odd:bg-zinc-900/20">
-                      <td className="p-3">
-                        <span className="inline-flex items-center gap-2">
-                          {heroSmallIconPath(entry.heroId) ? (
-                            <HeroIcon
-                              src={heroSmallIconPath(entry.heroId)}
-                              alt={heroName(entry.heroId)}
-                              width={18}
-                              height={18}
-                              className="h-4.5 w-4.5 rounded object-cover border border-zinc-700"
-                            />
-                          ) : null}
-                          <span>{heroName(entry.heroId)}</span>
-                        </span>
-                      </td>
-                      <td className="p-3 font-mono">{entry.picks}</td>
-                      <td className="p-3 font-mono">{entry.bans}</td>
-                      <td className="p-3 font-mono text-emerald-300">{entry.teamPicks}</td>
-                      <td className="p-3 font-mono text-emerald-300">{entry.teamBans}</td>
-                      <td className="p-3 font-mono text-blue-300">{entry.enemyPicks}</td>
-                      <td className="p-3 font-mono text-blue-300">{entry.enemyBans}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        ) : (
-          <p className="text-sm text-zinc-400">No draft data found for this team in the selected range.</p>
-        )}
-      </section>
+      </TeamStatsTabsShell>
+      </div>
+      </div>
     </main>
   );
 }

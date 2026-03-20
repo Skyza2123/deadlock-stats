@@ -160,7 +160,7 @@ export default function MatchIngestForm() {
         <input
           value={matchId}
           onChange={(e) => setMatchId(e.target.value)}
-          placeholder="Match ID (e.g. 61529653)"
+          placeholder="Match ID (e.g. 68623064)"
           className="flex-1 rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
         />
         <button

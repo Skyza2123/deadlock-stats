@@ -1,4 +1,6 @@
 import { eq, sql } from "drizzle-orm";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 import { db } from "../db";
 import { matchPlayers, matches, players } from "../db/schema";
@@ -120,6 +122,8 @@ export const TEAM_NAMES: Record<string, string> = {
   "0": "Hidden King",
   "1": "Archmother",
 };
+
+const DEMO_MATCH_ID = "68623064";
 
 type PlayerRow = {
   steamId: string;
@@ -312,6 +316,25 @@ async function fetchStatlockerMatchPaths(matchId: string) {
   }
 }
 
+async function loadStaticDemoMatchData() {
+  try {
+    const [demoRaw, demoPathRaw] = await Promise.all([
+      readFile(path.join(process.cwd(), "public", "demos", "demo.json"), "utf8"),
+      readFile(path.join(process.cwd(), "public", "demos", "demo_path.json"), "utf8"),
+    ]);
+
+    const demo = JSON.parse(demoRaw);
+    const demoPath = JSON.parse(demoPathRaw);
+
+    return {
+      ...(demo && typeof demo === "object" ? demo : {}),
+      ...(demoPath && typeof demoPath === "object" ? demoPath : {}),
+    };
+  } catch {
+    return null;
+  }
+}
+
 function extractCachedStatlockerMatchPaths(raw: unknown) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
 
@@ -468,7 +491,7 @@ export async function loadMatchExperienceData(matchId: string): Promise<{
   );
   const hasScrimDateColumn = scrimDateColumnCheck.rows.length > 0;
 
-  const matchRow = hasScrimDateColumn
+  let matchRow = hasScrimDateColumn
     ? await db
         .select({ matchId: matches.matchId, rawJson: matches.rawJson, scrimDate: matches.scrimDate })
         .from(matches)
@@ -482,11 +505,19 @@ export async function loadMatchExperienceData(matchId: string): Promise<{
           .limit(1)
       ).map((row) => ({ ...row, scrimDate: null as Date | null }));
 
+  const usingStaticDemo = matchRow.length === 0 && matchId === DEMO_MATCH_ID;
+  if (usingStaticDemo) {
+    const demoRawJson = await loadStaticDemoMatchData();
+    if (demoRawJson) {
+      matchRow = [{ matchId, rawJson: demoRawJson, scrimDate: null as Date | null }];
+    }
+  }
+
   if (matchRow.length === 0) {
     throw new Error("Match not found");
   }
 
-  const rows: PlayerRow[] = await db
+  let rows: PlayerRow[] = await db
     .select({
       steamId: matchPlayers.steamId,
       displayName: players.displayName,
@@ -506,6 +537,43 @@ export async function loadMatchExperienceData(matchId: string): Promise<{
     .where(eq(matchPlayers.matchId, matchId));
 
   const raw: any = matchRow[0].rawJson;
+
+  if (rows.length === 0 && matchId === DEMO_MATCH_ID) {
+    const participants = extractRawParticipants(raw);
+    rows = participants
+      .map((participant: any, index: number) => {
+        const steamId = String(participant?.account_id ?? "").trim();
+        if (!steamId) return null;
+
+        const side = normalizeDraftSide(
+          participant?.side ??
+            participant?.team ??
+            participant?.team_id ??
+            participant?.teamId ??
+            participant?.team_number ??
+            null
+        );
+
+        return {
+          steamId,
+          displayName: firstText(participant, ["name", "display_name", "displayName"]),
+          side,
+          heroId:
+            participant?.hero_id != null || participant?.heroId != null
+              ? String(participant?.hero_id ?? participant?.heroId)
+              : null,
+          rawJson: participant,
+          kills: firstNumeric(participant, ["kills"]),
+          deaths: firstNumeric(participant, ["deaths"]),
+          assists: firstNumeric(participant, ["assists"]),
+          netWorth: firstNumeric(participant, ["net_worth", "netWorth"]),
+          lastHits: firstNumeric(participant, ["last_hits", "creep_kills"]),
+          denies: firstNumeric(participant, ["denies"]),
+          level: firstNumeric(participant, ["level"]),
+        } satisfies PlayerRow;
+      })
+      .filter((row: PlayerRow | null): row is PlayerRow => row != null);
+  }
 
   const rawDuration = Number(
     raw?.match_info?.duration_s ?? raw?.match_info?.duration ?? raw?.duration_s ?? NaN

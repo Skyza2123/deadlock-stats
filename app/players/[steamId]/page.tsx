@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import BackButton from "../../../components/BackButton";
 import HeroIcon from "../../../components/HeroIcon";
@@ -886,9 +887,9 @@ export default async function PlayerAllMatchesPage({
                   <tbody>
                     {rowsWithResult.map((row) => (
                       <tr key={row.matchId} className="border-t border-zinc-300/50 odd:bg-transparent hover:bg-zinc-900/35 dark:border-zinc-700/90 dark:odd:bg-zinc-950/30">
-                        <td className="p-0 font-mono"><a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.matchId}</a></td>
+                        <td className="p-0 font-mono"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.matchId}</Link></td>
                         <td className="p-0">
-                          <a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>
+                          <Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>
                             <span
                               className={
                                 row.result === "Win"
@@ -900,10 +901,10 @@ export default async function PlayerAllMatchesPage({
                             >
                               {row.result}
                             </span>
-                          </a>
+                          </Link>
                         </td>
                         <td className="p-0">
-                          <a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>
+                          <Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>
                             <span className="inline-flex items-center gap-2">
                               {row.heroId && playerHeroThumbPath(row.heroId) ? (
                                 <HeroIcon
@@ -916,21 +917,21 @@ export default async function PlayerAllMatchesPage({
                               ) : null}
                               <span>{heroName(row.heroId)}</span>
                             </span>
-                          </a>
+                          </Link>
                         </td>
-                        <td className="p-0 text-right font-mono"><a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{safeNum(row.kills)} / {safeNum(row.deaths)} / {safeNum(row.assists)}</a></td>
-                        <td className="p-0 text-right font-mono"><a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{safeNum(row.netWorth)}</a></td>
-                        <td className="p-0 text-right font-mono"><a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{fmt1(row.spm)}</a></td>
-                        <td className="p-0 text-right font-mono"><a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{safeNum(row.damageTotal)}</a></td>
-                        <td className="p-0 text-right font-mono"><a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.dpm != null ? fmt1(row.dpm) : "-"}</a></td>
-                        <td className="p-0 text-right font-mono"><a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.accuracy != null ? fmtPct(row.accuracy) : "-"}</a></td>
-                        <td className="p-0 text-right font-mono"><a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.killParticipation != null ? fmtPct(row.killParticipation) : "-"}</a></td>
-                        <td className="p-0 font-mono"><a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.durationText}</a></td>
-                        <td className="p-0"><a className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.side != null ? TEAM_NAMES[row.side] ?? row.side : "Unknown"}</a></td>
+                        <td className="p-0 text-right font-mono"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{safeNum(row.kills)} / {safeNum(row.deaths)} / {safeNum(row.assists)}</Link></td>
+                        <td className="p-0 text-right font-mono"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{safeNum(row.netWorth)}</Link></td>
+                        <td className="p-0 text-right font-mono"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{fmt1(row.spm)}</Link></td>
+                        <td className="p-0 text-right font-mono"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{safeNum(row.damageTotal)}</Link></td>
+                        <td className="p-0 text-right font-mono"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.dpm != null ? fmt1(row.dpm) : "-"}</Link></td>
+                        <td className="p-0 text-right font-mono"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.accuracy != null ? fmtPct(row.accuracy) : "-"}</Link></td>
+                        <td className="p-0 text-right font-mono"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.killParticipation != null ? fmtPct(row.killParticipation) : "-"}</Link></td>
+                        <td className="p-0 font-mono"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.durationText}</Link></td>
+                        <td className="p-0"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.side != null ? TEAM_NAMES[row.side] ?? row.side : "Unknown"}</Link></td>
                         <td className="p-0">
-                          <a className="block px-3 py-2 text-emerald-300 hover:text-emerald-200 hover:underline" href={`/match/${row.matchId}/player/${steamId}`}>
+                          <Link className="block px-3 py-2 text-emerald-300 hover:text-emerald-200 hover:underline" href={`/match/${row.matchId}/player/${steamId}`}>
                             View →
-                          </a>
+                          </Link>
                         </td>
                       </tr>
                     ))}

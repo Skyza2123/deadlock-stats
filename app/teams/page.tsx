@@ -2,6 +2,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
+import Image from "next/image";
+import Link from "next/link";
 
 import { db } from "../../db";
 import { teamMemberships, teams } from "../../db/schema";
@@ -38,6 +40,10 @@ function roleRank(role: string | null | undefined) {
   if (normalized === "owner") return 3;
   if (normalized === "manager") return 2;
   return 1;
+}
+
+function teamAvatarUrl(teamName: string) {
+  return `https://avatar.vercel.sh/${encodeURIComponent(teamName)}.png`;
 }
 
 export default async function TeamsPage({
@@ -182,72 +188,120 @@ export default async function TeamsPage({
   })();
 
   return (
-    <main className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Teams</h1>
+    <main id="main-content" className="w-full">
+      <div className="flex-col md:flex">
+        <div className="flex-1 space-y-4 p-4 pt-6 sm:p-6 lg:p-8">
+          <div className="flex items-center justify-between space-y-2">
+            <h2 className="text-3xl font-bold tracking-tight">View Your Teams</h2>
+          </div>
 
-      <section className="panel-premium rounded-xl p-4 md:p-5 space-y-4">
-        <form action={createTeamAction} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-          <input
-            name="name"
-            required
-            placeholder="Team name"
-            className="rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
-          />
-          <input
-            name="slug"
-            placeholder="Slug (optional)"
-            className="rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
-          />
-          <button
-            type="submit"
-            className="rounded border border-emerald-500/40 bg-emerald-700/90 px-4 py-2 text-sm font-medium hover:bg-emerald-600"
-          >
-            Create Team
-          </button>
-        </form>
-        {teamErrorNotice ? <p className="text-xs text-rose-300">{teamErrorNotice}</p> : null}
+          <section className="space-y-4">
+            <form action={createTeamAction} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+              <input
+                name="name"
+                required
+                placeholder="Team name"
+                className="rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
+              />
+              <input
+                name="slug"
+                placeholder="Slug (optional)"
+                className="rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
+              />
+              <button
+                type="submit"
+                className="rounded border border-emerald-500/40 bg-emerald-700/90 px-4 py-2 text-sm font-medium hover:bg-emerald-600"
+              >
+                Create Team
+              </button>
+            </form>
 
-        <div className="rounded-xl border border-zinc-800/70 bg-zinc-950/35 p-3 min-h-70">
-          {visibleTeams.length ? (
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {visibleTeams.map((team) => (
-                <article
-                  key={team.slug}
-                  className="group relative rounded-xl border border-zinc-800/80 bg-zinc-900/45 p-4 transition-all hover:border-zinc-600/90 hover:bg-zinc-900/65"
+            {teamErrorNotice ? <p className="text-xs text-rose-300">{teamErrorNotice}</p> : null}
+
+            <div data-orientation="horizontal" data-slot="tabs" className="flex flex-col gap-2 space-y-4">
+              <div
+                data-state="active"
+                data-orientation="horizontal"
+                role="tabpanel"
+                tabIndex={0}
+                data-slot="tabs-content"
+                className="flex-1 space-y-4 outline-none"
+              >
+                <div
+                  data-slot="card"
+                  data-size="default"
+                  className="grid grid-cols-1 gap-4 rounded-xl bg-zinc-950/35 p-2 text-sm ring-1 ring-zinc-800/60 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-lg font-semibold leading-snug wrap-break-word">{team.name}</h3>
-                      <div className="h-10 w-10 shrink-0 rounded-full bg-linear-to-br from-yellow-400 to-emerald-400" />
-                    </div>
+                  {visibleTeams.length ? (
+                    visibleTeams.map((team) => (
+                      <div key={team.slug} className="p-2">
+                        <article
+                          data-slot="card"
+                          data-size="default"
+                          className="group relative flex min-h-36 flex-col gap-6 overflow-hidden rounded-xl bg-zinc-900/55 py-6 text-sm ring-1 ring-zinc-800/60 transition-all hover:bg-zinc-900/70 md:w-60 xl:w-80"
+                        >
+                          <Link href={`/teams/${team.slug}`} className="block px-6">
+                            <Image
+                              src={teamAvatarUrl(team.name)}
+                              alt={`Avatar for ${team.name}`}
+                              width={100}
+                              height={100}
+                              className="float-right rounded-full p-2"
+                              unoptimized
+                            />
+                            <div data-slot="card-header" className="grid auto-rows-min items-start gap-1 rounded-t-xl">
+                              <h3 className="z-10 pr-20 text-3xl font-semibold tracking-tight text-zinc-100 wrap-break-word">
+                                {team.name}
+                              </h3>
+                              <p className="text-xs text-zinc-400">/{team.slug}</p>
+                            </div>
+                          </Link>
 
-                    <div className="space-y-1 text-xs text-zinc-400">
-                      <p>{team.slug}</p>
-                    </div>
+                          <div data-slot="card-footer" className="flex items-center justify-between gap-2 px-6">
+                            <Link
+                              className="inline-flex items-center gap-2 text-sm text-zinc-200 hover:underline"
+                              href={`/teams/${team.slug}`}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="h-4 w-4"
+                                aria-hidden="true"
+                              >
+                                <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+                                <path d="M7 16h8" />
+                                <path d="M7 11h12" />
+                                <path d="M7 6h3" />
+                              </svg>
+                              View stats →
+                            </Link>
 
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={`/teams/${team.slug}`}
-                        className="inline-flex items-center gap-1 text-xs text-zinc-200 hover:text-zinc-100"
-                      >
-                        View stats →
-                      </a>
-                      <a
-                        href={`/teams/${team.slug}/edit`}
-                        className="inline-flex items-center gap-1 rounded border border-zinc-700/80 bg-zinc-900/70 px-2.5 py-1 text-xs text-zinc-200 hover:bg-zinc-800"
-                      >
-                        Edit team
-                      </a>
-                    </div>
-                  </div>
-                </article>
-              ))}
+                            <Link
+                              href={`/teams/${team.slug}/edit`}
+                              className="inline-flex items-center rounded border border-zinc-700/85 bg-zinc-900/70 px-2.5 py-1 text-xs text-zinc-200 hover:bg-zinc-800"
+                            >
+                              Edit
+                            </Link>
+                          </div>
+                        </article>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="p-4 text-sm text-zinc-400">No teams yet. Create your first team above.</p>
+                  )}
+                </div>
+              </div>
             </div>
-          ) : (
-            <p className="text-sm text-zinc-400">No teams yet. Create your first team above.</p>
-          )}
+          </section>
         </div>
-      </section>
+      </div>
     </main>
   );
 }

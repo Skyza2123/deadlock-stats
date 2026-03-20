@@ -9,9 +9,14 @@ export default function HomePage() {
 
   if (status === "loading") {
     return (
-      <main className="w-full p-4 sm:p-6 lg:p-8">
-        <div className="flex items-center justify-center py-12">
+      <main className="min-h-[90vh] w-full flex-col md:flex">
+        <div className="shadow-sm">
+          <div className="hidden min-h-16 items-center px-4 py-2 md:flex" />
+        </div>
+        <div className="flex-1 px-4 pb-6 pt-4 sm:px-6 lg:px-8 lg:pt-6">
+          <div className="flex items-center justify-center py-12">
           <div className="text-center text-zinc-400">Loading...</div>
+        </div>
         </div>
       </main>
     );
@@ -22,10 +27,16 @@ export default function HomePage() {
   }
 
   return (
-    <main className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+    <main className="min-h-[90vh] w-full flex-col md:flex">
+      <div className="shadow-sm">
+        <div className="flex min-h-16 items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold tracking-tight text-balance">Dashboard</h1>
+        </div>
+      </div>
 
-      <ScrimDashboard />
+      <div className="flex-1 space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:px-8 lg:pt-6">
+        <ScrimDashboard />
+      </div>
     </main>
   );
 }

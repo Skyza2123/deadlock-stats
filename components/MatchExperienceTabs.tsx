@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import HeroIcon from "./HeroIcon";
+import TeamWordmark from "./TeamWordmark";
 import { heroCardIconPath, heroSmallIconPath } from "../lib/heroIcons.client";
 import { resolveInventorySlotsAtTime } from "../lib/inventoryTimeline";
 import { DEADLOCK_PATH_GRID_BOUNDS, DEADLOCK_WORLD_BOUNDS, type MapBounds } from "../lib/mapBounds";
@@ -409,7 +410,7 @@ export default function MatchExperienceTabs({
     .join(" ");
 
   const tabs: Array<{ key: TabKey; label: string; href: string }> = [
-    { key: "overview", label: "Overview (main page)", href: basePath },
+    { key: "overview", label: "Overview", href: basePath },
     { key: "timeline", label: "Timeline", href: `${basePath}/timeline` },
     { key: "lanes", label: "Lanes", href: `${basePath}/lanes` },
     { key: "charts", label: "Charts", href: `${basePath}/charts` },
@@ -1086,8 +1087,14 @@ export default function MatchExperienceTabs({
                   </div>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-400">
-                  <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-400" />Hidden King</span>
-                  <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-400" />Archmother</span>
+                  <span className="inline-flex items-center gap-2 rounded border border-zinc-800/80 bg-zinc-950/60 px-2 py-1">
+                    <span className="h-2 w-2 rounded-full bg-yellow-400" />
+                    <TeamWordmark side="0" className="h-4 w-24 opacity-95" />
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded border border-zinc-800/80 bg-zinc-950/60 px-2 py-1">
+                    <span className="h-2 w-2 rounded-full bg-blue-400" />
+                    <TeamWordmark side="1" className="h-4 w-24 opacity-95" />
+                  </span>
                   <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-300/80" />Lane 1 · York</span>
                   <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-300/80" />Lane 4 · Broadway</span>
                   <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-300/80" />Lane 6 · Grenich</span>
@@ -1397,7 +1404,7 @@ export default function MatchExperienceTabs({
                   <section className={`rounded border border-zinc-800/90 bg-zinc-950/75 p-2.5 ${selectedLanePalette.panelTint}`}>
                     <div className="grid gap-2 xl:grid-cols-[300px_minmax(0,1fr)_300px]">
                       <section className="rounded border border-zinc-800/80 bg-zinc-900/55 p-2">
-                        <p className="mb-2 text-center text-sm font-extrabold uppercase tracking-[0.16em] text-yellow-300">Hidden King</p>
+                        <TeamWordmark side="0" className="mx-auto mb-2 h-6 w-40 max-w-full opacity-95" />
                         <div className="grid grid-cols-2 gap-1.5">
                           {leftTeam.map((entry, idx) => {
                             const heroImageSrc = entry?.heroId
@@ -1434,7 +1441,7 @@ export default function MatchExperienceTabs({
                       </section>
 
                       <section className="rounded border border-zinc-800/80 bg-zinc-900/55 p-2">
-                        <p className="mb-2 text-center text-sm font-extrabold uppercase tracking-[0.16em] text-blue-300">Archmother</p>
+                        <TeamWordmark side="1" className="mx-auto mb-2 h-6 w-40 max-w-full opacity-95" />
                         <div className="grid grid-cols-2 gap-1.5">
                           {rightTeam.map((entry, idx) => {
                             const heroImageSrc = entry?.heroId

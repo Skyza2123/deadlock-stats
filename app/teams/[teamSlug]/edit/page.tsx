@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 
@@ -334,32 +335,73 @@ export default async function TeamEditPage({
   const inviteLink = inviteCode ? `${origin || ""}/join?code=${encodeURIComponent(inviteCode)}` : "";
 
   return (
-    <main className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <BackButton />
-        <a href={`/teams/${teamSlug}`} className="text-sm text-zinc-300 hover:underline">
-          Back to team stats
-        </a>
-      </div>
+    <main id="main-content" className="w-full">
+      <div className="flex-col md:flex">
+      <div className="flex-1 space-y-4 p-4 pt-6 sm:p-6 lg:p-8">
+        <div className="flex items-center justify-between gap-3">
+          <BackButton />
+          <Link href={`/teams/${teamSlug}`} className="text-sm text-zinc-300 hover:underline">
+            Back to team stats
+          </Link>
+        </div>
 
-      <header className="panel-premium rounded-xl p-4 md:p-5">
-        <h1 className="text-3xl font-bold tracking-tight">Edit {team.name}</h1>
-        <p className="mt-1.5 text-sm text-zinc-400">Manage roster, invites, and team settings.</p>
-      </header>
+        <header className="panel-premium rounded-xl p-4 md:p-5">
+          <h1 className="text-3xl font-bold tracking-tight">Edit {team.name}</h1>
+          <p className="mt-1.5 text-sm text-zinc-400">Manage roster, invites, and team settings.</p>
+        </header>
 
-      {notice ? (
-        <section className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-          {notice}
-        </section>
-      ) : null}
+        {notice ? (
+          <section className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+            {notice}
+          </section>
+        ) : null}
 
-      {error ? (
-        <section className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-          {error}
-        </section>
-      ) : null}
+        {error ? (
+          <section className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            {error}
+          </section>
+        ) : null}
 
-      <section className="panel-premium rounded-xl p-4 md:p-5 space-y-4">
+        <div dir="ltr" data-orientation="horizontal" data-slot="tabs" className="flex flex-col gap-2 space-y-4">
+          <div
+            role="tablist"
+            aria-orientation="horizontal"
+            data-slot="tabs-list"
+            className="team-edit-tabs-list inline-flex h-9 w-full items-center rounded-lg p-0.75 md:w-fit"
+          >
+            <a role="tab" aria-selected="true" data-state="active" href="#overview" className="team-edit-tab-trigger">Overview</a>
+            <a role="tab" aria-selected="false" data-state="inactive" href="#roster" className="team-edit-tab-trigger">Roster</a>
+            <a role="tab" aria-selected="false" data-state="inactive" href="#invites" className="team-edit-tab-trigger">Invites</a>
+            <a role="tab" aria-selected="false" data-state="inactive" href="#danger" className="team-edit-tab-trigger">Danger Zone</a>
+          </div>
+
+          <div
+            data-state="active"
+            data-orientation="horizontal"
+            role="tabpanel"
+            tabIndex={0}
+            data-slot="tabs-content"
+            className="flex-1 space-y-4 outline-none"
+          >
+      <section id="overview" data-slot="card" data-size="default" className="team-edit-card panel-premium rounded-xl p-4 md:p-5 space-y-3">
+        <h2 className="text-base leading-normal font-medium">Quick overview</h2>
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-lg border border-zinc-800/70 bg-zinc-900/30 p-3">
+            <p className="text-xs text-zinc-400">Team</p>
+            <p className="mt-1 text-lg font-semibold text-zinc-100">{team.name}</p>
+          </div>
+          <div className="rounded-lg border border-zinc-800/70 bg-zinc-900/30 p-3">
+            <p className="text-xs text-zinc-400">Slug</p>
+            <p className="mt-1 font-mono text-sm text-zinc-200">{teamSlug}</p>
+          </div>
+          <div className="rounded-lg border border-zinc-800/70 bg-zinc-900/30 p-3">
+            <p className="text-xs text-zinc-400">Active members</p>
+            <p className="mt-1 text-lg font-semibold text-zinc-100">{sortedRoster.length}</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="roster" data-slot="card" data-size="default" className="team-edit-card panel-premium rounded-xl p-4 md:p-5 space-y-4">
         <div>
           <h2 className="text-lg font-semibold">Roster editor</h2>
           <p className="text-sm text-zinc-400">Invite by Steam ID or update/remove active members.</p>
@@ -442,7 +484,7 @@ export default async function TeamEditPage({
         </div>
       </section>
 
-      <section className="panel-premium rounded-xl p-4 md:p-5 space-y-4">
+      <section id="invites" data-slot="card" data-size="default" className="team-edit-card panel-premium rounded-xl p-4 md:p-5 space-y-4">
         <div>
           <h2 className="text-lg font-semibold">Permanent invite link</h2>
           <p className="text-sm text-zinc-400">Generate a long-lived reusable invite code for this team.</p>
@@ -469,7 +511,7 @@ export default async function TeamEditPage({
         ) : null}
       </section>
 
-      <section className="panel-premium rounded-xl border border-rose-600/40 p-4 md:p-5 space-y-3">
+      <section id="danger" data-slot="card" data-size="default" className="team-edit-card panel-premium rounded-xl border border-rose-600/40 p-4 md:p-5 space-y-3">
         <h2 className="text-lg font-semibold text-rose-200">Delete team</h2>
         <p className="text-sm text-zinc-400">
           This ends active memberships and removes the team. Type <span className="font-mono">{teamSlug}</span> to confirm.
@@ -490,6 +532,10 @@ export default async function TeamEditPage({
           </button>
         </form>
       </section>
+          </div>
+        </div>
+      </div>
+      </div>
     </main>
   );
 }

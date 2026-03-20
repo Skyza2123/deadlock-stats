@@ -98,11 +98,6 @@ async function fetchPersonaForAccountId(accountId: string, apiKey: string) {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ ok: false, error: "Sign in required" }, { status: 401 });
-    }
-
     const form = await req.formData();
     const matchId = String(form.get("matchId") ?? "").trim();
     const teamSlug = String(form.get("teamSlug") ?? "").trim();
@@ -110,6 +105,12 @@ export async function POST(req: Request) {
     const assignmentTypeRaw = String(form.get("assignmentType") ?? "team").trim().toLowerCase();
     const assignmentType = assignmentTypeRaw === "individual" ? "individual" : "team";
     const isTeamUpload = assignmentType === "team";
+
+    const session = await getServerSession(authOptions);
+    if (isTeamUpload && !session) {
+      return NextResponse.json({ ok: false, error: "Sign in required" }, { status: 401 });
+    }
+
     const scrimName = normalizeScrimName(String(form.get("scrimName") ?? ""));
     const scrimDateRaw = String(form.get("scrimDate") ?? "");
     const parsedScrimDate = parseScrimDate(scrimDateRaw);
@@ -241,6 +242,7 @@ export async function POST(req: Request) {
         fromDb: true,
         matchId,
         teamSlug: teamSlug || null,
+        publicUpload: !session,
         redirectTo: `/match/${matchId}`,
       });
     }
@@ -564,7 +566,7 @@ export async function POST(req: Request) {
       matchId,
       teamSlug: isTeamUpload ? teamSlug : null,
       assignmentType,
-      publicUpload: false,
+      publicUpload: !session,
       redirectTo: `/match/${matchId}`,
     });
   } catch (err: any) {

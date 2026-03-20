@@ -1,4 +1,7 @@
+import Link from "next/link";
 import { and, eq, isNull } from "drizzle-orm";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 import BackButton from "../../../../../components/BackButton";
 import HeightMatchedScroll from "../../../../../components/HeightMatchedScroll";
@@ -69,6 +72,63 @@ type TimelineEvent = {
   title: string;
   details: string;
 };
+
+const DEMO_MATCH_ID = "68623064";
+
+async function loadStaticDemoMatchData() {
+  try {
+    const [demoRaw, demoPathRaw] = await Promise.all([
+      readFile(path.join(process.cwd(), "public", "demos", "demo.json"), "utf8"),
+      readFile(path.join(process.cwd(), "public", "demos", "demo_path.json"), "utf8"),
+    ]);
+
+    const demo = JSON.parse(demoRaw);
+    const demoPath = JSON.parse(demoPathRaw);
+
+    return {
+      ...(demo && typeof demo === "object" ? demo : {}),
+      ...(demoPath && typeof demoPath === "object" ? demoPath : {}),
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function fetchSteamPersonaNames(steamIds: string[]) {
+  const apiKey = process.env.DEADLOCK_API_KEY;
+  const uniqueIds = [...new Set(steamIds.map((id) => String(id ?? "").trim()).filter(Boolean))];
+  const names = new Map<string, string>();
+
+  if (!apiKey || uniqueIds.length === 0) return names;
+
+  await Promise.all(
+    uniqueIds.map(async (accountId) => {
+      try {
+        const url =
+          "https://api.deadlock-api.com/v1/players/steam-search?search_query=" +
+          encodeURIComponent(accountId);
+
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+          cache: "no-store",
+        });
+
+        if (!res.ok) return;
+
+        const arr = (await res.json()) as any[];
+        if (!Array.isArray(arr) || arr.length === 0) return;
+
+        const exact = arr.find((x) => String(x?.account_id ?? "") === accountId) ?? arr[0];
+        const personaname = String(exact?.personaname ?? "").trim();
+        if (personaname) names.set(accountId, personaname);
+      } catch {
+        // Ignore lookup failures in demo mode; fallback name handling remains in place.
+      }
+    })
+  );
+
+  return names;
+}
 
 function safeNum(n: number | null | undefined) {
   return typeof n === "number" && Number.isFinite(n) ? n : 0;
@@ -521,13 +581,13 @@ export default async function PlayerPage({
   const compareSteamId = resolvedSearchParams?.compare ?? undefined;
   const enemySteamId = resolvedSearchParams?.enemy ?? undefined;
 
-  const matchRow = await db
+  let matchRow = await db
     .select({ rawJson: matches.rawJson })
     .from(matches)
     .where(eq(matches.matchId, matchId))
     .limit(1);
 
-  const playerRows: PlayerMatchRow[] = await db
+  let playerRows: PlayerMatchRow[] = await db
     .select({
       steamId: matchPlayers.steamId,
       displayName: players.displayName,
@@ -547,7 +607,7 @@ export default async function PlayerPage({
     .where(and(eq(matchPlayers.matchId, matchId), eq(matchPlayers.steamId, steamId)))
     .limit(1);
 
-  const allPlayerRows: PlayerMatchRow[] = await db
+  let allPlayerRows: PlayerMatchRow[] = await db
     .select({
       steamId: matchPlayers.steamId,
       displayName: players.displayName,
@@ -565,6 +625,44 @@ export default async function PlayerPage({
     .from(matchPlayers)
     .leftJoin(players, eq(players.steamId, matchPlayers.steamId))
     .where(eq(matchPlayers.matchId, matchId));
+
+  let usingStaticDemo = false;
+
+  if (playerRows.length === 0 && matchId === DEMO_MATCH_ID) {
+    const demoRawJson = await loadStaticDemoMatchData();
+    if (demoRawJson) {
+      const participants = Array.isArray((demoRawJson as any)?.match_info?.players)
+        ? (demoRawJson as any).match_info.players
+        : [];
+      const staticNameBySteam = await fetchSteamPersonaNames(
+        participants.map((p: any) => String(p?.account_id ?? ""))
+      );
+
+      allPlayerRows = participants
+        .map((p: any) => ({
+          steamId: String(p?.account_id ?? "").trim(),
+          displayName:
+            (String(p?.name ?? p?.display_name ?? "").trim() ||
+              staticNameBySteam.get(String(p?.account_id ?? "").trim()) ||
+              null) as string | null,
+          heroId: p?.hero_id != null ? String(p.hero_id) : null,
+          side: p?.team != null ? String(p.team) : null,
+          kills: Number.isFinite(Number(p?.kills)) ? Number(p.kills) : null,
+          deaths: Number.isFinite(Number(p?.deaths)) ? Number(p.deaths) : null,
+          assists: Number.isFinite(Number(p?.assists)) ? Number(p.assists) : null,
+          netWorth: Number.isFinite(Number(p?.net_worth)) ? Number(p.net_worth) : null,
+          lastHits: Number.isFinite(Number(p?.last_hits)) ? Number(p.last_hits) : null,
+          denies: Number.isFinite(Number(p?.denies)) ? Number(p.denies) : null,
+          level: Number.isFinite(Number(p?.level)) ? Number(p.level) : null,
+          rawJson: p,
+        }))
+        .filter((p: PlayerMatchRow) => p.steamId.length > 0);
+
+      playerRows = allPlayerRows.filter((p) => p.steamId === steamId).slice(0, 1);
+      matchRow = [{ rawJson: demoRawJson }];
+      usingStaticDemo = true;
+    }
+  }
 
   if (playerRows.length === 0) {
     return (
@@ -586,17 +684,36 @@ export default async function PlayerPage({
     matchRaw?.match_info?.duration_s ?? matchRaw?.match_info?.duration ?? matchRaw?.duration_s ?? NaN
   );
 
-  const itemRows: ItemRow[] = await db
-    .select({
-      steamId: matchPlayerItems.steamId,
-      gameTimeS: matchPlayerItems.gameTimeS,
-      itemId: matchPlayerItems.itemId,
-      soldTimeS: matchPlayerItems.soldTimeS,
-      upgradeId: matchPlayerItems.upgradeId,
-      imbuedAbilityId: matchPlayerItems.imbuedAbilityId,
-    })
-    .from(matchPlayerItems)
-    .where(and(eq(matchPlayerItems.matchId, matchId), eq(matchPlayerItems.steamId, steamId)));
+  const itemRows: ItemRow[] = usingStaticDemo
+    ? (() => {
+        const demoItems = Array.isArray((raw as any)?.items) ? (raw as any).items : [];
+        return demoItems
+          .map((it: any) => {
+            const gameTimeS = Number(it?.game_time_s);
+            const itemId = Number(it?.item_id);
+            if (!Number.isFinite(gameTimeS) || !Number.isFinite(itemId)) return null;
+            return {
+              steamId,
+              gameTimeS,
+              itemId,
+              soldTimeS: Number.isFinite(Number(it?.sold_time_s)) ? Number(it.sold_time_s) : null,
+              upgradeId: Number.isFinite(Number(it?.upgrade_id)) ? Number(it.upgrade_id) : null,
+              imbuedAbilityId: Number.isFinite(Number(it?.imbued_ability_id)) ? Number(it.imbued_ability_id) : null,
+            } as ItemRow;
+          })
+          .filter((it: ItemRow | null): it is ItemRow => it != null);
+      })()
+    : await db
+        .select({
+          steamId: matchPlayerItems.steamId,
+          gameTimeS: matchPlayerItems.gameTimeS,
+          itemId: matchPlayerItems.itemId,
+          soldTimeS: matchPlayerItems.soldTimeS,
+          upgradeId: matchPlayerItems.upgradeId,
+          imbuedAbilityId: matchPlayerItems.imbuedAbilityId,
+        })
+        .from(matchPlayerItems)
+        .where(and(eq(matchPlayerItems.matchId, matchId), eq(matchPlayerItems.steamId, steamId)));
 
   itemRows.sort((a, b) => a.gameTimeS - b.gameTimeS);
 
@@ -873,9 +990,9 @@ export default async function PlayerPage({
 
       <div className="flex items-center justify-between gap-3">
         <BackButton />
-        <a href={`/match/${matchId}`} className="text-sm text-zinc-300 hover:underline">
+        <Link href={`/match/${matchId}`} className="text-sm text-zinc-300 hover:underline">
           Back to match
-        </a>
+        </Link>
       </div>
 
       <div className="panel-premium rounded-xl p-4 md:p-5">
@@ -988,7 +1105,7 @@ export default async function PlayerPage({
                           enemy: row.steamId,
                         }).toString()}`;
                         return (
-                          <a
+                          <Link
                             key={`enemy-${row.steamId}`}
                             href={enemyHref}
                             className={`rounded px-2 py-1 text-xs border ${
@@ -998,15 +1115,15 @@ export default async function PlayerPage({
                             }`}
                           >
                             {row.displayName ?? "(unknown)"} ({heroName(row.heroId)})
-                          </a>
+                          </Link>
                         );
                       })}
-                      <a
+                      <Link
                         href={`/match/${matchId}/player/${steamId}${compareSteamId ? `?${new URLSearchParams({ compare: compareSteamId }).toString()}` : ""}`}
                         className="rounded px-2 py-1 text-xs border border-zinc-700/80 bg-zinc-900/60 hover:bg-zinc-900/80"
                       >
                         Auto select
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 ) : null}
@@ -1146,7 +1263,7 @@ export default async function PlayerPage({
                   {compareOptions.map((row) => {
                     const selected = comparePlayer?.steamId === row.steamId;
                     return (
-                      <a
+                      <Link
                         key={row.steamId}
                         href={`/match/${matchId}/player/${steamId}?compare=${encodeURIComponent(row.steamId)}`}
                         className={`px-2 py-1 rounded text-xs border ${
@@ -1167,16 +1284,16 @@ export default async function PlayerPage({
                           ) : null}
                           <span>{row.displayName ?? "(unknown)"} ({heroName(row.heroId)})</span>
                         </span>
-                      </a>
+                      </Link>
                     );
                   })}
                   {comparePlayer ? (
-                    <a
+                    <Link
                       href={`/match/${matchId}/player/${steamId}`}
                       className="px-2 py-1 rounded text-xs border border-zinc-700/80 bg-zinc-900/60 hover:bg-zinc-900/80"
                     >
                       Clear compare
-                    </a>
+                    </Link>
                   ) : null}
                 </div>
               </div>

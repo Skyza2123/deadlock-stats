@@ -130,6 +130,58 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.site-readable {
+  font-size: clamp(15px, 0.28vw + 14px, 17px);
+  letter-spacing: 0.005em;
+}
+
+.site-readable :where(main, section, article, aside, nav, footer, div, p, li, td, th, label, input, textarea, select, button) {
+  color: inherit;
+}
+
+.site-readable :where(p, li, dd, dt, blockquote) {
+  line-height: 1.62;
+}
+
+.site-readable :where(h1, h2, h3, h4, h5, h6) {
+  line-height: 1.22;
+  letter-spacing: -0.016em;
+  text-wrap: balance;
+}
+
+.site-readable :where(th, td) {
+  line-height: 1.42;
+}
+
+.site-readable :where(a) {
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 0.08em;
+}
+
+.site-readable :where(input[type="text"], input[type="search"], input[type="email"], input[type="password"], input[type="number"], input[type="url"], input[type="date"], input[type="time"], input[type="datetime-local"], textarea, select) {
+  min-height: 2.5rem;
+  line-height: 1.45;
+  font-size: 0.96rem;
+}
+
+.site-readable :where(::placeholder) {
+  opacity: 1;
+}
+
+.site-readable :where(.text-zinc-500, .text-zinc-400) {
+  color: rgb(212 212 216 / 0.95) !important;
+}
+
+.site-readable :where(.text-zinc-300) {
+  color: rgb(228 228 231 / 0.98) !important;
+}
+
+@media (max-width: 640px) {
+  .site-readable :where(input, select, textarea) {
+    font-size: 16px;
+  }
+}
+
 main {
   width: 100%;
 }
@@ -215,6 +267,158 @@ body::before {
 .heading-luxe {
   letter-spacing: -0.02em;
   text-wrap: balance;
+}
+
+.scrim-dashboard-shell {
+  border: 1px solid rgb(63 63 70 / 0.62);
+  background: linear-gradient(145deg, rgb(10 10 14 / 0.78), rgb(21 24 32 / 0.48));
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 14px 40px rgb(0 0 0 / 0.26);
+}
+
+.scrim-dashboard-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgb(63 63 70 / 0.5);
+}
+
+.scrim-dashboard-controls {
+  display: flex;
+  flex: 1 1 26rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.scrim-dashboard-select,
+.scrim-dashboard-search {
+  min-height: 2.5rem;
+  border: 1px solid rgb(82 82 91 / 0.72);
+  background: rgb(9 9 11 / 0.56);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset;
+}
+
+.scrim-dashboard-select {
+  min-width: 11rem;
+}
+
+.scrim-dashboard-search-wrap {
+  position: relative;
+  flex: 1 1 16rem;
+}
+
+.scrim-dashboard-search {
+  width: 100%;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+}
+
+.scrim-dashboard-search-icon,
+.scrim-dashboard-search-hint {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgb(161 161 170 / 0.92);
+  pointer-events: none;
+}
+
+.scrim-dashboard-search-icon {
+  left: 0.8rem;
+}
+
+.scrim-dashboard-search-hint {
+  right: 0.8rem;
+}
+
+.scrim-dashboard-create {
+  border: 1px solid rgb(16 185 129 / 0.45);
+  background: linear-gradient(180deg, rgb(16 185 129 / 0.88), rgb(5 150 105 / 0.92));
+  color: white;
+  box-shadow: 0 8px 18px rgb(16 185 129 / 0.16);
+}
+
+.scrim-dashboard-create:hover {
+  border-color: rgb(52 211 153 / 0.6);
+  background: linear-gradient(180deg, rgb(16 185 129 / 1), rgb(5 150 105 / 1));
+}
+
+.scrim-card {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgb(63 63 70 / 0.6);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgb(18 18 24 / 0.9), rgb(12 13 18 / 0.84));
+  min-height: 13.5rem;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 0.22);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.scrim-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  border-color: rgb(var(--glow-a) / 0.42);
+  box-shadow: 0 16px 32px rgb(0 0 0 / 0.28);
+}
+
+.scrim-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgb(var(--glow-a) / 0.08), transparent 34%, transparent 70%, rgb(var(--glow-b) / 0.06));
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.scrim-card:hover::before {
+  opacity: 1;
+}
+
+.scrim-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.scrim-card-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgb(82 82 91 / 0.7);
+  background: rgb(9 9 11 / 0.52);
+  padding: 0.22rem 0.55rem;
+  font-size: 0.68rem;
+  line-height: 1rem;
+  color: rgb(212 212 216 / 0.92);
+}
+
+.scrim-card-status-public {
+  border-color: rgb(16 185 129 / 0.4);
+  color: rgb(110 231 183 / 0.98);
+  background: rgb(16 185 129 / 0.1);
+}
+
+.scrim-card-status-private {
+  border-color: rgb(113 113 122 / 0.5);
+  color: rgb(212 212 216 / 0.88);
+  background: rgb(39 39 42 / 0.45);
+}
+
+.scrim-card-action {
+  position: relative;
+  z-index: 20;
+}
+
+.scrim-card-empty {
+  min-height: 13.5rem;
+  border-radius: 1rem;
+  border: 1px dashed rgb(82 82 91 / 0.72);
+  background: linear-gradient(180deg, rgb(18 18 24 / 0.54), rgb(10 10 14 / 0.32));
 }
 
 a:focus-visible,
@@ -380,6 +584,14 @@ textarea:focus-visible,
   color: rgb(var(--text-light-muted));
 }
 
+:root[data-mode="light"] .site-readable :where(.text-zinc-500, .text-zinc-400) {
+  color: rgb(var(--text-light-muted)) !important;
+}
+
+:root[data-mode="light"] .site-readable :where(.text-zinc-300) {
+  color: rgb(var(--text-light-strong)) !important;
+}
+
 ::selection {
   background: rgb(var(--glow-a) / 0.35);
   color: var(--foreground);
@@ -503,4 +715,187 @@ textarea:focus-visible,
 
 .match-shell .match-shell-team-sapphire {
   box-shadow: inset 4px 0 0 rgb(59 130 246 / 0.95);
+}
+
+.team-stats-shell .team-stats-section {
+  border: 1px solid rgb(82 82 91 / 0.45);
+  border-radius: 0.9rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 8px 20px rgb(0 0 0 / 0.2);
+}
+
+.team-stats-shell .team-stats-kpi {
+  min-height: 7.25rem;
+}
+
+.team-stats-shell .team-stats-section h2 {
+  letter-spacing: -0.01em;
+  line-height: 1.18;
+}
+
+.team-stats-shell .team-stats-section h3 {
+  letter-spacing: -0.008em;
+}
+
+.team-stats-shell .team-stats-section p {
+  line-height: 1.52;
+}
+
+.team-stats-shell .team-stats-section .text-zinc-400 {
+  color: rgb(184 184 196 / 0.96) !important;
+}
+
+.team-stats-shell .team-stats-section .text-zinc-500 {
+  color: rgb(150 150 164 / 0.96) !important;
+}
+
+.team-stats-tabs-shell .team-stats-panels > [data-section] {
+  display: none;
+}
+
+.team-stats-tabs-shell[data-active-section="overview"] .team-stats-panels > [data-section="overview"] {
+  display: grid;
+}
+
+.team-stats-tabs-shell[data-active-section="performance"] .team-stats-panels > [data-section="performance"] {
+  display: block;
+}
+
+.team-stats-tabs-shell[data-active-section="heroes"] .team-stats-panels > [data-section="heroes"] {
+  display: grid;
+}
+
+.team-stats-tabs-shell[data-active-section="trends"] .team-stats-panels > [data-section="trends"] {
+  display: block;
+}
+
+.team-stats-tabs-shell[data-active-section="items"] .team-stats-panels > [data-section="items"] {
+  display: grid;
+}
+
+.team-stats-shell .team-tabs-list {
+  display: inline-flex;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.42rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgb(82 82 91 / 0.62);
+  background: rgb(24 24 27 / 0.58);
+  padding: 0.28rem;
+}
+
+.team-stats-shell .team-tab-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.62rem;
+  border: 1px solid transparent;
+  padding: 0.42rem 0.78rem;
+  font-size: 0.81rem;
+  font-weight: 600;
+  color: rgb(212 212 216 / 0.92);
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.team-stats-shell .team-tab-trigger:hover {
+  border-color: rgb(82 82 91 / 0.7);
+  background: rgb(39 39 42 / 0.8);
+  color: rgb(250 250 250 / 0.98);
+}
+
+.team-stats-shell .team-tab-trigger-active {
+  border-color: rgb(113 113 122 / 0.9);
+  background: linear-gradient(180deg, rgb(9 9 11 / 0.9), rgb(24 24 27 / 0.82));
+  color: rgb(250 250 250 / 0.98);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 1px 8px rgb(0 0 0 / 0.22);
+}
+
+.team-stats-shell .team-tab-trigger:focus-visible {
+  outline: 2px solid rgb(var(--glow-a) / 0.95);
+  outline-offset: 2px;
+}
+
+.team-stats-shell .team-stats-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.7rem 0.78rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgb(228 228 236 / 0.9);
+  background: linear-gradient(180deg, rgb(39 39 42 / 0.94), rgb(24 24 27 / 0.9));
+}
+
+.team-stats-shell .team-stats-table td {
+  padding: 0.68rem 0.78rem;
+  line-height: 1.48;
+  vertical-align: top;
+}
+
+.team-stats-shell .team-stats-table tbody tr {
+  border-top: 1px solid rgb(63 63 70 / 0.72);
+}
+
+.team-stats-shell .team-stats-table tbody tr:nth-child(even) {
+  background: rgb(24 24 27 / 0.22);
+}
+
+.team-stats-shell .team-stats-table tbody tr:hover {
+  background: rgb(39 39 42 / 0.35);
+}
+
+@media (max-width: 640px) {
+  .team-stats-shell .team-tabs-list {
+    gap: 0.3rem;
+    padding: 0.22rem;
+  }
+
+  .team-stats-shell .team-tab-trigger {
+    padding: 0.38rem 0.62rem;
+    font-size: 0.77rem;
+  }
+
+  .team-stats-shell .team-stats-table th,
+  .team-stats-shell .team-stats-table td {
+    padding: 0.58rem 0.6rem;
+  }
+}
+
+:root[data-mode="light"] .team-stats-shell .team-stats-table th {
+  color: rgb(var(--text-light-strong));
+  background: linear-gradient(180deg, rgb(var(--surface-900) / 0.96), rgb(var(--surface-950) / 0.92));
+}
+
+:root[data-mode="light"] .team-stats-shell .team-tabs-list {
+  border-color: rgb(var(--border-light) / 0.95);
+  background: rgb(var(--surface-900) / 0.6);
+}
+
+:root[data-mode="light"] .team-stats-shell .team-tab-trigger {
+  color: rgb(var(--text-light-muted));
+}
+
+:root[data-mode="light"] .team-stats-shell .team-tab-trigger:hover {
+  border-color: rgb(var(--border-light) / 0.95);
+  background: rgb(var(--surface-950) / 0.82);
+  color: rgb(var(--text-light-strong));
+}
+
+:root[data-mode="light"] .team-stats-shell .team-tab-trigger-active {
+  border-color: rgb(var(--border-light) / 1);
+  background: rgb(var(--surface-950) / 0.96);
+  color: rgb(var(--text-light-strong));
+}
+
+:root[data-mode="light"] .team-stats-shell .team-stats-table tbody tr {
+  border-top-color: rgb(var(--border-light) / 0.85);
+}
+
+:root[data-mode="light"] .team-stats-shell .team-stats-section .text-zinc-400 {
+  color: rgb(var(--text-light-muted)) !important;
+}
+
+:root[data-mode="light"] .team-stats-shell .team-stats-section .text-zinc-500 {
+  color: rgb(var(--text-light-muted) / 0.9) !important;
 }

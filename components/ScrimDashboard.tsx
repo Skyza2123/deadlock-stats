@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -79,6 +79,45 @@ function SpinnerIcon({ className = "h-4 w-4 animate-spin" }: IconProps) {
   );
 }
 
+function SearchIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" />
+    </svg>
+  );
+}
+
+function InfoIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 10v6" />
+      <path d="M12 7h.01" />
+    </svg>
+  );
+}
+
+function CalendarIcon({ className = "h-3.5 w-3.5" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <rect x="3" y="4" width="18" height="17" rx="2" />
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <path d="M3 10h18" />
+    </svg>
+  );
+}
+
+function UserIcon({ className = "h-3.5 w-3.5" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c1.7-3.3 4.4-5 8-5s6.3 1.7 8 5" />
+    </svg>
+  );
+}
+
 type TeamOption = {
   slug: string;
   name: string;
@@ -100,6 +139,8 @@ function todayIsoDate() {
 
 export default function ScrimDashboard() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [teams, setTeams] = useState<TeamOption[]>([]);
   const [teamsLoading, setTeamsLoading] = useState(true);
@@ -116,10 +157,13 @@ export default function ScrimDashboard() {
   const [scrimDate, setScrimDate] = useState(todayIsoDate());
   const [firstMapCode, setFirstMapCode] = useState("");
   const [firstBansFile, setFirstBansFile] = useState<File | null>(null);
-  const [isPublic, setIsPublic] = useState(true);
+  const [isPublic, setIsPublic] = useState(false);
 
-  const [filterMode, setFilterMode] = useState<"all" | ScrimAssignment>("all");
-  const [searchText, setSearchText] = useState("");
+  const [filterMode, setFilterMode] = useState<"all" | ScrimAssignment>(() => {
+    const initialFilter = searchParams.get("filter");
+    return initialFilter === "team" || initialFilter === "individual" ? initialFilter : "all";
+  });
+  const [searchText, setSearchText] = useState(() => searchParams.get("q") ?? "");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -160,6 +204,38 @@ export default function ScrimDashboard() {
   }, []);
 
   useEffect(() => {
+    const nextFilter = searchParams.get("filter");
+    const normalizedFilter = nextFilter === "team" || nextFilter === "individual" ? nextFilter : "all";
+    const nextSearch = searchParams.get("q") ?? "";
+
+    setFilterMode((current) => (current === normalizedFilter ? current : normalizedFilter));
+    setSearchText((current) => (current === nextSearch ? current : nextSearch));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (filterMode === "all") {
+      params.delete("filter");
+    } else {
+      params.set("filter", filterMode);
+    }
+
+    const trimmedSearch = searchText.trim();
+    if (trimmedSearch) {
+      params.set("q", trimmedSearch);
+    } else {
+      params.delete("q");
+    }
+
+    const nextQuery = params.toString();
+    const currentQuery = searchParams.toString();
+    if (nextQuery === currentQuery) return;
+
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  }, [filterMode, pathname, router, searchParams, searchText]);
+
+  useEffect(() => {
     let alive = true;
 
     async function loadScrims() {
@@ -183,7 +259,7 @@ export default function ScrimDashboard() {
         for (const scrim of local) {
           const migrated: ScrimEntry = {
             ...scrim,
-            isPublic: typeof scrim.isPublic === "boolean" ? scrim.isPublic : true,
+            isPublic: typeof scrim.isPublic === "boolean" ? scrim.isPublic : false,
           };
           await createScrimInApi(migrated);
         }
@@ -284,7 +360,7 @@ export default function ScrimDashboard() {
     setScrimDate(normalizeScrimDate(todayIsoDate(), todayIsoDate()));
     setFirstMapCode("");
     setFirstBansFile(null);
-    setIsPublic(true);
+    setIsPublic(false);
     setEditingScrimId(null);
   }
 
@@ -390,94 +466,144 @@ export default function ScrimDashboard() {
     }
   }
 
-  async function removeScrim(scrimId: string) {
-    await deleteScrimInApi(scrimId);
-    setScrims(scrims.filter((entry) => entry.id !== scrimId));
+  async function removeScrim(scrim: ScrimEntry) {
+    const confirmed = window.confirm(
+      `Remove scrim "${scrim.name}"? This will remove ${scrim.matches.length} match${scrim.matches.length === 1 ? "" : "es"}.`
+    );
+    if (!confirmed) return;
+
+    await deleteScrimInApi(scrim.id);
+    setScrims(scrims.filter((entry) => entry.id !== scrim.id));
+    setNotice(`Removed ${scrim.name}.`);
   }
 
   return (
-    <section className="panel-premium rounded-xl p-4 md:p-5 space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <select
-          value={filterMode}
-          onChange={(e) => setFilterMode(e.target.value as "all" | ScrimAssignment)}
-          className="w-full sm:w-40 rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
-        >
-          <option value="all">Filter</option>
-          <option value="team">Team scrims</option>
-          <option value="individual">Individual scrims</option>
-        </select>
+    <section className="scrim-dashboard-shell text-sm">
+      <div className="scrim-dashboard-toolbar">
+        <div className="scrim-dashboard-controls">
+          <select
+            value={filterMode}
+            onChange={(e) => setFilterMode(e.target.value as "all" | ScrimAssignment)}
+            className="scrim-dashboard-select w-full rounded-md px-3 py-2 text-sm sm:w-45"
+          >
+            <option value="all">Filter</option>
+            <option value="team">Team scrims</option>
+            <option value="individual">Individual scrims</option>
+          </select>
 
-        <input
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          placeholder="Search..."
-          className="w-full sm:max-w-md rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
-        />
+          <div className="scrim-dashboard-search-wrap">
+            <span className="scrim-dashboard-search-icon">
+              <SearchIcon className="h-4 w-4" />
+            </span>
+            <input
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="Search..."
+              aria-label="Search scrims"
+              className="scrim-dashboard-search rounded-md py-2 text-sm"
+            />
+            <span className="scrim-dashboard-search-hint" title="Search by scrim name, team, or date">
+              <InfoIcon className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={openCreateModal}
+          className="scrim-dashboard-create rounded-md px-3 py-2 text-sm font-medium"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <PlusIcon className="h-4 w-4" />
+            <span>Create Scrim</span>
+          </span>
+        </button>
       </div>
 
-      {error ? <p className="text-xs text-rose-300">{error}</p> : null}
-      {notice ? <p className="text-xs text-emerald-300">{notice}</p> : null}
+      <div className="space-y-4 p-4">
+        {error ? <p className="text-xs text-rose-300">{error}</p> : null}
+        {notice ? <p className="text-xs text-emerald-300">{notice}</p> : null}
 
-      <div className="rounded-xl border border-zinc-800/70 bg-zinc-950/35 p-3 min-h-70">
-        {scrimsLoading ? <p className="px-1 pb-3 text-xs text-zinc-400">Loading scrims...</p> : null}
+        {scrimsLoading ? <p className="px-1 pb-1 text-xs text-zinc-400">Loading scrims...</p> : null}
         {!scrimsLoading && !visibleScrims.length ? (
-          <p className="px-1 pb-3 text-xs text-zinc-500">No scrims match your current filters.</p>
+          <p className="px-1 pb-1 text-xs text-zinc-500">No scrims match your current filters.</p>
         ) : null}
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {visibleScrims.map((scrim) => (
             <article
               key={scrim.id}
-              className="group relative rounded-xl border border-zinc-800/80 bg-zinc-900/45 p-4 transition-all hover:border-zinc-600/90 hover:bg-zinc-900/65"
+              className="group relative h-56 overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-900/50 py-6 text-sm shadow-xs active:scale-[0.97] motion-safe:transition-[transform,box-shadow,border-color] motion-safe:duration-200 md:h-64 xl:h-56 hover:border-emerald-400/40 hover:shadow-lg"
             >
+              <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-emerald-500/8 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <Link href={`/scrims/${scrim.id}`} className="absolute inset-0 z-0 rounded-xl" aria-label={`Open ${scrim.name}`} />
 
-              <div className="relative z-10 space-y-3 pointer-events-none">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-lg font-semibold leading-snug">{scrim.name}</h3>
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      openEditModal(scrim);
-                    }}
-                    className="pointer-events-auto rounded border border-zinc-700/80 bg-zinc-950/70 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-800"
-                    title="Edit scrim"
-                    aria-label="Edit scrim"
-                  >
-                    <PencilIcon />
-                  </button>
+              <div className="relative z-10 flex h-full flex-col justify-between gap-4 pointer-events-none">
+                <div className="space-y-2 px-6 pb-3">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="line-clamp-2 text-lg leading-tight font-bold transition-colors duration-200 group-hover:text-emerald-200">
+                    {scrim.name}
+                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        openEditModal(scrim);
+                      }}
+                      className="scrim-card-action pointer-events-auto -mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-zinc-300 transition-colors duration-200 hover:bg-emerald-500/10 hover:text-emerald-200"
+                      title="Edit scrim"
+                      aria-label="Edit scrim"
+                    >
+                      <PencilIcon className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        void removeScrim(scrim);
+                      }}
+                      className="scrim-card-action pointer-events-auto -mt-0.5 inline-flex items-center gap-1 rounded-md border border-rose-500/40 bg-rose-500/10 px-2 py-1 text-[11px] font-medium text-rose-300 transition-colors duration-200 hover:bg-rose-500/20 hover:text-rose-200"
+                      title="Remove scrim"
+                      aria-label="Remove scrim"
+                    >
+                      <TrashIcon className="h-3.5 w-3.5" />
+                      <span>Remove</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-1 text-xs text-zinc-400">
-                  <p>{formatScrimDate(scrim.scrimDate)}</p>
-                  <p>{scrim.assignment === "team" ? scrim.teamName : "Individual"}</p>
-                  <p>{scrim.matches.length} matches</p>
-                  <p>{scrim.isPublic ? "Public" : "Private"}</p>
+                <div className="flex flex-col gap-1 text-sm text-zinc-400">
+                  <div className="inline-flex items-center gap-2">
+                    <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="font-medium text-zinc-200">{formatScrimDate(scrim.scrimDate)}</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2">
+                    <UserIcon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{scrim.assignment === "team" ? scrim.teamName : "Individual"}</span>
+                  </div>
+                </div>
                 </div>
 
-                <div className={`h-2 w-2 rounded-full ${scrim.isPublic ? "bg-emerald-400/80" : "bg-zinc-500/80"}`} />
+                <div className="px-6 text-xs text-zinc-400">
+                  <span>{scrim.matches.length} matches</span>
+                  <span className="mx-1.5 text-zinc-600">•</span>
+                  <span className={scrim.isPublic ? "text-emerald-300" : "text-zinc-400"}>
+                    {scrim.isPublic ? "Public" : "Private"}
+                  </span>
+                  <span className="mx-1.5 text-zinc-600">•</span>
+                  <span>{scrim.assignment === "team" ? "Team" : "Individual"}</span>
+                </div>
+
+                <div className="px-6 text-[11px] text-zinc-500">Open scrim details</div>
               </div>
 
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  void removeScrim(scrim.id);
-                }}
-                className="absolute bottom-2 right-2 z-20 rounded border border-rose-500/50 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-300 opacity-0 transition-opacity hover:bg-rose-500/20 group-hover:opacity-100"
-                title="Remove scrim"
-                aria-label="Remove scrim"
-              >
-                <TrashIcon />
-              </button>
             </article>
           ))}
 
-          <article className="panel-premium-soft rounded-xl border border-dashed border-zinc-700/70 p-4 grid place-items-center min-h-37.5">
+          <article className="scrim-card-empty grid h-56 place-items-center p-4 md:h-64 xl:h-56">
             <div className="text-center space-y-2">
               <p className="text-2xl leading-none text-zinc-400">+</p>
               <p className="text-lg font-semibold">Add a scrim...</p>
@@ -485,7 +611,7 @@ export default function ScrimDashboard() {
               <button
                 type="button"
                 onClick={openCreateModal}
-                className="rounded border border-emerald-500/40 bg-emerald-700/90 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-600"
+                className="scrim-dashboard-create rounded-md px-4 py-1.5 text-sm font-medium"
               >
                 <span className="inline-flex items-center gap-1.5">
                   <PlusIcon className="h-4 w-4" />
@@ -498,10 +624,10 @@ export default function ScrimDashboard() {
       </div>
 
       {modalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/55 p-4 overflow-y-auto">
-          <div className="panel-premium w-full max-w-xl rounded-t-xl sm:rounded-xl p-4 sm:p-6 my-auto relative max-h-[85vh] sm:max-h-none overflow-y-auto">
-            <div className="mb-4 flex items-center justify-between sticky top-0 bg-inherit -m-4 sm:-m-6 p-4 sm:p-6 pb-4 sm:pb-4 border-b border-zinc-700/50">
-              <h3 className="text-base sm:text-lg font-semibold">{modalMode === "create" ? "Create scrim" : "Edit scrim"}</h3>
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-3 sm:p-4">
+          <div className="panel-premium relative w-full max-w-2xl overflow-y-auto rounded-xl p-5 sm:p-6 max-h-[92vh] translate-y-4 sm:translate-y-5">
+            <div className="mb-5 flex items-center justify-between border-b border-zinc-700/50 pb-4">
+              <h3 className="text-lg font-semibold sm:text-xl">{modalMode === "create" ? "Create scrim" : "Edit scrim"}</h3>
               <button
                 type="button"
                 onClick={closeModal}
@@ -512,49 +638,61 @@ export default function ScrimDashboard() {
               </button>
             </div>
 
-            <form className="space-y-3" onSubmit={submitScrim}>
-              <input
-                value={scrimName}
-                onChange={(e) => setScrimName(e.target.value)}
-                placeholder="Scrim name"
-                className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
-                required
-              />
-
-              <div className="grid gap-2 sm:grid-cols-2">
-                <select
-                  value={assignment}
-                  onChange={(e) => setAssignment(e.target.value as ScrimAssignment)}
-                  className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
-                >
-                  <option value="team">Assign to team</option>
-                  <option value="individual">Assign to individual</option>
-                </select>
-
+            <form className="space-y-4" onSubmit={submitScrim}>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Scrim name</label>
                 <input
-                  type="date"
-                  value={scrimDate}
-                  onChange={(e) => setScrimDate(e.target.value)}
-                  className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
+                  value={scrimName}
+                  onChange={(e) => setScrimName(e.target.value)}
+                  placeholder="Scrim name"
+                  className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
                   required
                 />
               </div>
 
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Assignment</label>
+                  <select
+                    value={assignment}
+                    onChange={(e) => setAssignment(e.target.value as ScrimAssignment)}
+                    className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
+                  >
+                    <option value="team">Assign to team</option>
+                    <option value="individual">Assign to individual</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Scrim date</label>
+                  <input
+                    type="date"
+                    value={scrimDate}
+                    onChange={(e) => setScrimDate(e.target.value)}
+                    className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
+                    required
+                  />
+                </div>
+              </div>
+
               {assignment === "team" ? (
-                <select
-                  value={teamSlug}
-                  onChange={(e) => setTeamSlug(e.target.value)}
-                  className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
-                  disabled={teamsLoading || loading}
-                  required
-                >
-                  <option value="">Select team</option>
-                  {teams.map((team) => (
-                    <option key={team.slug} value={team.slug}>
-                      {team.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Team</label>
+                  <select
+                    value={teamSlug}
+                    onChange={(e) => setTeamSlug(e.target.value)}
+                    className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
+                    disabled={teamsLoading || loading}
+                    required
+                  >
+                    <option value="">Select team</option>
+                    {teams.map((team) => (
+                      <option key={team.slug} value={team.slug}>
+                        {team.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               ) : null}
 
               <label className="flex items-center gap-2 rounded border border-zinc-700/70 bg-zinc-900/60 px-3 py-2 text-sm">
@@ -567,17 +705,20 @@ export default function ScrimDashboard() {
               </label>
 
               {modalMode === "create" ? (
-                <>
-                  <input
-                    value={firstMapCode}
-                    onChange={(e) => setFirstMapCode(e.target.value)}
-                    placeholder="First map code / Match ID"
-                    className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
-                    required
-                  />
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">First map code / Match ID</label>
+                    <input
+                      value={firstMapCode}
+                      onChange={(e) => setFirstMapCode(e.target.value)}
+                      placeholder="First map code / Match ID"
+                      className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
+                      required
+                    />
+                  </div>
 
-                  <div>
-                    <label className="mb-1 block text-xs text-zinc-400">Optional bans JSON</label>
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Optional bans JSON</label>
                     <input
                       type="file"
                       accept="application/json"
@@ -585,7 +726,7 @@ export default function ScrimDashboard() {
                       className="w-full text-xs"
                     />
                   </div>
-                </>
+                </div>
               ) : null}
 
               <button

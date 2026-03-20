@@ -1,4 +1,7 @@
 // app/match/[matchId]/page.tsx
+import Link from "next/link";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { db } from "../../../db";
 import { matches, matchPlayers, players, matchPlayerItems } from "../../../db/schema";
 import { eq, sql } from "drizzle-orm";
@@ -9,11 +12,14 @@ import { itemIconPath } from "../../../lib/itemIcons";
 import BackButton from "../../../components/BackButton";
 import HeroIcon from "../../../components/HeroIcon";
 import MatchTabsNav from "../../../components/MatchTabsNav";
+import TeamWordmark from "../../../components/TeamWordmark";
 
 const TEAM_NAMES: Record<string, string> = {
   "0": "Hidden King",
   "1": "Archmother",
 };
+
+const DEMO_MATCH_ID = "68623064";
 
 type PlayerRow = {
   steamId: string;
@@ -381,6 +387,25 @@ function formatUtcScrimDate(value: Date | null | undefined) {
   }).format(value);
 }
 
+async function loadStaticDemoMatchData() {
+  try {
+    const [demoRaw, demoPathRaw] = await Promise.all([
+      readFile(path.join(process.cwd(), "public", "demos", "demo.json"), "utf8"),
+      readFile(path.join(process.cwd(), "public", "demos", "demo_path.json"), "utf8"),
+    ]);
+
+    const demo = JSON.parse(demoRaw);
+    const demoPath = JSON.parse(demoPathRaw);
+
+    return {
+      ...(demo && typeof demo === "object" ? demo : {}),
+      ...(demoPath && typeof demoPath === "object" ? demoPath : {}),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default async function MatchPage({
   params,
   searchParams,
@@ -397,7 +422,7 @@ export default async function MatchPage({
   );
   const hasScrimDateColumn = scrimDateColumnCheck.rows.length > 0;
 
-  const matchRow = hasScrimDateColumn
+  let matchRow = hasScrimDateColumn
     ? await db
         .select({ matchId: matches.matchId, rawJson: matches.rawJson, scrimDate: matches.scrimDate })
         .from(matches)
@@ -411,6 +436,16 @@ export default async function MatchPage({
           .limit(1)
       ).map((row) => ({ ...row, scrimDate: null as Date | null }));
 
+  let usingStaticDemo = false;
+
+  if (matchRow.length === 0 && matchId === DEMO_MATCH_ID) {
+    const demoRawJson = await loadStaticDemoMatchData();
+    if (demoRawJson) {
+      matchRow = [{ matchId, rawJson: demoRawJson, scrimDate: null as Date | null }];
+      usingStaticDemo = true;
+    }
+  }
+
   if (matchRow.length === 0) {
     return (
       <main className="w-full p-4 sm:p-6 lg:p-8 space-y-4">
@@ -423,38 +458,88 @@ export default async function MatchPage({
     );
   }
 
-  const rows: PlayerRow[] = await db
-    .select({
-      steamId: matchPlayers.steamId,
-      displayName: players.displayName,
-      side: matchPlayers.side,
-      heroId: matchPlayers.heroId,
-      rawJson: matchPlayers.rawJson,
+  const staticRaw: any = matchRow[0].rawJson;
+  const staticParticipants = usingStaticDemo && Array.isArray(staticRaw?.match_info?.players)
+    ? staticRaw.match_info.players
+    : [];
+  const staticNameBySteam = usingStaticDemo
+    ? await fetchSteamPersonaNames(staticParticipants.map((p: any) => String(p?.account_id ?? "")))
+    : new Map<string, string>();
 
-      kills: matchPlayers.kills,
-      deaths: matchPlayers.deaths,
-      assists: matchPlayers.assists,
+  const rows: PlayerRow[] = usingStaticDemo
+    ? staticParticipants
+        .map((p: any) => ({
+          steamId: String(p?.account_id ?? "").trim(),
+          displayName:
+            (String(p?.name ?? p?.display_name ?? "").trim() ||
+              staticNameBySteam.get(String(p?.account_id ?? "").trim()) ||
+              null) as string | null,
+          side: p?.team != null ? String(p.team) : null,
+          heroId: p?.hero_id != null ? String(p.hero_id) : null,
+          rawJson: p,
+          kills: Number.isFinite(Number(p?.kills)) ? Number(p.kills) : null,
+          deaths: Number.isFinite(Number(p?.deaths)) ? Number(p.deaths) : null,
+          assists: Number.isFinite(Number(p?.assists)) ? Number(p.assists) : null,
+          netWorth: Number.isFinite(Number(p?.net_worth)) ? Number(p.net_worth) : null,
+          lastHits: Number.isFinite(Number(p?.last_hits)) ? Number(p.last_hits) : null,
+          denies: Number.isFinite(Number(p?.denies)) ? Number(p.denies) : null,
+          level: Number.isFinite(Number(p?.level)) ? Number(p.level) : null,
+        }))
+        .filter((player: PlayerRow) => player.steamId.length > 0)
+    : await db
+        .select({
+          steamId: matchPlayers.steamId,
+          displayName: players.displayName,
+          side: matchPlayers.side,
+          heroId: matchPlayers.heroId,
+          rawJson: matchPlayers.rawJson,
 
-      netWorth: matchPlayers.netWorth,
-      lastHits: matchPlayers.lastHits,
-      denies: matchPlayers.denies,
-      level: matchPlayers.level,
-    })
-    .from(matchPlayers)
-    .leftJoin(players, eq(players.steamId, matchPlayers.steamId))
-    .where(eq(matchPlayers.matchId, matchId));
+          kills: matchPlayers.kills,
+          deaths: matchPlayers.deaths,
+          assists: matchPlayers.assists,
 
-  const itemRows: ItemRow[] = await db
-    .select({
-      steamId: matchPlayerItems.steamId,
-      gameTimeS: matchPlayerItems.gameTimeS,
-      itemId: matchPlayerItems.itemId,
-      soldTimeS: matchPlayerItems.soldTimeS,
-      upgradeId: matchPlayerItems.upgradeId,
-      imbuedAbilityId: matchPlayerItems.imbuedAbilityId,
-    })
-    .from(matchPlayerItems)
-    .where(eq(matchPlayerItems.matchId, matchId));
+          netWorth: matchPlayers.netWorth,
+          lastHits: matchPlayers.lastHits,
+          denies: matchPlayers.denies,
+          level: matchPlayers.level,
+        })
+        .from(matchPlayers)
+        .leftJoin(players, eq(players.steamId, matchPlayers.steamId))
+        .where(eq(matchPlayers.matchId, matchId));
+
+  const itemRows: ItemRow[] = usingStaticDemo
+    ? staticParticipants.flatMap((p: any) => {
+        const steamId = String(p?.account_id ?? "").trim();
+        const items = Array.isArray(p?.items) ? p.items : [];
+
+        return items
+          .map((it: any) => {
+            const gameTimeS = Number(it?.game_time_s);
+            const itemId = Number(it?.item_id);
+            if (!steamId || !Number.isFinite(gameTimeS) || !Number.isFinite(itemId)) return null;
+
+            return {
+              steamId,
+              gameTimeS,
+              itemId,
+              soldTimeS: Number.isFinite(Number(it?.sold_time_s)) ? Number(it.sold_time_s) : null,
+              upgradeId: Number.isFinite(Number(it?.upgrade_id)) ? Number(it.upgrade_id) : null,
+              imbuedAbilityId: Number.isFinite(Number(it?.imbued_ability_id)) ? Number(it.imbued_ability_id) : null,
+            } as ItemRow;
+          })
+          .filter((it: ItemRow | null): it is ItemRow => it != null);
+      })
+    : await db
+        .select({
+          steamId: matchPlayerItems.steamId,
+          gameTimeS: matchPlayerItems.gameTimeS,
+          itemId: matchPlayerItems.itemId,
+          soldTimeS: matchPlayerItems.soldTimeS,
+          upgradeId: matchPlayerItems.upgradeId,
+          imbuedAbilityId: matchPlayerItems.imbuedAbilityId,
+        })
+        .from(matchPlayerItems)
+        .where(eq(matchPlayerItems.matchId, matchId));
 
   // group items by player
   const itemsByPlayer = new Map<string, ItemRow[]>();
@@ -767,9 +852,8 @@ export default async function MatchPage({
           <p className="mt-1 text-sm font-medium">{fmtTime(durationS)}</p>
         </div>
         <div className="match-shell-stat rounded-lg p-3">
-          <p className="text-xs uppercase tracking-wide opacity-70">
-            Hidden King souls
-          </p>
+          <TeamWordmark side="0" className="h-5 w-36 max-w-full opacity-95" />
+          <p className="mt-2 text-xs uppercase tracking-wide opacity-70">Souls</p>
           <p className="mt-1 text-sm font-medium">
             {(bySide.get("0") ?? []).reduce(
               (sum, r) => sum + safeNum(r.netWorth),
@@ -778,9 +862,8 @@ export default async function MatchPage({
           </p>
         </div>
         <div className="match-shell-stat rounded-lg p-3">
-          <p className="text-xs uppercase tracking-wide opacity-70">
-            Archmother souls
-          </p>
+          <TeamWordmark side="1" className="h-5 w-36 max-w-full opacity-95" />
+          <p className="mt-2 text-xs uppercase tracking-wide opacity-70">Souls</p>
           <p className="mt-1 text-sm font-medium">
             {(bySide.get("1") ?? []).reduce(
               (sum, r) => sum + safeNum(r.netWorth),
@@ -930,12 +1013,20 @@ export default async function MatchPage({
               }`}
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-lg font-semibold">
-                  {teamLabel(sideKey === "unknown" ? null : sideKey)}
-                  <span className="ml-2 text-sm font-normal text-zinc-400">
-                    ({teamRows.length} players)
-                  </span>
-                </h2>
+                <div className="flex items-center gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold leading-tight">
+                      {teamLabel(sideKey === "unknown" ? null : sideKey)}
+                      <span className="ml-2 text-sm font-normal text-zinc-400">
+                        ({teamRows.length} players)
+                      </span>
+                    </h2>
+                    <TeamWordmark
+                      side={sideKey === "unknown" ? null : sideKey}
+                      className="mt-2 h-8 w-[18rem] max-w-full opacity-95"
+                    />
+                  </div>
+                </div>
                 <div className="flex flex-wrap gap-2 text-xs">
                   {topSouls ? (
                     <span className="match-shell-pill rounded px-2 py-1 inline-flex items-center gap-1">
@@ -1109,7 +1200,7 @@ export default async function MatchPage({
                           }`}
                         >
                           <td className="p-0 overflow-hidden">
-                            <a
+                            <Link
                               href={playerHref}
                               className="block px-3 py-3"
                               title={r.displayName ?? "(unknown)"}
@@ -1120,11 +1211,11 @@ export default async function MatchPage({
                               <div className="font-mono text-xs opacity-60 truncate">
                                 {r.steamId}
                               </div>
-                            </a>
+                            </Link>
                           </td>
 
                           <td className="p-0">
-                            <a href={playerHref} className="block px-3 py-3">
+                            <Link href={playerHref} className="block px-3 py-3">
                               {heroIconPath ? (
                                 <HeroIcon
                                   src={heroIconPath}
@@ -1136,19 +1227,19 @@ export default async function MatchPage({
                               ) : (
                                 <span>-</span>
                               )}
-                            </a>
+                            </Link>
                           </td>
 
-                          <td className="p-0 text-right"><a href={playerHref} className="block px-3 py-3">{r.netWorth ?? "-"}</a></td>
-                          <td className="p-0 text-right"><a href={playerHref} className="block px-3 py-3">{r.netWorth != null ? fmt1(spm) : "-"}</a></td>
-                          <td className="p-0 text-right"><a href={playerHref} className="block px-3 py-3">{r.level ?? "-"}</a></td>
-                          <td className="p-0 text-right"><a href={playerHref} className="block px-3 py-3">{r.lastHits ?? "-"}</a></td>
-                          <td className="p-0 text-right"><a href={playerHref} className="block px-3 py-3">{r.denies ?? "-"}</a></td>
+                          <td className="p-0 text-right"><Link href={playerHref} className="block px-3 py-3">{r.netWorth ?? "-"}</Link></td>
+                          <td className="p-0 text-right"><Link href={playerHref} className="block px-3 py-3">{r.netWorth != null ? fmt1(spm) : "-"}</Link></td>
+                          <td className="p-0 text-right"><Link href={playerHref} className="block px-3 py-3">{r.level ?? "-"}</Link></td>
+                          <td className="p-0 text-right"><Link href={playerHref} className="block px-3 py-3">{r.lastHits ?? "-"}</Link></td>
+                          <td className="p-0 text-right"><Link href={playerHref} className="block px-3 py-3">{r.denies ?? "-"}</Link></td>
 
-                          <td className="p-0 text-right"><a href={playerHref} className="block px-3 py-3">{r.kills ?? "-"}</a></td>
-                          <td className="p-0 text-right"><a href={playerHref} className="block px-3 py-3">{r.deaths ?? "-"}</a></td>
-                          <td className="p-0 text-right"><a href={playerHref} className="block px-3 py-3">{r.assists ?? "-"}</a></td>
-                          <td className="p-0 text-right"><a href={playerHref} className="block px-3 py-3">{fmt1(kda(K, D, A))}</a></td>
+                          <td className="p-0 text-right"><Link href={playerHref} className="block px-3 py-3">{r.kills ?? "-"}</Link></td>
+                          <td className="p-0 text-right"><Link href={playerHref} className="block px-3 py-3">{r.deaths ?? "-"}</Link></td>
+                          <td className="p-0 text-right"><Link href={playerHref} className="block px-3 py-3">{r.assists ?? "-"}</Link></td>
+                          <td className="p-0 text-right"><Link href={playerHref} className="block px-3 py-3">{fmt1(kda(K, D, A))}</Link></td>
 
                           {/* ✅ FIX: keep wide icon content contained */}
                           <td className="p-3 overflow-hidden">
@@ -1220,4 +1311,40 @@ export default async function MatchPage({
       </div>
     </main>
   );
+}
+
+async function fetchSteamPersonaNames(steamIds: string[]) {
+  const apiKey = process.env.DEADLOCK_API_KEY;
+  const uniqueIds = [...new Set(steamIds.map((id) => String(id ?? "").trim()).filter(Boolean))];
+  const names = new Map<string, string>();
+
+  if (!apiKey || uniqueIds.length === 0) return names;
+
+  await Promise.all(
+    uniqueIds.map(async (accountId) => {
+      try {
+        const url =
+          "https://api.deadlock-api.com/v1/players/steam-search?search_query=" +
+          encodeURIComponent(accountId);
+
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+          cache: "no-store",
+        });
+
+        if (!res.ok) return;
+
+        const arr = (await res.json()) as any[];
+        if (!Array.isArray(arr) || arr.length === 0) return;
+
+        const exact = arr.find((x) => String(x?.account_id ?? "") === accountId) ?? arr[0];
+        const personaname = String(exact?.personaname ?? "").trim();
+        if (personaname) names.set(accountId, personaname);
+      } catch {
+        // Ignore lookup failures in demo mode; fallback name handling remains in place.
+      }
+    })
+  );
+
+  return names;
 }

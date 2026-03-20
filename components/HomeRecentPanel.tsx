@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -184,9 +185,13 @@ export default function HomeRecentPanel({
                     </span>
                   </div>
                   <div className="mt-2 flex items-center gap-2">
-                    <a className="text-xs text-emerald-300 hover:text-emerald-200 hover:underline" href={`/match/${m.matchId}`}>
+                    <Link
+                      className="text-xs text-emerald-300 hover:text-emerald-200 hover:underline"
+                      href={`/match/${m.matchId}`}
+                      onClick={(event) => event.stopPropagation()}
+                    >
                       View →
-                    </a>
+                    </Link>
                     <button
                       type="button"
                       onClick={(event) => {
@@ -243,9 +248,13 @@ export default function HomeRecentPanel({
                         </div>
                       </td>
                       <td className="p-3">
-                        <a className="text-emerald-300 hover:text-emerald-200 hover:underline" href={`/match/${m.matchId}`}>
+                        <Link
+                          className="text-emerald-300 hover:text-emerald-200 hover:underline"
+                          href={`/match/${m.matchId}`}
+                          onClick={(event) => event.stopPropagation()}
+                        >
                           View →
-                        </a>
+                        </Link>
                       </td>
                       <td className="p-3">
                         <button
