@@ -1,5 +1,4 @@
 import { HERO_ASSETS_BY_ID } from "./heroAssets.generated";
-import { HEROES } from "./deadlockData";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -24,27 +23,6 @@ function iconFileExists(webPath: string | null) {
   const exists = fs.existsSync(diskPath);
   iconExistsCache.set(webPath, exists);
   return exists;
-}
-
-function normalizeHeroFolderName(name: string) {
-  return name
-    .replace(/&/g, " ")
-    .replace(/[^a-zA-Z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
-
-function heroFolderFromId(heroId: number) {
-  const heroName = HEROES[heroId];
-  if (!heroName) return null;
-  const folder = normalizeHeroFolderName(heroName);
-  return folder || null;
-}
-
-function fallbackHeroRenderPath(heroId: number) {
-  const folder = heroFolderFromId(heroId);
-  if (!folder) return null;
-
-  return `/api/hero-images/${encodeURIComponent(folder)}/render`;
 }
 
 export function heroSmallIconPath(heroId: string | null | undefined) {
@@ -78,7 +56,7 @@ export function heroRenderPath(heroId: string | null | undefined) {
   if (!heroId) return null;
   const id = Number(heroId);
   if (!Number.isFinite(id)) return null;
-  return fallbackHeroRenderPath(id);
+  return heroAssetPath(heroId, "icon_hero_card") ?? heroAssetPath(heroId, "background_image");
 }
 
 export function heroCardIconPath(heroId: string | null | undefined) {

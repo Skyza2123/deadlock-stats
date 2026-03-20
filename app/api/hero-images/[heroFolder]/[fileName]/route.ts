@@ -1,102 +1,87 @@
-import fs from "node:fs/promises";
-import path from "node:path";
+import { HERO_ASSETS_BY_ID } from "@/lib/heroAssets.generated";
+import { HEROES } from "@/lib/deadlockData";
 
-const ALLOWED_FILES = new Set([
-  "icon_image_small.png",
-  "icon_image_small_webp.webp",
-  "icon_hero_card.png",
-  "icon_hero_card_webp.webp",
-  "minimap_image.png",
-  "minimap_image_webp.webp",
-  "top_bar_vertical_image.png",
-  "top_bar_vertical_image_webp.webp",
-  "background_image.png",
-  "background_image_webp.webp",
-  "hero_card_critical.png",
-  "hero_card_critical_webp.webp",
-  "hero_card_gloat.png",
-  "hero_card_gloat_webp.webp",
-  "name_image",
-]);
+const DEADLOCK_ASSET_BASE = "https://assets-bucket.deadlock-api.com/assets-api-res/images";
 
-function isAllowedRenderFile(fileName: string) {
-  return /^[a-zA-Z0-9_&-]+_Render\.png$/.test(fileName);
+function normalizeHeroFolderName(name: string) {
+  return name
+    .replace(/&/g, " ")
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
-function contentType(fileName: string) {
-  if (fileName.endsWith(".png")) return "image/png";
-  if (fileName.endsWith(".webp")) return "image/webp";
-  return "image/svg+xml";
+const HERO_ID_BY_FOLDER = new Map<string, number>(
+  Object.entries(HEROES)
+    .map(([heroId, heroName]) => [normalizeHeroFolderName(heroName), Number(heroId)] as const)
+    .filter(([folder, heroId]) => Boolean(folder) && Number.isFinite(heroId))
+);
+
+function externalAssetUrlFromWebPath(webPath: string | null) {
+  if (!webPath) return null;
+  const normalized = webPath.replace(/^\/+/, "");
+  const relative = normalized.startsWith("assets/") ? normalized.slice("assets/".length) : normalized;
+  if (!relative) return null;
+  return `${DEADLOCK_ASSET_BASE}/${relative}`;
+}
+
+function fileCandidates(requestedFileName: string) {
+  const candidates = new Set<string>([requestedFileName]);
+  if (!requestedFileName.includes(".")) {
+    candidates.add(`${requestedFileName}.png`);
+    candidates.add(`${requestedFileName}.webp`);
+  }
+  return candidates;
+}
+
+function resolveAssetUrl(heroId: number, requestedFileName: string) {
+  const iconFields = HERO_ASSETS_BY_ID[heroId]?.iconFields;
+  if (!iconFields) return null;
+
+  const candidates = fileCandidates(requestedFileName);
+  for (const fieldAsset of Object.values(iconFields)) {
+    const webPath = fieldAsset?.webPath ?? null;
+    if (!webPath) continue;
+    const fileName = webPath.split("/").pop();
+    if (!fileName) continue;
+    if (candidates.has(fileName)) {
+      return externalAssetUrlFromWebPath(webPath);
+    }
+  }
+
+  if (requestedFileName === "render.png") {
+    for (const fieldAsset of Object.values(iconFields)) {
+      const webPath = fieldAsset?.webPath ?? null;
+      if (!webPath) continue;
+      const fileName = webPath.split("/").pop() ?? "";
+      if (/_Render\.png$/i.test(fileName)) {
+        return externalAssetUrlFromWebPath(webPath);
+      }
+    }
+  }
+
+  return null;
 }
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ heroFolder: string; fileName: string }> }
 ) {
-  const { heroFolder, fileName } = await params;
+  const { heroFolder, fileName: rawFileName } = await params;
+  const fileName = decodeURIComponent(rawFileName);
 
   if (!/^[a-zA-Z0-9_]+$/.test(heroFolder)) {
     return new Response("Invalid hero folder", { status: 400 });
   }
 
-  if (fileName === "render.png") {
-    const candidates = [
-      `${heroFolder}_Render.png`,
-      `${heroFolder.replace(/_/g, "_&_")}_Render.png`,
-      `${heroFolder.replace(/_/g, " ")}_Render.png`,
-    ];
-
-    for (const candidate of candidates) {
-      const diskPath = path.join(process.cwd(), "deadlock_hero_images", heroFolder, candidate);
-      try {
-        const data = await fs.readFile(diskPath);
-        return new Response(data, {
-          status: 200,
-          headers: {
-            "Content-Type": "image/png",
-            "Cache-Control": "public, max-age=604800, immutable",
-          },
-        });
-      } catch {
-        // continue
-      }
-    }
-
-    try {
-      const dirPath = path.join(process.cwd(), "deadlock_hero_images", heroFolder);
-      const entries = await fs.readdir(dirPath, { withFileTypes: true });
-      const renderFile = entries.find((entry) => entry.isFile() && /_Render\.png$/i.test(entry.name));
-      if (!renderFile) return new Response("Not found", { status: 404 });
-
-      const data = await fs.readFile(path.join(dirPath, renderFile.name));
-      return new Response(data, {
-        status: 200,
-        headers: {
-          "Content-Type": "image/png",
-          "Cache-Control": "public, max-age=604800, immutable",
-        },
-      });
-    } catch {
-      return new Response("Not found", { status: 404 });
-    }
-  }
-
-  if (!ALLOWED_FILES.has(fileName) && !isAllowedRenderFile(fileName)) {
-    return new Response("File not allowed", { status: 404 });
-  }
-
-  const diskPath = path.join(process.cwd(), "deadlock_hero_images", heroFolder, fileName);
-
-  try {
-    const data = await fs.readFile(diskPath);
-    return new Response(data, {
-      status: 200,
-      headers: {
-        "Content-Type": contentType(fileName),
-        "Cache-Control": "public, max-age=604800, immutable",
-      },
-    });
-  } catch {
+  const heroId = HERO_ID_BY_FOLDER.get(heroFolder);
+  if (!heroId) {
     return new Response("Not found", { status: 404 });
   }
+
+  const assetUrl = resolveAssetUrl(heroId, fileName);
+  if (!assetUrl) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  return Response.redirect(assetUrl, 307);
 }
