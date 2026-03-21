@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     "/api/item-icons/**": ["./deadlock_icons/**/*"],
     "/api/item-icons/[fileName]": ["./deadlock_icons/**/*"],
     "/api/item-icons/[fileName]/route": ["./deadlock_icons/**/*"],
+    "/api/hero-images/[heroFolder]/render": ["./deadlock_hero_images/**/*_Render.png"],
   },
   outputFileTracingExcludes: {
     "*": [

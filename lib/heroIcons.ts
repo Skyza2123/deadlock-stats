@@ -1,4 +1,5 @@
 import { HERO_ASSETS_BY_ID } from "./heroAssets.generated";
+import { HEROES } from "./deadlockData";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -52,11 +53,21 @@ export function heroBackgroundPath(heroId: string | null | undefined) {
   return heroAssetPath(heroId, "background_image");
 }
 
+function normalizeHeroFolderName(name: string) {
+  return name
+    .replace(/&/g, " ")
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
 export function heroRenderPath(heroId: string | null | undefined) {
   if (!heroId) return null;
   const id = Number(heroId);
   if (!Number.isFinite(id)) return null;
-  return heroAssetPath(heroId, "icon_hero_card") ?? heroAssetPath(heroId, "background_image");
+  const name = HEROES[id];
+  if (!name) return null;
+  const folder = normalizeHeroFolderName(name);
+  return `/api/hero-images/${folder}/render`;
 }
 
 export function heroCardIconPath(heroId: string | null | undefined) {
