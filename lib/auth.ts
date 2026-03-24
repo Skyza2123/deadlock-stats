@@ -107,13 +107,23 @@ const baseAuthOptions: NextAuthOptions = {
 
 export function getAuthOptions(req?: any): NextAuthOptions {
   const steamSecret = process.env.STEAM_SECRET?.trim();
+  const nextAuthUrl = process.env.NEXTAUTH_URL?.trim();
 
   const providers = [] as NextAuthOptions["providers"];
 
+  // next-auth-steam needs a req object to build the Steam callback URL.
+  // When no actual request is available (e.g. module-level export or getServerSession),
+  // synthesise a minimal compatible object from NEXTAUTH_URL.
+  const effectiveReq =
+    req ??
+    (nextAuthUrl
+      ? { headers: { host: new URL(nextAuthUrl).host } }
+      : null);
+
   // Steam login (primary)
-  if (req && steamSecret) {
+  if (effectiveReq && steamSecret) {
     providers.push(
-      Steam(req, {
+      Steam(effectiveReq, {
         clientSecret: steamSecret,
       })
     );
