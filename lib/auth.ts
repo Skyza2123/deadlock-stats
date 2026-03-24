@@ -111,19 +111,24 @@ export function getAuthOptions(req?: any): NextAuthOptions {
 
   const providers = [] as NextAuthOptions["providers"];
 
-  // next-auth-steam needs a req object to build the Steam callback URL.
-  // When no actual request is available (e.g. module-level export or getServerSession),
-  // synthesise a minimal compatible object from NEXTAUTH_URL.
-  const effectiveReq =
-    req ??
-    (nextAuthUrl
-      ? { headers: { host: new URL(nextAuthUrl).host } }
-      : null);
+  // next-auth-steam v0.4 was built for the Pages Router and reads
+  // req.headers.host as a plain string.  App Router NextRequest exposes
+  // headers as a Web Headers instance where headers.host is undefined.
+  // Always build a plain-object req so Steam gets the correct hostname.
+  const steamHost = nextAuthUrl
+    ? new URL(nextAuthUrl).host
+    : typeof req?.headers?.get === "function"
+    ? (req.headers.get("host") ?? "")
+    : String(req?.headers?.host ?? "");
+
+  const steamReq = steamHost ? { headers: { host: steamHost } } : null;
 
   // Steam login (primary)
-  if (effectiveReq && steamSecret) {
+  // Cast to any: next-auth-steam v0.4 expects a Pages Router IncomingMessage
+  // but only reads req.headers.host — the sync plain-object works at runtime.
+  if (steamReq && steamSecret) {
     providers.push(
-      Steam(effectiveReq, {
+      Steam(steamReq as any, {
         clientSecret: steamSecret,
       })
     );
