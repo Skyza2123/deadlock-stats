@@ -118,6 +118,36 @@ function appOrigin() {
   return "";
 }
 
+function normalizeEnemyTeamName(value: unknown) {
+  return String(value ?? "").replace(/\s+/g, " ").trim().slice(0, 64);
+}
+
+function enemyTeamKey(value: string) {
+  return value.toLowerCase();
+}
+
+async function ensureEnemyTeamsTable() {
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS team_enemy_teams (
+      enemy_id BIGSERIAL PRIMARY KEY,
+      team_slug TEXT NOT NULL,
+      enemy_name TEXT NOT NULL,
+      enemy_key TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`
+  );
+
+  await pool.query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS team_enemy_teams_key_unique
+     ON team_enemy_teams (team_slug, enemy_key)`
+  );
+
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS team_enemy_teams_slug_idx
+     ON team_enemy_teams (team_slug, created_at DESC)`
+  );
+}
+
 export default async function TeamEditPage({
   params,
   searchParams,
@@ -283,6 +313,56 @@ export default async function TeamEditPage({
     redirect(`/teams/${teamSlug}/edit?invite=${encodeURIComponent(createdCode)}&notice=${encodeURIComponent("Permanent invite link created.")}`);
   }
 
+  async function addEnemyTeamAction(formData: FormData) {
+    "use server";
+
+    const fresh = await getManageContext(teamSlug);
+    if (!fresh.ok) redirect(`/teams/${teamSlug}/edit?error=${encodeURIComponent("You no longer have access to edit this team.")}`);
+
+    const enemyName = normalizeEnemyTeamName(formData.get("enemyName"));
+    if (!enemyName) {
+      redirect(`/teams/${teamSlug}/edit?error=${encodeURIComponent("Enemy team name is required.")}`);
+    }
+
+    await ensureEnemyTeamsTable();
+
+    await pool.query(
+      `INSERT INTO team_enemy_teams (team_slug, enemy_name, enemy_key)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (team_slug, enemy_key)
+       DO UPDATE SET enemy_name = EXCLUDED.enemy_name`,
+      [teamSlug, enemyName, enemyTeamKey(enemyName)]
+    );
+
+    revalidatePath(`/teams/${teamSlug}/edit`);
+    revalidatePath(`/scrims`);
+    redirect(`/teams/${teamSlug}/edit?notice=${encodeURIComponent("Enemy team saved.")}`);
+  }
+
+  async function removeEnemyTeamAction(formData: FormData) {
+    "use server";
+
+    const fresh = await getManageContext(teamSlug);
+    if (!fresh.ok) redirect(`/teams/${teamSlug}/edit?error=${encodeURIComponent("You no longer have access to edit this team.")}`);
+
+    const enemyName = normalizeEnemyTeamName(formData.get("enemyName"));
+    if (!enemyName) {
+      redirect(`/teams/${teamSlug}/edit?error=${encodeURIComponent("Enemy team name is required.")}`);
+    }
+
+    await ensureEnemyTeamsTable();
+
+    await pool.query(
+      `DELETE FROM team_enemy_teams
+       WHERE team_slug = $1 AND enemy_key = $2`,
+      [teamSlug, enemyTeamKey(enemyName)]
+    );
+
+    revalidatePath(`/teams/${teamSlug}/edit`);
+    revalidatePath(`/scrims`);
+    redirect(`/teams/${teamSlug}/edit?notice=${encodeURIComponent("Enemy team removed.")}`);
+  }
+
   async function deleteTeamAction(formData: FormData) {
     "use server";
 
@@ -294,10 +374,13 @@ export default async function TeamEditPage({
       redirect(`/teams/${teamSlug}/edit?error=${encodeURIComponent("Type the exact team slug to delete.")}`);
     }
 
+    await ensureEnemyTeamsTable();
+
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
       await client.query(`DELETE FROM invite_codes WHERE team_id = $1`, [fresh.team.teamId]);
+      await client.query(`DELETE FROM team_enemy_teams WHERE team_slug = $1`, [teamSlug]);
       await client.query(`UPDATE team_memberships SET end_at = now() WHERE team_id = $1 AND end_at IS NULL`, [teamSlug]);
       await client.query(`DELETE FROM teams WHERE slug = $1`, [teamSlug]);
       await client.query("COMMIT");
@@ -330,6 +413,18 @@ export default async function TeamEditPage({
     const nameB = String(b.displayName ?? b.steamId);
     return nameA.localeCompare(nameB);
   });
+
+  await ensureEnemyTeamsTable();
+  const enemyTeamRows = await pool.query(
+    `SELECT enemy_name
+     FROM team_enemy_teams
+     WHERE team_slug = $1
+     ORDER BY created_at DESC, enemy_name ASC`,
+    [teamSlug]
+  );
+  const namedEnemyTeams = enemyTeamRows.rows
+    .map((row) => normalizeEnemyTeamName(row.enemy_name))
+    .filter((name, index, source) => Boolean(name) && source.indexOf(name) === index);
 
   const origin = appOrigin();
   const inviteLink = inviteCode ? `${origin || ""}/join?code=${encodeURIComponent(inviteCode)}` : "";
@@ -371,6 +466,7 @@ export default async function TeamEditPage({
           >
             <a role="tab" aria-selected="true" data-state="active" href="#overview" className="team-edit-tab-trigger">Overview</a>
             <a role="tab" aria-selected="false" data-state="inactive" href="#roster" className="team-edit-tab-trigger">Roster</a>
+            <a role="tab" aria-selected="false" data-state="inactive" href="#enemy-teams" className="team-edit-tab-trigger">Enemy Teams</a>
             <a role="tab" aria-selected="false" data-state="inactive" href="#invites" className="team-edit-tab-trigger">Invites</a>
             <a role="tab" aria-selected="false" data-state="inactive" href="#danger" className="team-edit-tab-trigger">Danger Zone</a>
           </div>
@@ -479,6 +575,64 @@ export default async function TeamEditPage({
                   </td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="enemy-teams" data-slot="card" data-size="default" className="team-edit-card panel-premium rounded-xl p-4 md:p-5 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">Named enemy teams</h2>
+          <p className="text-sm text-zinc-400">Manage opponent names that can be assigned when creating or editing a scrim.</p>
+        </div>
+
+        <form action={addEnemyTeamAction} className="grid gap-2 sm:grid-cols-[1fr_auto]">
+          <input
+            name="enemyName"
+            required
+            maxLength={64}
+            placeholder="Enemy team name"
+            className="rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            className="rounded border border-emerald-500/40 bg-emerald-700/90 px-4 py-2 text-sm font-medium hover:bg-emerald-600"
+          >
+            Save enemy
+          </button>
+        </form>
+
+        <div className="overflow-x-auto rounded-lg border border-zinc-800/70">
+          <table className="w-full text-sm">
+            <thead className="bg-zinc-900/70">
+              <tr>
+                <th className="p-3 text-left">Enemy team name</th>
+                <th className="p-3 text-left">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {namedEnemyTeams.length ? (
+                namedEnemyTeams.map((enemyName) => (
+                  <tr key={`enemy-${enemyName}`} className="border-t border-zinc-800/80 odd:bg-zinc-900/20">
+                    <td className="p-3">{enemyName}</td>
+                    <td className="p-3">
+                      <form action={removeEnemyTeamAction}>
+                        <input type="hidden" name="enemyName" value={enemyName} />
+                        <button
+                          type="submit"
+                          className="rounded border border-rose-500/40 bg-rose-500/10 px-2 py-1 text-xs text-rose-200 hover:bg-rose-500/20"
+                        >
+                          Remove
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="p-3 text-zinc-400" colSpan={2}>No named enemy teams yet.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

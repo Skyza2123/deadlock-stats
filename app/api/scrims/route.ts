@@ -17,6 +17,7 @@ type ScrimPayload = {
   assignment: ScrimAssignment;
   teamSlug: string;
   teamName: string;
+  enemyTeamName?: string;
   scrimDate: string;
   isPublic: boolean;
   matches: ScrimMatch[];
@@ -67,6 +68,7 @@ function normalizePayload(input: unknown): ScrimPayload | null {
   const assignment = normalizeAssignment(row.assignment);
   const teamSlug = assignment === "team" ? String(row.teamSlug ?? "").trim() : "";
   const teamName = assignment === "team" ? String(row.teamName ?? teamSlug).trim() : "Individual";
+  const enemyTeamName = assignment === "team" ? String(row.enemyTeamName ?? "").trim() : "";
   const scrimDate = normalizeDate(row.scrimDate);
   const isPublic = Boolean(row.isPublic);
   const matches = normalizeMatches(row.matches);
@@ -81,6 +83,7 @@ function normalizePayload(input: unknown): ScrimPayload | null {
     assignment,
     teamSlug,
     teamName,
+    enemyTeamName,
     scrimDate,
     isPublic,
     matches,
@@ -97,12 +100,18 @@ async function ensureScrimsTable() {
       assignment_type TEXT NOT NULL,
       team_slug TEXT NOT NULL DEFAULT '',
       team_name TEXT NOT NULL DEFAULT '',
+      enemy_team_name TEXT NOT NULL DEFAULT '',
       scrim_date TEXT NOT NULL,
       is_public BOOLEAN NOT NULL DEFAULT true,
       matches JSONB NOT NULL DEFAULT '[]'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`
+  );
+
+  await pool.query(
+    `ALTER TABLE scrims
+     ADD COLUMN IF NOT EXISTS enemy_team_name TEXT NOT NULL DEFAULT ''`
   );
 
   await pool.query(
@@ -130,6 +139,7 @@ export async function GET() {
       assignment_type,
       team_slug,
       team_name,
+      enemy_team_name,
       scrim_date,
       is_public,
       matches,
@@ -146,6 +156,7 @@ export async function GET() {
     assignment: normalizeAssignment(row.assignment_type),
     teamSlug: String(row.team_slug ?? ""),
     teamName: String(row.team_name ?? ""),
+    enemyTeamName: String(row.enemy_team_name ?? ""),
     scrimDate: normalizeDate(row.scrim_date),
     isPublic: Boolean(row.is_public),
     matches: normalizeMatches(row.matches),
@@ -175,9 +186,9 @@ export async function POST(req: NextRequest) {
 
   await pool.query(
     `INSERT INTO scrims (
-      scrim_id, owner_id, name, assignment_type, team_slug, team_name, scrim_date, is_public, matches, created_at, updated_at
+      scrim_id, owner_id, name, assignment_type, team_slug, team_name, enemy_team_name, scrim_date, is_public, matches, created_at, updated_at
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::timestamptz, now()
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::timestamptz, now()
     )
     ON CONFLICT (scrim_id)
     DO UPDATE SET
@@ -185,6 +196,7 @@ export async function POST(req: NextRequest) {
       assignment_type = EXCLUDED.assignment_type,
       team_slug = EXCLUDED.team_slug,
       team_name = EXCLUDED.team_name,
+      enemy_team_name = EXCLUDED.enemy_team_name,
       scrim_date = EXCLUDED.scrim_date,
       is_public = EXCLUDED.is_public,
       matches = EXCLUDED.matches,
@@ -197,6 +209,7 @@ export async function POST(req: NextRequest) {
       payload.assignment,
       payload.teamSlug,
       payload.teamName,
+      payload.enemyTeamName ?? "",
       payload.scrimDate,
       payload.isPublic,
       JSON.stringify(payload.matches),
@@ -227,9 +240,10 @@ export async function PUT(req: NextRequest) {
        assignment_type = $4,
        team_slug = $5,
        team_name = $6,
-       scrim_date = $7,
-       is_public = $8,
-       matches = $9::jsonb,
+       enemy_team_name = $7,
+       scrim_date = $8,
+       is_public = $9,
+       matches = $10::jsonb,
        updated_at = now()
      WHERE scrim_id = $1 AND owner_id = $2`,
     [
@@ -239,6 +253,7 @@ export async function PUT(req: NextRequest) {
       payload.assignment,
       payload.teamSlug,
       payload.teamName,
+      payload.enemyTeamName ?? "",
       payload.scrimDate,
       payload.isPublic,
       JSON.stringify(payload.matches),
