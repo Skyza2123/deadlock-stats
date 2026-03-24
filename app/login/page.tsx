@@ -52,18 +52,10 @@ function LoginPageContent() {
     setLoading(true);
     setError(null);
 
-    const result = await signIn("steam", {
-      redirect: false,
-      callbackUrl,
-    });
-
-    if (result?.error || !result?.ok || !result?.url) {
-      setError("Steam sign in failed. Check STEAM_SECRET and NEXTAUTH_URL.");
-      setLoading(false);
-      return;
-    }
-
-    window.location.assign(result.url);
+    // Use a hard redirect to avoid waiting on client-side auth helper responses
+    // that can occasionally stall and leave the UI stuck in a loading state.
+    const steamSignInUrl = `/api/auth/signin/steam?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    window.location.assign(steamSignInUrl);
   }
 
   async function onCredentialsSignIn(event: React.FormEvent<HTMLFormElement>) {
