@@ -23,7 +23,11 @@ function isAdminSession(session: { user?: { email?: string | null; isAdmin?: boo
   return Boolean(sessionEmail) && (sessionEmail === adminEmail || sessionEmail === tempAdminEmail);
 }
 
+let enemyTeamsTableReady = false;
+
 async function ensureEnemyTeamsTable() {
+  if (enemyTeamsTableReady) return;
+
   await pool.query(
     `CREATE TABLE IF NOT EXISTS team_enemy_teams (
       enemy_id BIGSERIAL PRIMARY KEY,
@@ -43,6 +47,8 @@ async function ensureEnemyTeamsTable() {
     `CREATE INDEX IF NOT EXISTS team_enemy_teams_slug_idx
      ON team_enemy_teams (team_slug, created_at DESC)`
   );
+
+  enemyTeamsTableReady = true;
 }
 
 async function canViewTeam(teamSlug: string, session: { user?: { id?: string; email?: string | null; isAdmin?: boolean } } | null) {

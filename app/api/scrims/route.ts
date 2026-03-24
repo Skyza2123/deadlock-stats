@@ -91,7 +91,11 @@ function normalizePayload(input: unknown): ScrimPayload | null {
   };
 }
 
+let scrimsTableReady = false;
+
 async function ensureScrimsTable() {
+  if (scrimsTableReady) return;
+
   await pool.query(
     `CREATE TABLE IF NOT EXISTS scrims (
       scrim_id TEXT PRIMARY KEY,
@@ -123,6 +127,8 @@ async function ensureScrimsTable() {
     `CREATE INDEX IF NOT EXISTS scrims_owner_public_idx
      ON scrims (owner_id, is_public, created_at DESC)`
   );
+
+  scrimsTableReady = true;
 }
 
 export async function GET() {
