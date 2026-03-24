@@ -121,7 +121,15 @@ export function getAuthOptions(req?: any): NextAuthOptions {
     ? (req.headers.get("host") ?? "")
     : String(req?.headers?.host ?? "");
 
-  const steamReq = steamHost ? { headers: { host: steamHost } } : null;
+  const steamUrl = nextAuthUrl
+    ? nextAuthUrl
+    : typeof req?.url === "string"
+    ? req.url
+    : steamHost
+    ? `https://${steamHost}`
+    : "";
+
+  const steamReq = steamHost ? { headers: { host: steamHost }, url: steamUrl } : null;
 
   // Steam login (primary)
   // Cast to any: next-auth-steam v0.4 expects a Pages Router IncomingMessage
