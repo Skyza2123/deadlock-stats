@@ -154,9 +154,6 @@ export default function ScrimDashboard() {
   const [scrimName, setScrimName] = useState("");
   const [assignment, setAssignment] = useState<ScrimAssignment>("team");
   const [teamSlug, setTeamSlug] = useState("");
-  const [enemyTeamName, setEnemyTeamName] = useState("");
-  const [enemyTeamOptions, setEnemyTeamOptions] = useState<string[]>([]);
-  const [enemyTeamsLoading, setEnemyTeamsLoading] = useState(false);
   const [scrimDate, setScrimDate] = useState(todayIsoDate());
   const [firstMapCode, setFirstMapCode] = useState("");
   const [firstBansFile, setFirstBansFile] = useState<File | null>(null);
@@ -205,46 +202,6 @@ export default function ScrimDashboard() {
       alive = false;
     };
   }, []);
-
-  useEffect(() => {
-    let alive = true;
-
-    async function loadEnemyTeams() {
-      if (assignment !== "team" || !teamSlug.trim()) {
-        setEnemyTeamOptions([]);
-        return;
-      }
-
-      setEnemyTeamsLoading(true);
-      try {
-        const res = await fetch(`/api/teams/${encodeURIComponent(teamSlug.trim())}/enemy-teams`, { cache: "no-store" });
-        const data = await res.json().catch(() => null);
-        if (!alive) return;
-
-        if (!res.ok || !data?.ok || !Array.isArray(data?.enemyTeams)) {
-          setEnemyTeamOptions([]);
-          return;
-        }
-
-        const options = (data.enemyTeams as unknown[])
-          .map((value) => String(value ?? "").trim())
-          .filter((value): value is string => Boolean(value));
-
-        setEnemyTeamOptions(options);
-      } catch {
-        if (!alive) return;
-        setEnemyTeamOptions([]);
-      } finally {
-        if (alive) setEnemyTeamsLoading(false);
-      }
-    }
-
-    void loadEnemyTeams();
-
-    return () => {
-      alive = false;
-    };
-  }, [assignment, teamSlug]);
 
   useEffect(() => {
     const nextFilter = searchParams.get("filter");
@@ -342,7 +299,6 @@ export default function ScrimDashboard() {
       return (
         entry.name.toLowerCase().includes(term) ||
         entry.teamName.toLowerCase().includes(term) ||
-        String(entry.enemyTeamName ?? "").toLowerCase().includes(term) ||
         entry.scrimDate.includes(term)
       );
     });
@@ -353,7 +309,6 @@ export default function ScrimDashboard() {
     scrimName: string;
     assignment: ScrimAssignment;
     teamSlug: string;
-    enemyTeamName: string;
     scrimDate: string;
     bansFile: File | null;
   }) {
@@ -364,9 +319,6 @@ export default function ScrimDashboard() {
     fd.append("scrimDate", args.scrimDate);
     if (args.assignment === "team") {
       fd.append("teamSlug", args.teamSlug);
-      if (args.enemyTeamName.trim()) {
-        fd.append("enemyTeamName", args.enemyTeamName.trim());
-      }
     }
 
     const ingestRes = await fetch("/api/ingest", { method: "POST", body: fd });
@@ -405,7 +357,6 @@ export default function ScrimDashboard() {
   function resetForm() {
     setScrimName("");
     setAssignment("team");
-    setEnemyTeamName("");
     setScrimDate(normalizeScrimDate(todayIsoDate(), todayIsoDate()));
     setFirstMapCode("");
     setFirstBansFile(null);
@@ -425,7 +376,6 @@ export default function ScrimDashboard() {
     setScrimName(scrim.name);
     setAssignment(scrim.assignment);
     setTeamSlug(scrim.teamSlug);
-    setEnemyTeamName(String(scrim.enemyTeamName ?? ""));
     setScrimDate(normalizeScrimDate(scrim.scrimDate, todayIsoDate()));
     setIsPublic(scrim.isPublic);
     setFirstMapCode("");
@@ -445,7 +395,6 @@ export default function ScrimDashboard() {
 
     const trimmedName = scrimName.trim();
     const trimmedFirstMapCode = firstMapCode.trim();
-    const trimmedEnemyTeamName = enemyTeamName.trim();
     const normalizedScrimDate = normalizeScrimDate(scrimDate, todayIsoDate());
 
     if (!trimmedName || !normalizedScrimDate) return;
@@ -470,7 +419,6 @@ export default function ScrimDashboard() {
           assignment,
           teamSlug: assignment === "team" ? teamSlug.trim() : "",
           teamName: selectedTeamName,
-          enemyTeamName: assignment === "team" ? trimmedEnemyTeamName : "",
           scrimDate: normalizedScrimDate,
           isPublic,
         };
@@ -487,7 +435,6 @@ export default function ScrimDashboard() {
         scrimName: trimmedName,
         assignment,
         teamSlug: teamSlug.trim(),
-        enemyTeamName: trimmedEnemyTeamName,
         scrimDate: normalizedScrimDate,
         bansFile: firstBansFile,
       });
@@ -500,7 +447,6 @@ export default function ScrimDashboard() {
         assignment,
         teamSlug: assignment === "team" ? teamSlug.trim() : "",
         teamName: assignment === "team" ? selectedTeamName : "Individual",
-        enemyTeamName: assignment === "team" ? trimmedEnemyTeamName : "",
         scrimDate: normalizedScrimDate,
         isPublic,
         matches: [firstMatch],
@@ -556,7 +502,7 @@ export default function ScrimDashboard() {
               aria-label="Search scrims"
               className="scrim-dashboard-search rounded-md py-2 text-sm"
             />
-            <span className="scrim-dashboard-search-hint" title="Search by scrim name, team, enemy team, or date">
+            <span className="scrim-dashboard-search-hint" title="Search by scrim name, team, or date">
               <InfoIcon className="h-4 w-4" />
             </span>
           </div>
@@ -636,11 +582,7 @@ export default function ScrimDashboard() {
                   </div>
                   <div className="inline-flex items-center gap-2">
                     <UserIcon className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">
-                      {scrim.assignment === "team"
-                        ? `${scrim.teamName}${scrim.enemyTeamName ? ` vs ${scrim.enemyTeamName}` : ""}`
-                        : "Individual"}
-                    </span>
+                    <span className="truncate">{scrim.assignment === "team" ? scrim.teamName : "Individual"}</span>
                   </div>
                 </div>
                 </div>
@@ -713,13 +655,7 @@ export default function ScrimDashboard() {
                   <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Assignment</label>
                   <select
                     value={assignment}
-                    onChange={(e) => {
-                      const nextAssignment = e.target.value as ScrimAssignment;
-                      setAssignment(nextAssignment);
-                      if (nextAssignment !== "team") {
-                        setEnemyTeamName("");
-                      }
-                    }}
+                    onChange={(e) => setAssignment(e.target.value as ScrimAssignment)}
                     className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
                   >
                     <option value="team">Assign to team</option>
@@ -740,45 +676,22 @@ export default function ScrimDashboard() {
               </div>
 
               {assignment === "team" ? (
-                <div className="space-y-3">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Team</label>
-                    <select
-                      value={teamSlug}
-                      onChange={(e) => {
-                        setTeamSlug(e.target.value);
-                        setEnemyTeamName("");
-                      }}
-                      className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
-                      disabled={teamsLoading || loading}
-                      required
-                    >
-                      <option value="">Select team</option>
-                      {teams.map((team) => (
-                        <option key={team.slug} value={team.slug}>
-                          {team.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Enemy team (optional)</label>
-                    <input
-                      value={enemyTeamName}
-                      onChange={(e) => setEnemyTeamName(e.target.value)}
-                      list="enemy-team-options"
-                      maxLength={64}
-                      placeholder={enemyTeamsLoading ? "Loading enemy teams..." : "Named enemy team"}
-                      className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
-                      disabled={loading || !teamSlug.trim()}
-                    />
-                    <datalist id="enemy-team-options">
-                      {enemyTeamOptions.map((name) => (
-                        <option key={`enemy-option-${name}`} value={name} />
-                      ))}
-                    </datalist>
-                  </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Team</label>
+                  <select
+                    value={teamSlug}
+                    onChange={(e) => setTeamSlug(e.target.value)}
+                    className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
+                    disabled={teamsLoading || loading}
+                    required
+                  >
+                    <option value="">Select team</option>
+                    {teams.map((team) => (
+                      <option key={team.slug} value={team.slug}>
+                        {team.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               ) : null}
 

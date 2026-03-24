@@ -14,7 +14,6 @@ export type ScrimEntry = {
   assignment: ScrimAssignment;
   teamSlug: string;
   teamName: string;
-  enemyTeamName?: string;
   scrimDate: string;
   isPublic: boolean;
   matches: ScrimMatch[];
@@ -47,7 +46,6 @@ export function normalizeScrimEntry(value: unknown): ScrimEntry | null {
   const assignment: ScrimAssignment = String(row.assignment ?? "team").trim().toLowerCase() === "individual" ? "individual" : "team";
   const teamSlug = assignment === "team" ? String(row.teamSlug ?? "").trim() : "";
   const teamName = assignment === "team" ? String(row.teamName ?? teamSlug).trim() : "Individual";
-  const enemyTeamName = assignment === "team" ? String((row as any).enemyTeamName ?? "").trim() : "";
   const scrimDate = normalizeScrimDate(String(row.scrimDate ?? ""));
   const isPublic = Boolean(row.isPublic);
   const matches = normalizeMatches((row as any).matches);
@@ -62,7 +60,6 @@ export function normalizeScrimEntry(value: unknown): ScrimEntry | null {
     assignment,
     teamSlug,
     teamName,
-    enemyTeamName,
     scrimDate,
     isPublic,
     matches,
