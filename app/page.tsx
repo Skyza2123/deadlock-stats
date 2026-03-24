@@ -1,13 +1,30 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import ScrimDashboard from "@/components/ScrimDashboard";
 import DemoLanding from "@/components/DemoLanding";
 
 export default function HomePage() {
   const { data: session, status } = useSession();
+  const [authLoadTimedOut, setAuthLoadTimedOut] = useState(false);
 
-  if (status === "loading") {
+  useEffect(() => {
+    if (status !== "loading") {
+      setAuthLoadTimedOut(false);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setAuthLoadTimedOut(true);
+    }, 4000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [status]);
+
+  if (status === "loading" && !authLoadTimedOut) {
     return (
       <main className="min-h-[90vh] w-full flex-col md:flex">
         <div className="shadow-sm">

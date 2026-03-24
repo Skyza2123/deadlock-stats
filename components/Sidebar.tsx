@@ -47,7 +47,26 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
-  const isGuestHome = status === "unauthenticated" && pathname === "/";
+  const [authLoadTimedOut, setAuthLoadTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (status !== "loading") {
+      setAuthLoadTimedOut(false);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setAuthLoadTimedOut(true);
+    }, 4000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [status]);
+
+  const effectiveStatus = status === "loading" && authLoadTimedOut ? "unauthenticated" : status;
+  const effectiveSession = effectiveStatus === "authenticated" ? session : null;
+  const isGuestHome = effectiveStatus === "unauthenticated" && pathname === "/";
 
   const [collapsed, setCollapsed] = useState(false);
   const [mode, setMode] = useState<ModeOption>("dark");
@@ -80,7 +99,7 @@ export default function Sidebar() {
     let alive = true;
 
     async function loadTeams() {
-      if (!session) {
+      if (!effectiveSession) {
         if (!alive) return;
         setTeams([]);
         setTeamsLoading(false);
@@ -124,7 +143,7 @@ export default function Sidebar() {
     return () => {
       alive = false;
     };
-  }, [session, selectedTeamSlug]);
+  }, [effectiveSession, selectedTeamSlug]);
 
   function onSelectTeam(nextSlug: string) {
     setSelectedTeamSlug(nextSlug);
@@ -148,7 +167,7 @@ export default function Sidebar() {
     document.documentElement.setAttribute("data-theme", nextThemeId);
   }
 
-  const navItems = session ? NAV : GUEST_NAV;
+  const navItems = effectiveSession ? NAV : GUEST_NAV;
 
   if (isGuestHome) {
     return null;
@@ -279,21 +298,21 @@ export default function Sidebar() {
             collapsed ? "hidden" : "block",
           ].join(" ")}
         >
-          {status === "loading" ? (
+          {effectiveStatus === "loading" ? (
             <div className="sidebar-muted mb-2 text-xs">
               Checking login...
             </div>
-          ) : session ? (
+          ) : effectiveSession ? (
             <>
               <div className="mb-2 flex items-center gap-2 min-w-0">
-                {session.user?.image ? (
+                {effectiveSession.user?.image ? (
                   <img
-                    src={session.user.image}
-                    alt={session.user?.name ?? "user"}
+                    src={effectiveSession.user.image}
+                    alt={effectiveSession.user?.name ?? "user"}
                     className="h-6 w-6 rounded-full border border-zinc-600/70"
                   />
                 ) : null}
-                <div className="sidebar-strong truncate text-xs">{session.user?.name ?? "Signed in"}</div>
+                <div className="sidebar-strong truncate text-xs">{effectiveSession.user?.name ?? "Signed in"}</div>
               </div>
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
