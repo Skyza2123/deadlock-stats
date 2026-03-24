@@ -13,8 +13,8 @@ function LoginPageContent() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [steamAvailable, setSteamAvailable] = useState(false);
-  const [credentialsAvailable, setCredentialsAvailable] = useState(false);
+  const [steamAvailable, setSteamAvailable] = useState<boolean | null>(null);
+  const [credentialsAvailable, setCredentialsAvailable] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (status === "authenticated") window.location.assign(callbackUrl);
@@ -22,24 +22,29 @@ function LoginPageContent() {
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 3500);
 
     async function checkProviders() {
       try {
-        const res = await fetch("/api/auth/providers", { cache: "no-store" });
+        const res = await fetch("/api/auth/providers", { cache: "no-store", signal: controller.signal });
         const providers = await res.json().catch(() => ({}));
         if (!active) return;
         setSteamAvailable(Boolean(providers?.steam));
         setCredentialsAvailable(Boolean(providers?.credentials));
       } catch {
         if (!active) return;
-        setSteamAvailable(false);
-        setCredentialsAvailable(false);
+        // Unknown state: keep sign-in actions visible instead of showing false negatives.
+        setSteamAvailable(null);
+        setCredentialsAvailable(null);
       }
     }
 
     checkProviders();
     return () => {
       active = false;
+      controller.abort();
+      window.clearTimeout(timeoutId);
     };
   }, []);
 
@@ -135,7 +140,7 @@ function LoginPageContent() {
 
             <div className="panel-premium-soft rounded-xl p-3">
               <p className="mb-2 text-[11px] uppercase tracking-wide text-zinc-400">Recommended</p>
-              {steamAvailable ? (
+              {steamAvailable !== false ? (
                 <button
                   type="button"
                   onClick={onSteamSignIn}
@@ -149,7 +154,7 @@ function LoginPageContent() {
               )}
             </div>
 
-            {credentialsAvailable ? (
+            {credentialsAvailable !== false ? (
               <form className="panel-premium-soft space-y-3 rounded-xl p-3" onSubmit={onCredentialsSignIn}>
                 <p className="text-[11px] uppercase tracking-wide text-zinc-400">Login</p>
                 <input
