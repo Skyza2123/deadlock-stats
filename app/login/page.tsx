@@ -52,10 +52,12 @@ function LoginPageContent() {
     setLoading(true);
     setError(null);
 
-    // Use a hard redirect to avoid waiting on client-side auth helper responses
-    // that can occasionally stall and leave the UI stuck in a loading state.
-    const steamSignInUrl = `/api/auth/signin/steam?callbackUrl=${encodeURIComponent(callbackUrl)}`;
-    window.location.assign(steamSignInUrl);
+    try {
+      await signIn("steam", { callbackUrl });
+    } catch {
+      setError("Steam sign in failed. Try again.");
+      setLoading(false);
+    }
   }
 
   async function onCredentialsSignIn(event: React.FormEvent<HTMLFormElement>) {
