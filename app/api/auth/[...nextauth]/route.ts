@@ -4,7 +4,7 @@ import { getAuthOptions } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
-async function handler(req: NextRequest, ctx: { params: { nextauth: string[] } }) {
+async function handler(req: NextRequest, ctx: { params: Promise<{ nextauth: string[] }> }) {
 	return NextAuth(req, ctx, getAuthOptions(req));
 }
 

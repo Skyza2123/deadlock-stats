@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: __dirname,
+  },
   outputFileTracingIncludes: {
     "/api/item-icons/**": ["./deadlock_icons/**/*"],
     "/api/item-icons/[fileName]": ["./deadlock_icons/**/*"],
