@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { pool } from "@/lib";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET ?? "local-dev-auth-secret-change-me";
+type SteamRequest = Parameters<typeof Steam>[0];
 
 const baseAuthOptions: NextAuthOptions = {
   secret: AUTH_SECRET,
@@ -105,38 +106,43 @@ const baseAuthOptions: NextAuthOptions = {
   },
 };
 
-export function getAuthOptions(req?: any): NextAuthOptions {
+export function getAuthOptions(req?: SteamRequest): NextAuthOptions {
   const steamSecret = process.env.STEAM_SECRET?.trim();
   const nextAuthUrl = process.env.NEXTAUTH_URL?.trim();
 
   const providers = [] as NextAuthOptions["providers"];
 
-  // next-auth-steam v0.4 was built for the Pages Router and reads
-  // req.headers.host as a plain string.  App Router NextRequest exposes
-  // headers as a Web Headers instance where headers.host is undefined.
-  // Always build a plain-object req so Steam gets the correct hostname.
   const steamHost = nextAuthUrl
     ? new URL(nextAuthUrl).host
     : typeof req?.headers?.get === "function"
-    ? (req.headers.get("host") ?? "")
-    : String(req?.headers?.host ?? "");
+    ? (req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "")
+    : req?.headers && typeof req.headers === "object" && !("get" in req.headers)
+    ? String(req.headers.host ?? "")
+    : "";
 
-  const steamUrl = nextAuthUrl
-    ? nextAuthUrl
-    : typeof req?.url === "string"
+  const steamUrl = typeof req?.url === "string"
     ? req.url
+    : nextAuthUrl
+    ? nextAuthUrl
     : steamHost
     ? `https://${steamHost}`
     : "";
 
-  const steamReq = steamHost ? { headers: { host: steamHost }, url: steamUrl } : null;
+  const steamReq: SteamRequest | null = req?.method && typeof req?.url === "string"
+    ? req
+    : steamUrl
+    ? new Request(steamUrl, {
+        method: "GET",
+        headers: steamHost ? { host: steamHost } : undefined,
+      })
+    : null;
 
   // Steam login (primary)
-  // Cast to any: next-auth-steam v0.4 expects a Pages Router IncomingMessage
-  // but only reads req.headers.host — the sync plain-object works at runtime.
+  // Build the provider from the live request when available so the OpenID
+  // callback verifier sees the real callback URL and HTTP method.
   if (steamReq && steamSecret) {
     providers.push(
-      Steam(steamReq as any, {
+      Steam(steamReq, {
         clientSecret: steamSecret,
       })
     );
