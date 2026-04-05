@@ -1,6 +1,6 @@
 // app/api/ingest/route.ts
 import { NextResponse } from "next/server";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 
 import { db } from "../../../db";
@@ -76,6 +76,13 @@ function isMissingSavedMatchesTableError(err: any) {
   return topMessage.includes(marker) || causeMessage.includes(marker);
 }
 
+class RateLimitError extends Error {
+  constructor() {
+    super("Deadlock API rate limit reached (429)");
+    this.name = "RateLimitError";
+  }
+}
+
 async function fetchPersonaForAccountId(accountId: string, apiKey: string) {
   const url =
     "https://api.deadlock-api.com/v1/players/steam-search?search_query=" +
@@ -86,6 +93,7 @@ async function fetchPersonaForAccountId(accountId: string, apiKey: string) {
     cache: "no-store",
   });
 
+  if (res.status === 429) throw new RateLimitError();
   if (!res.ok) return null;
 
   const arr = (await res.json()) as any[];
@@ -262,6 +270,12 @@ export async function POST(req: Request) {
 
     if (!res.ok) {
       const text = await res.text();
+      if (res.status === 429) {
+        return NextResponse.json(
+          { ok: false, error: "Deadlock API rate limit reached. Please wait before trying again.", details: text.slice(0, 500) },
+          { status: 429 }
+        );
+      }
       return NextResponse.json(
         { ok: false, error: `Deadlock API error ${res.status}`, details: text.slice(0, 500) },
         { status: 502 }
@@ -364,43 +378,51 @@ export async function POST(req: Request) {
       }
 
       // 2) Upsert players + per-match stats + items
+
+      // Pre-fetch known players from DB to avoid redundant API calls
+      const participantSteamIds = participants
+        .map((p: any) => String(p?.account_id ?? "").trim())
+        .filter(Boolean);
+      const knownPlayers = participantSteamIds.length > 0
+        ? await tx.select().from(players).where(inArray(players.steamId, participantSteamIds))
+        : [];
+      const knownPlayerMap = new Map(knownPlayers.map((r) => [r.steamId, r]));
+
       for (const p of participants) {
         const steamId = String(p?.account_id ?? "").trim();
         if (!steamId) continue;
 
         // ---- name lookup ----
-        // Most match payloads don't contain names; if missing, fetch persona name
+        // Use cached DB record if available; only call API for new players
+        const cached = knownPlayerMap.get(steamId);
+
         let displayName: string | null = (p?.name ?? p?.display_name ?? null) as string | null;
+        let profileUrl: string | null = cached?.profileUrl ?? null;
+        let avatar: string | null = cached?.avatar ?? null;
+        let avatarMedium: string | null = cached?.avatarMedium ?? null;
+        let avatarFull: string | null = cached?.avatarFull ?? null;
+        let realName: string | null = cached?.realName ?? null;
+        let countryCode: string | null = cached?.countryCode ?? null;
+        let lastUpdated: number | null = cached?.lastUpdated ?? null;
 
         if (!displayName) {
-          const info = await fetchPersonaForAccountId(steamId, apiKey);
-          if (info?.personaname) displayName = String(info.personaname);
-          // optional safety: small delay to avoid hammering endpoint
-          // await new Promise((r) => setTimeout(r, 100));
-        }
-
-        // Upsert player
-
-        let profileUrl: string | null = null;
-        let avatar: string | null = null;
-        let avatarMedium: string | null = null;
-        let avatarFull: string | null = null;
-        let realName: string | null = null;
-        let countryCode: string | null = null;
-        let lastUpdated: number | null = null;
-
-        if (!displayName) {
-        const info = await fetchPersonaForAccountId(steamId, apiKey);
-        if (info) {
-            displayName = info.personaname ?? null;
-            profileUrl = info.profileurl ?? null;
-            avatar = info.avatar ?? null;
-            avatarMedium = info.avatarmedium ?? null;
-            avatarFull = info.avatarfull ?? null;
-            realName = info.realname ?? null;
-            countryCode = info.countrycode ?? null;
-            lastUpdated = info.last_updated ?? null;
-        }
+          if (cached?.displayName) {
+            // Already known — use cached name, skip API call
+            displayName = cached.displayName;
+          } else {
+            // New player — fetch from API
+            const info = await fetchPersonaForAccountId(steamId, apiKey);
+            if (info) {
+              displayName = info.personaname ?? null;
+              profileUrl = info.profileurl ?? null;
+              avatar = info.avatar ?? null;
+              avatarMedium = info.avatarmedium ?? null;
+              avatarFull = info.avatarfull ?? null;
+              realName = info.realname ?? null;
+              countryCode = info.countrycode ?? null;
+              lastUpdated = info.last_updated ?? null;
+            }
+          }
         }
 
         const playerValues: any = {
@@ -570,6 +592,13 @@ export async function POST(req: Request) {
       redirectTo: `/match/${matchId}`,
     });
   } catch (err: any) {
+    if (err instanceof RateLimitError) {
+      return NextResponse.json(
+        { ok: false, error: "Deadlock API rate limit reached. Please wait before trying again." },
+        { status: 429 }
+      );
+    }
+
     const causeMessage = String(err?.cause?.message ?? "").trim();
     const baseMessage = String(err?.message ?? err ?? "Unknown error").trim();
     const details = causeMessage || baseMessage;
