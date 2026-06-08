@@ -4,6 +4,7 @@ export type ScrimMatch = {
   matchId: string;
   bansUploaded: boolean;
   uploadedAt: string;
+  scrimDate?: string;
 };
 
 export type ScrimAssignment = "team" | "individual";
@@ -28,11 +29,14 @@ function normalizeMatches(value: unknown) {
       const entry = row as Partial<ScrimMatch>;
       const matchId = String(entry?.matchId ?? "").trim();
       if (!matchId) return null;
-      return {
+      const scrimDate = normalizeScrimDate(String(entry?.scrimDate ?? ""));
+      const normalized: ScrimMatch = {
         matchId,
         bansUploaded: Boolean(entry?.bansUploaded),
         uploadedAt: String(entry?.uploadedAt ?? new Date().toISOString()),
-      } satisfies ScrimMatch;
+      };
+      if (scrimDate) normalized.scrimDate = scrimDate;
+      return normalized;
     })
     .filter((entry): entry is ScrimMatch => Boolean(entry));
 }

@@ -114,6 +114,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
   const [isPublic, setIsPublic] = useState(true);
 
   const [matchCode, setMatchCode] = useState("");
+  const [matchDate, setMatchDate] = useState("");
   const [bansFile, setBansFile] = useState<File | null>(null);
   const [addingMatch, setAddingMatch] = useState(false);
 
@@ -185,6 +186,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
     setAssignment(scrim.assignment);
     setTeamSlug(scrim.teamSlug);
     setScrimDate(normalizeScrimDate(scrim.scrimDate, todayIsoDate()));
+    setMatchDate(normalizeScrimDate(scrim.scrimDate, todayIsoDate()));
     setIsPublic(scrim.isPublic);
   }, [scrim]);
 
@@ -243,6 +245,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
       matchId: args.matchId,
       bansUploaded,
       uploadedAt: new Date().toISOString(),
+      scrimDate: args.scrimDate,
     } satisfies ScrimMatch;
   }
 
@@ -285,6 +288,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
         teamSlug: assignment === "team" ? teamSlug.trim() : "",
         teamName: selectedTeamName,
         scrimDate: normalizedDate,
+        matches: scrim.matches.map((match) => ({ ...match, scrimDate: normalizedDate })),
         isPublic,
       };
 
@@ -305,7 +309,8 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
     if (!scrim) return;
 
     const trimmed = matchCode.trim();
-    if (!trimmed) return;
+    const normalizedMatchDate = normalizeScrimDate(matchDate, scrim.scrimDate);
+    if (!trimmed || !normalizedMatchDate) return;
 
     setAddingMatch(true);
     setError(null);
@@ -317,7 +322,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
         scrimName: scrim.name,
         assignment: scrim.assignment,
         teamSlug: scrim.teamSlug,
-        scrimDate: scrim.scrimDate,
+        scrimDate: normalizedMatchDate,
         bansFile,
       });
 
@@ -329,6 +334,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
       await updateScrimInApi(nextEntry);
       setScrims(scrims.map((entry) => (entry.id === scrim.id ? nextEntry : entry)));
       setMatchCode("");
+      setMatchDate(scrim.scrimDate);
       setBansFile(null);
       setNotice(`Added match ${trimmed}.`);
       setShowAddMapForm(false);
@@ -586,7 +592,10 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
                         </span>
                       ) : null}
                     </div>
-                    <p className="text-xs font-mono text-zinc-200/95">{match.matchId}</p>
+                    <div className="space-y-1">
+                      <p className="text-xs text-zinc-200/95">{formatScrimDate(match.scrimDate ?? scrim.scrimDate)}</p>
+                      <p className="text-xs font-mono text-zinc-200/95">{match.matchId}</p>
+                    </div>
                   </div>
                 </Link>
 
@@ -642,6 +651,13 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
                 required
               />
               <input
+                type="date"
+                value={matchDate}
+                onChange={(e) => setMatchDate(e.target.value)}
+                className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
+                required
+              />
+              <input
                 type="file"
                 accept="application/json"
                 onChange={(e) => setBansFile(e.target.files?.[0] ?? null)}
@@ -650,7 +666,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
               <div className="flex items-center gap-2">
                 <button
                   type="submit"
-                  disabled={addingMatch || !matchCode.trim()}
+                  disabled={addingMatch || !matchCode.trim() || !matchDate}
                   className="rounded border border-emerald-500/40 bg-emerald-700/90 px-3 py-1.5 text-sm font-medium hover:bg-emerald-600 disabled:opacity-60"
                 >
                   <span className="inline-flex items-center gap-1.5">

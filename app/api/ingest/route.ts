@@ -12,6 +12,7 @@ import {
   teamMemberships,
   teams,
 } from "../../../db/schema";
+import { syncAutoRosterForTeam } from "../../../lib/autoRoster";
 import { authOptions } from "../../../lib/auth";
 
 function normalizeEnemyTeamName(value: string) {
@@ -80,6 +81,15 @@ class RateLimitError extends Error {
   constructor() {
     super("Deadlock API rate limit reached (429)");
     this.name = "RateLimitError";
+  }
+}
+
+async function trySyncAutoRoster(teamSlug: string) {
+  try {
+    return await syncAutoRosterForTeam(teamSlug);
+  } catch (err) {
+    console.error("auto roster sync failed", err);
+    return { added: 0 };
   }
 }
 
@@ -244,12 +254,15 @@ export async function POST(req: Request) {
         }
       }
 
+      const autoRoster = isTeamUpload ? await trySyncAutoRoster(teamSlug) : { added: 0 };
+
       return NextResponse.json({
         ok: true,
         saved: true,
         fromDb: true,
         matchId,
         teamSlug: teamSlug || null,
+        autoRosterAdded: autoRoster.added,
         publicUpload: !session,
         redirectTo: `/match/${matchId}`,
       });
@@ -582,12 +595,15 @@ export async function POST(req: Request) {
       }
     }
 
+    const autoRoster = isTeamUpload ? await trySyncAutoRoster(teamSlug) : { added: 0 };
+
     return NextResponse.json({
       ok: true,
       saved: true,
       matchId,
       teamSlug: isTeamUpload ? teamSlug : null,
       assignmentType,
+      autoRosterAdded: autoRoster.added,
       publicUpload: !session,
       redirectTo: `/match/${matchId}`,
     });

@@ -351,6 +351,7 @@ export default function ScrimDashboard() {
       matchId: args.matchId,
       bansUploaded,
       uploadedAt: new Date().toISOString(),
+      scrimDate: args.scrimDate,
     } satisfies ScrimMatch;
   }
 
@@ -420,6 +421,7 @@ export default function ScrimDashboard() {
           teamSlug: assignment === "team" ? teamSlug.trim() : "",
           teamName: selectedTeamName,
           scrimDate: normalizedScrimDate,
+          matches: updated.matches.map((match) => ({ ...match, scrimDate: normalizedScrimDate })),
           isPublic,
         };
 
