@@ -1,0 +1,15 @@
+
+> deadlock-stats@0.1.0 dev
+> next dev --port 3000
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.186:3000
+
+✓ Starting...
+Creating turbopack project {
+  dir: 'C:\\Users\\abbey\\OneDrive\\Documents\\deadlock-stats',
+  testMode: true
+}
+✓ Ready in 1707ms
+ GET / 200 in 1083ms (compile: 883ms, proxy.ts: 56ms, render: 143ms)
