@@ -45,6 +45,18 @@ function parseScrimDate(value: string) {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+function normalizeIntegerTimestamp(value: unknown) {
+  if (value == null || value === "") return null;
+
+  const numeric = Number(value);
+  if (Number.isFinite(numeric)) return Math.trunc(numeric);
+
+  const parsedTime = Date.parse(String(value));
+  if (!Number.isNaN(parsedTime)) return Math.trunc(parsedTime / 1000);
+
+  return null;
+}
+
 function attachEnemyGroupMetadata(raw: any, teamSlug: string, enemyTeamName: string) {
   if (!enemyTeamName) return raw;
   const source = raw && typeof raw === "object" ? raw : {};
@@ -409,7 +421,7 @@ export async function POST(req: Request) {
         let avatarFull: string | null = cached?.avatarFull ?? null;
         let realName: string | null = cached?.realName ?? null;
         let countryCode: string | null = cached?.countryCode ?? null;
-        let lastUpdated: number | null = cached?.lastUpdated ?? null;
+        let lastUpdated: number | null = normalizeIntegerTimestamp(cached?.lastUpdated);
 
         if (!displayName) {
           if (cached?.displayName) {
@@ -426,7 +438,7 @@ export async function POST(req: Request) {
               avatarFull = info.avatarfull ?? null;
               realName = info.realname ?? null;
               countryCode = info.countrycode ?? null;
-              lastUpdated = info.last_updated ?? null;
+              lastUpdated = normalizeIntegerTimestamp(info.last_updated);
             }
           }
         }
