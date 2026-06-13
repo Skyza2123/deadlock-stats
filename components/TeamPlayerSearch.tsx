@@ -59,11 +59,11 @@ export default function TeamPlayerSearch({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm text-zinc-300">Search DB by name or Steam ID</label>
+        <label className="mb-1 block text-sm text-zinc-300">Search DB by name or Deadlock ID</label>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="e.g. abbey or 7656119..."
+          placeholder="e.g. abbey or 83379921"
           className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
         />
       </div>
@@ -100,7 +100,7 @@ export default function TeamPlayerSearch({
           <p className="text-sm text-zinc-400">No matching players found in database.</p>
         )
       ) : (
-        <p className="text-xs text-zinc-500">Type a name or Steam ID to search teammates.</p>
+        <p className="text-xs text-zinc-500">Type a name or Deadlock ID to search teammates.</p>
       )}
     </div>
   );

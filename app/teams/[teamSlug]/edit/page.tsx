@@ -165,7 +165,7 @@ export default async function TeamEditPage({
     const role = allowedRole(String(formData.get("role") ?? "player"));
 
     if (!steamId) {
-      redirect(`/teams/${teamSlug}/edit?error=${encodeURIComponent("Steam ID is required.")}`);
+      redirect(`/teams/${teamSlug}/edit?error=${encodeURIComponent("Deadlock ID or SteamID64 is required.")}`);
     }
 
     await pool.query(
@@ -208,7 +208,7 @@ export default async function TeamEditPage({
     const role = allowedRole(String(formData.get("role") ?? "player"));
 
     if (!steamId) {
-      redirect(`/teams/${teamSlug}/edit?error=${encodeURIComponent("Steam ID is required.")}`);
+      redirect(`/teams/${teamSlug}/edit?error=${encodeURIComponent("Deadlock ID or SteamID64 is required.")}`);
     }
 
     await pool.query(
@@ -233,7 +233,7 @@ export default async function TeamEditPage({
 
     const steamId = String(formData.get("steamId") ?? "").trim();
     if (!steamId) {
-      redirect(`/teams/${teamSlug}/edit?error=${encodeURIComponent("Steam ID is required.")}`);
+      redirect(`/teams/${teamSlug}/edit?error=${encodeURIComponent("Deadlock ID or SteamID64 is required.")}`);
     }
 
     await pool.query(
@@ -405,14 +405,14 @@ export default async function TeamEditPage({
       <section id="roster" data-slot="card" data-size="default" className="team-edit-card panel-premium rounded-xl p-4 md:p-5 space-y-4">
         <div>
           <h2 className="text-lg font-semibold">Roster editor</h2>
-          <p className="text-sm text-zinc-400">Invite by Steam ID or update/remove active members.</p>
+          <p className="text-sm text-zinc-400">Invite by Deadlock ID or SteamID64, or update/remove active members.</p>
         </div>
 
         <form action={addOrInviteMemberAction} className="grid gap-2 sm:grid-cols-[1fr_140px_auto]">
           <input
             name="steamId"
             required
-            placeholder="Steam ID"
+            placeholder="Deadlock ID or SteamID64"
             className="rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
           />
           <select name="role" defaultValue="player" className="rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm">
@@ -433,7 +433,7 @@ export default async function TeamEditPage({
             <thead className="bg-zinc-900/70">
               <tr>
                 <th className="p-3 text-left">Member</th>
-                <th className="p-3 text-left">Steam ID</th>
+                <th className="p-3 text-left">Player ID</th>
                 <th className="p-3 text-left">Role</th>
                 <th className="p-3 text-left">Started</th>
                 <th className="p-3 text-left">Actions</th>

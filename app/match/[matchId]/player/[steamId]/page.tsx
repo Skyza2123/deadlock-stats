@@ -16,6 +16,7 @@ import { heroBackgroundPath, heroCardIconPath, heroRenderPath, heroSmallIconPath
 import { resolveLiveInventoryEvents } from "../../../../../lib/inventoryTimeline";
 import { itemIconPath } from "../../../../../lib/itemIcons";
 import { buildHeatmapSeriesFromManyPlayerRaw } from "../../../../../lib/mapHeatmap";
+import { playerIdDisplayPair } from "../../../../../lib/steamIdentity";
 
 type ItemRow = {
   steamId: string;
@@ -577,6 +578,7 @@ export default async function PlayerPage({
   searchParams?: Promise<{ compare?: string; enemy?: string }>;
 }) {
   const { matchId, steamId } = await params;
+  const idPair = playerIdDisplayPair(steamId);
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const compareSteamId = resolvedSearchParams?.compare ?? undefined;
   const enemySteamId = resolvedSearchParams?.enemy ?? undefined;
@@ -670,7 +672,7 @@ export default async function PlayerPage({
         <BackButton />
         <section className="panel-premium rounded-xl p-5 shadow-sm">
           <h1 className="text-2xl font-bold">Player not found</h1>
-          <p className="mt-2 opacity-80">No stats for Steam ID {steamId} in match {matchId}.</p>
+          <p className="mt-2 opacity-80">No stats for Deadlock ID {steamId} in match {matchId}.</p>
         </section>
       </main>
     );
@@ -998,7 +1000,9 @@ export default async function PlayerPage({
       <div className="panel-premium rounded-xl p-4 md:p-5">
         <h1 className="heading-luxe text-3xl font-bold">{player.displayName ?? "(unknown)"}</h1>
         <p className="text-sm text-zinc-400">
-          Match {matchId} • Steam {steamId} • Hero {heroName(player.heroId)} • Duration {fmtTime(durationS)}
+          Match {matchId} • Deadlock ID {idPair.deadlockId}
+          {idPair.steamId64 ? ` • SteamID64 ${idPair.steamId64}` : ""}
+          {` • Hero ${heroName(player.heroId)} • Duration ${fmtTime(durationS)}`}
         </p>
         {comparePlayer ? (
           <p className="text-sm text-zinc-300 mt-1 flex items-center gap-2">

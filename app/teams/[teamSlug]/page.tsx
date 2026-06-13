@@ -12,7 +12,7 @@ import { heroCardIconPath, heroSmallIconPath } from "../../../lib/heroIcons";
 import { authOptions } from "../../../lib/auth";
 import { itemIconPath } from "../../../lib/itemIcons";
 import { buildHeatmapSeriesFromManyPlayerRaw } from "../../../lib/mapHeatmap";
-import { membershipKeysFromUserId, steamIdVariants } from "../../../lib/steamIdentity";
+import { membershipKeysFromUserId, playerIdDisplayPair, steamIdVariants } from "../../../lib/steamIdentity";
 
 function safeNum(n: number | null | undefined) {
   return typeof n === "number" && Number.isFinite(n) ? n : 0;
@@ -827,10 +827,13 @@ export default async function TeamStatsPage({
       }
 
       const detailHref = `/players/${entry.detailSteamId}`;
+      const idPair = playerIdDisplayPair(entry.detailSteamId);
 
       return {
         steamId: entry.steamId,
         detailSteamId: entry.detailSteamId,
+        deadlockId: idPair.deadlockId,
+        steamId64: idPair.steamId64,
         displayName: entry.displayName,
         matchesPlayed,
         wins: entry.wins,
@@ -1450,7 +1453,10 @@ export default async function TeamStatsPage({
                         <div className="font-medium truncate text-emerald-300 hover:text-emerald-200">
                           {entry.displayName ?? "(unknown)"}
                         </div>
-                        <div className="text-xs font-mono text-zinc-500 truncate">{entry.steamId}</div>
+                        <div className="text-xs font-mono text-zinc-500 truncate">
+                          Deadlock {entry.deadlockId}
+                          {entry.steamId64 ? <span className="ml-2 text-zinc-600">SteamID64 {entry.steamId64}</span> : null}
+                        </div>
                       </a>
                     </td>
                     <td className="p-0 font-mono"><a href={entry.detailHref} className="block px-3 py-3">{entry.matchesPlayed}</a></td>

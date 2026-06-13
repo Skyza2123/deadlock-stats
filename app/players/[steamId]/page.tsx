@@ -10,6 +10,7 @@ import { fmtTime, hasItem, heroName, itemName } from "../../../lib/deadlockData"
 import { heroBackgroundPath, heroCardIconPath, heroRenderPath, heroSmallIconPath } from "../../../lib/heroIcons";
 import { itemIconPath } from "../../../lib/itemIcons";
 import { buildHeatmapSeriesFromManyPlayerRaw } from "../../../lib/mapHeatmap";
+import { playerIdDisplayPair } from "../../../lib/steamIdentity";
 
 const TEAM_NAMES: Record<string, string> = {
   "0": "Hidden King",
@@ -162,6 +163,7 @@ export default async function PlayerAllMatchesPage({
   params: Promise<{ steamId: string }>;
 }) {
   const { steamId } = await params;
+  const idPair = playerIdDisplayPair(steamId);
 
   const playerRow = await db
     .select({
@@ -232,7 +234,7 @@ export default async function PlayerAllMatchesPage({
         <BackButton />
         <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-5">
           <h1 className="text-2xl font-bold">Player not found</h1>
-          <p className="mt-2 text-zinc-400">No matches found for Steam ID {steamId}.</p>
+          <p className="mt-2 text-zinc-400">No matches found for Deadlock ID {steamId}.</p>
         </section>
       </main>
     );
@@ -741,7 +743,9 @@ export default async function PlayerAllMatchesPage({
         <header className="rounded-xl border border-zinc-800/80 bg-zinc-950/45 p-4">
           <h1 className="text-3xl font-bold tracking-tight">{displayName}</h1>
           <p className="mt-1.5 text-sm text-zinc-400">
-            Steam {steamId} • Compiled across all saved matches
+            Deadlock ID {idPair.deadlockId}
+            {idPair.steamId64 ? ` • SteamID64 ${idPair.steamId64}` : ""}
+            {" • Compiled across all saved matches"}
             {mostPlayedHeroId ? ` • Most played: ${heroName(mostPlayedHeroId)}` : ""}
           </p>
         </header>

@@ -73,3 +73,18 @@ export function primaryMembershipKeyFromUserId(userId: string | null | undefined
 
   return membershipKeysFromUserId(rawUserId)[0] ?? "";
 }
+
+export function playerIdDisplayPair(playerId: string) {
+  const raw = cleanNumericId(playerId);
+  if (!raw) return { deadlockId: String(playerId ?? "").trim(), steamId64: "" };
+
+  const deadlockId = steamId64ToAccountId(raw);
+  if (deadlockId) {
+    return { deadlockId, steamId64: raw };
+  }
+
+  return {
+    deadlockId: raw,
+    steamId64: steamAccountIdToSteamId64(raw),
+  };
+}

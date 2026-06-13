@@ -65,7 +65,7 @@ export default function PreviewMatchPage() {
             <table className="w-full text-sm">
               <thead className="bg-zinc-900/80">
                 <tr>
-                  <th className="p-3 text-left">Steam ID</th>
+                  <th className="p-3 text-left">Deadlock ID</th>
                   <th className="p-3 text-left">Hero</th>
                   <th className="p-3 text-left">K</th>
                   <th className="p-3 text-left">D</th>
