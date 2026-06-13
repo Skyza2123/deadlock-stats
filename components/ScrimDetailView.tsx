@@ -99,6 +99,19 @@ function todayIsoDate() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function parseMatchCodes(value: string) {
+  const seen = new Set<string>();
+  return value
+    .split(/[\s,;]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .filter((entry) => {
+      if (seen.has(entry)) return false;
+      seen.add(entry);
+      return true;
+    });
+}
+
 export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
   const router = useRouter();
 
@@ -114,7 +127,8 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
   const [isPublic, setIsPublic] = useState(true);
 
   const [matchCode, setMatchCode] = useState("");
-  const [bansFile, setBansFile] = useState<File | null>(null);
+  const [matchDate, setMatchDate] = useState("");
+  const [bansFiles, setBansFiles] = useState<File[]>([]);
   const [addingMatch, setAddingMatch] = useState(false);
 
   const [saving, setSaving] = useState(false);
@@ -185,6 +199,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
     setAssignment(scrim.assignment);
     setTeamSlug(scrim.teamSlug);
     setScrimDate(normalizeScrimDate(scrim.scrimDate, todayIsoDate()));
+    setMatchDate(normalizeScrimDate(scrim.scrimDate, todayIsoDate()));
     setIsPublic(scrim.isPublic);
   }, [scrim]);
 
@@ -243,6 +258,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
       matchId: args.matchId,
       bansUploaded,
       uploadedAt: new Date().toISOString(),
+      scrimDate: args.scrimDate,
     } satisfies ScrimMatch;
   }
 
@@ -285,6 +301,7 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
         teamSlug: assignment === "team" ? teamSlug.trim() : "",
         teamName: selectedTeamName,
         scrimDate: normalizedDate,
+        matches: scrim.matches.map((match) => ({ ...match, scrimDate: normalizedDate })),
         isPublic,
       };
 
@@ -304,33 +321,40 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
     e.preventDefault();
     if (!scrim) return;
 
-    const trimmed = matchCode.trim();
-    if (!trimmed) return;
+    const matchCodes = parseMatchCodes(matchCode);
+    const normalizedMatchDate = normalizeScrimDate(matchDate, scrim.scrimDate);
+    if (matchCodes.length === 0 || !normalizedMatchDate) return;
 
     setAddingMatch(true);
     setError(null);
     setNotice(null);
 
     try {
-      const match = await ingestMatch({
-        matchId: trimmed,
-        scrimName: scrim.name,
-        assignment: scrim.assignment,
-        teamSlug: scrim.teamSlug,
-        scrimDate: scrim.scrimDate,
-        bansFile,
-      });
+      const addedMatches: ScrimMatch[] = [];
+
+      for (const [index, matchId] of matchCodes.entries()) {
+        const match = await ingestMatch({
+          matchId,
+          scrimName: scrim.name,
+          assignment: scrim.assignment,
+          teamSlug: scrim.teamSlug,
+          scrimDate: normalizedMatchDate,
+          bansFile: bansFiles[index] ?? null,
+        });
+        addedMatches.push(match);
+      }
 
       const nextEntry: ScrimEntry = {
         ...scrim,
-        matches: [match, ...scrim.matches],
+        matches: [...addedMatches, ...scrim.matches],
       };
 
       await updateScrimInApi(nextEntry);
       setScrims(scrims.map((entry) => (entry.id === scrim.id ? nextEntry : entry)));
       setMatchCode("");
-      setBansFile(null);
-      setNotice(`Added match ${trimmed}.`);
+      setMatchDate(scrim.scrimDate);
+      setBansFiles([]);
+      setNotice(`Added ${addedMatches.length} match${addedMatches.length === 1 ? "" : "es"}.`);
       setShowAddMapForm(false);
       router.refresh();
     } catch (err: any) {
@@ -586,7 +610,10 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
                         </span>
                       ) : null}
                     </div>
-                    <p className="text-xs font-mono text-zinc-200/95">{match.matchId}</p>
+                    <div className="space-y-1">
+                      <p className="text-xs text-zinc-200/95">{formatScrimDate(match.scrimDate ?? scrim.scrimDate)}</p>
+                      <p className="text-xs font-mono text-zinc-200/95">{match.matchId}</p>
+                    </div>
                   </div>
                 </Link>
 
@@ -633,29 +660,37 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
 
           {showAddMapForm ? (
             <form onSubmit={onAddMatch} className="rounded-xl border border-zinc-700/80 bg-zinc-900/30 p-3 sm:p-4 space-y-2 max-w-xl">
-              <p className="text-sm font-medium text-zinc-200">Add map</p>
-              <input
+              <p className="text-sm font-medium text-zinc-200">Add maps</p>
+              <textarea
                 value={matchCode}
                 onChange={(e) => setMatchCode(e.target.value)}
-                placeholder="Match code / Match ID"
+                placeholder="One or more match codes / Match IDs"
+                className="min-h-24 w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
+                required
+              />
+              <input
+                type="date"
+                value={matchDate}
+                onChange={(e) => setMatchDate(e.target.value)}
                 className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
                 required
               />
               <input
                 type="file"
-                accept="application/json"
-                onChange={(e) => setBansFile(e.target.files?.[0] ?? null)}
+                accept="application/json,.json"
+                multiple
+                onChange={(e) => setBansFiles(Array.from(e.target.files ?? []))}
                 className="w-full text-xs"
               />
               <div className="flex items-center gap-2">
                 <button
                   type="submit"
-                  disabled={addingMatch || !matchCode.trim()}
+                  disabled={addingMatch || parseMatchCodes(matchCode).length === 0 || !matchDate}
                   className="rounded border border-emerald-500/40 bg-emerald-700/90 px-3 py-1.5 text-sm font-medium hover:bg-emerald-600 disabled:opacity-60"
                 >
                   <span className="inline-flex items-center gap-1.5">
                     {addingMatch ? <SpinnerIcon className="h-4 w-4 animate-spin" /> : <PlusIcon className="h-4 w-4" />}
-                    <span>{addingMatch ? "Adding..." : "Add map"}</span>
+                    <span>{addingMatch ? "Adding..." : "Add maps"}</span>
                   </span>
                 </button>
                 <button

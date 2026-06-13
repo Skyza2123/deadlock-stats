@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { syncAutoRosterForTeam } from "@/lib/autoRoster";
 import { pool } from "@/lib";
 
 type ScrimAssignment = "team" | "individual";
@@ -9,6 +10,7 @@ type ScrimMatch = {
   matchId: string;
   bansUploaded: boolean;
   uploadedAt: string;
+  scrimDate?: string;
 };
 
 type ScrimPayload = {
@@ -49,11 +51,14 @@ function normalizeMatches(value: unknown): ScrimMatch[] {
       const row = entry as Partial<ScrimMatch>;
       const matchId = String(row?.matchId ?? "").trim();
       if (!matchId) return null;
-      return {
+      const scrimDate = normalizeDate(row?.scrimDate);
+      const normalized: ScrimMatch = {
         matchId,
         bansUploaded: Boolean(row?.bansUploaded),
         uploadedAt: String(row?.uploadedAt ?? new Date().toISOString()),
-      } satisfies ScrimMatch;
+      };
+      if (scrimDate) normalized.scrimDate = scrimDate;
+      return normalized;
     })
     .filter((entry): entry is ScrimMatch => Boolean(entry));
 }
@@ -114,6 +119,15 @@ async function ensureScrimsTable() {
     `CREATE INDEX IF NOT EXISTS scrims_owner_public_idx
      ON scrims (owner_id, is_public, created_at DESC)`
   );
+}
+
+async function trySyncAutoRoster(teamSlug: string) {
+  try {
+    return await syncAutoRosterForTeam(teamSlug);
+  } catch (err) {
+    console.error("auto roster sync failed", err);
+    return { added: 0 };
+  }
 }
 
 export async function GET() {
@@ -204,7 +218,9 @@ export async function POST(req: NextRequest) {
     ]
   );
 
-  return NextResponse.json({ ok: true });
+  const autoRoster = payload.assignment === "team" ? await trySyncAutoRoster(payload.teamSlug) : { added: 0 };
+
+  return NextResponse.json({ ok: true, autoRosterAdded: autoRoster.added });
 }
 
 export async function PUT(req: NextRequest) {
@@ -249,7 +265,9 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Scrim not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ ok: true });
+  const autoRoster = payload.assignment === "team" ? await trySyncAutoRoster(payload.teamSlug) : { added: 0 };
+
+  return NextResponse.json({ ok: true, autoRosterAdded: autoRoster.added });
 }
 
 export async function DELETE(req: NextRequest) {

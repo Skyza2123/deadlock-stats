@@ -13,12 +13,21 @@ type TeamOption = {
   name: string;
 };
 
+function todayIsoDate() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function MatchIngestForm() {
   const router = useRouter();
   const { data: session } = useSession();
   const isSignedIn = Boolean(session);
   const [matchId, setMatchId] = useState("");
   const [teamSlug, setTeamSlug] = useState("");
+  const [matchDate, setMatchDate] = useState(todayIsoDate());
   const [teams, setTeams] = useState<TeamOption[]>([]);
   const [teamsLoading, setTeamsLoading] = useState(true);
   const [enemyTeamName, setEnemyTeamName] = useState("");
@@ -71,6 +80,7 @@ export default function MatchIngestForm() {
     const selectedTeam = teamSlug.trim();
     if (!id) return;
     if (isSignedIn && !selectedTeam) return;
+    if (isSignedIn && !matchDate) return;
 
     setLoading(true);
     setError(null);
@@ -79,6 +89,7 @@ export default function MatchIngestForm() {
     try {
       const fd = new FormData();
       fd.append("matchId", id);
+      if (matchDate) fd.append("scrimDate", matchDate);
       if (isSignedIn) fd.append("teamSlug", selectedTeam);
       if (isSignedIn && enemyTeamName.trim()) fd.append("enemyTeamName", enemyTeamName.trim());
 
@@ -163,11 +174,18 @@ export default function MatchIngestForm() {
           placeholder="Match ID (e.g. 68623064)"
           className="flex-1 rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
         />
+        <input
+          type="date"
+          value={matchDate}
+          onChange={(e) => setMatchDate(e.target.value)}
+          className="rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
+        />
         <button
           type="submit"
           disabled={
             loading ||
             !matchId.trim() ||
+            (isSignedIn && !matchDate) ||
             (isSignedIn && (!teamSlug.trim() || teamsLoading || teams.length === 0))
           }
           className="rounded border border-emerald-500/40 bg-emerald-700/90 px-4 py-2 text-sm font-medium hover:bg-emerald-600 disabled:opacity-50"

@@ -137,6 +137,19 @@ function todayIsoDate() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function parseMatchCodes(value: string) {
+  const seen = new Set<string>();
+  return value
+    .split(/[\s,;]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .filter((entry) => {
+      if (seen.has(entry)) return false;
+      seen.add(entry);
+      return true;
+    });
+}
+
 export default function ScrimDashboard() {
   const router = useRouter();
   const pathname = usePathname();
@@ -156,7 +169,7 @@ export default function ScrimDashboard() {
   const [teamSlug, setTeamSlug] = useState("");
   const [scrimDate, setScrimDate] = useState(todayIsoDate());
   const [firstMapCode, setFirstMapCode] = useState("");
-  const [firstBansFile, setFirstBansFile] = useState<File | null>(null);
+  const [firstBansFiles, setFirstBansFiles] = useState<File[]>([]);
   const [isPublic, setIsPublic] = useState(false);
 
   const [filterMode, setFilterMode] = useState<"all" | ScrimAssignment>(() => {
@@ -351,6 +364,7 @@ export default function ScrimDashboard() {
       matchId: args.matchId,
       bansUploaded,
       uploadedAt: new Date().toISOString(),
+      scrimDate: args.scrimDate,
     } satisfies ScrimMatch;
   }
 
@@ -359,7 +373,7 @@ export default function ScrimDashboard() {
     setAssignment("team");
     setScrimDate(normalizeScrimDate(todayIsoDate(), todayIsoDate()));
     setFirstMapCode("");
-    setFirstBansFile(null);
+    setFirstBansFiles([]);
     setIsPublic(false);
     setEditingScrimId(null);
   }
@@ -379,7 +393,7 @@ export default function ScrimDashboard() {
     setScrimDate(normalizeScrimDate(scrim.scrimDate, todayIsoDate()));
     setIsPublic(scrim.isPublic);
     setFirstMapCode("");
-    setFirstBansFile(null);
+    setFirstBansFiles([]);
     setModalOpen(true);
   }
 
@@ -387,19 +401,19 @@ export default function ScrimDashboard() {
     setModalOpen(false);
     setLoading(false);
     setFirstMapCode("");
-    setFirstBansFile(null);
+    setFirstBansFiles([]);
   }
 
   async function submitScrim(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const trimmedName = scrimName.trim();
-    const trimmedFirstMapCode = firstMapCode.trim();
+    const firstMapCodes = parseMatchCodes(firstMapCode);
     const normalizedScrimDate = normalizeScrimDate(scrimDate, todayIsoDate());
 
     if (!trimmedName || !normalizedScrimDate) return;
     if (assignment === "team" && !teamSlug.trim()) return;
-    if (modalMode === "create" && !trimmedFirstMapCode) return;
+    if (modalMode === "create" && firstMapCodes.length === 0) return;
 
     setLoading(true);
     setError(null);
@@ -420,6 +434,7 @@ export default function ScrimDashboard() {
           teamSlug: assignment === "team" ? teamSlug.trim() : "",
           teamName: selectedTeamName,
           scrimDate: normalizedScrimDate,
+          matches: updated.matches.map((match) => ({ ...match, scrimDate: normalizedScrimDate })),
           isPublic,
         };
 
@@ -430,14 +445,19 @@ export default function ScrimDashboard() {
         return;
       }
 
-      const firstMatch = await ingestMatch({
-        matchId: trimmedFirstMapCode,
-        scrimName: trimmedName,
-        assignment,
-        teamSlug: teamSlug.trim(),
-        scrimDate: normalizedScrimDate,
-        bansFile: firstBansFile,
-      });
+      const firstMatches: ScrimMatch[] = [];
+
+      for (const [index, matchId] of firstMapCodes.entries()) {
+        const match = await ingestMatch({
+          matchId,
+          scrimName: trimmedName,
+          assignment,
+          teamSlug: teamSlug.trim(),
+          scrimDate: normalizedScrimDate,
+          bansFile: firstBansFiles[index] ?? null,
+        });
+        firstMatches.push(match);
+      }
 
       const selectedTeamName = assignment === "team" ? (teamNameBySlug.get(teamSlug.trim()) ?? teamSlug.trim()) : "";
 
@@ -449,13 +469,13 @@ export default function ScrimDashboard() {
         teamName: assignment === "team" ? selectedTeamName : "Individual",
         scrimDate: normalizedScrimDate,
         isPublic,
-        matches: [firstMatch],
+        matches: firstMatches,
         createdAt: new Date().toISOString(),
       };
 
       await createScrimInApi(nextEntry);
       setScrims([nextEntry, ...scrims]);
-      setNotice(`Scrim \"${trimmedName}\" added.`);
+      setNotice(`Scrim \"${trimmedName}\" added with ${firstMatches.length} map${firstMatches.length === 1 ? "" : "s"}.`);
       closeModal();
       resetForm();
       router.refresh();
@@ -707,22 +727,23 @@ export default function ScrimDashboard() {
               {modalMode === "create" ? (
                 <div className="grid gap-3 md:grid-cols-2">
                   <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">First map code / Match ID</label>
-                    <input
+                    <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Map codes / Match IDs</label>
+                    <textarea
                       value={firstMapCode}
                       onChange={(e) => setFirstMapCode(e.target.value)}
-                      placeholder="First map code / Match ID"
-                      className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
+                      placeholder="One or more map codes / Match IDs"
+                      className="min-h-24 w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
                       required
                     />
                   </div>
 
                   <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Optional bans JSON</label>
+                    <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Optional draft JSON files</label>
                     <input
                       type="file"
-                      accept="application/json"
-                      onChange={(e) => setFirstBansFile(e.target.files?.[0] ?? null)}
+                      accept="application/json,.json"
+                      multiple
+                      onChange={(e) => setFirstBansFiles(Array.from(e.target.files ?? []))}
                       className="w-full text-xs"
                     />
                   </div>
@@ -735,7 +756,7 @@ export default function ScrimDashboard() {
                   loading ||
                   !scrimName.trim() ||
                   !scrimDate ||
-                  (modalMode === "create" && !firstMapCode.trim()) ||
+                  (modalMode === "create" && parseMatchCodes(firstMapCode).length === 0) ||
                   (assignment === "team" && (!teamSlug.trim() || teamsLoading))
                 }
                 className="w-full rounded border border-emerald-500/40 bg-emerald-700/90 px-4 py-2 text-sm font-medium hover:bg-emerald-600 disabled:opacity-60"
