@@ -5,6 +5,7 @@ import MatchesTabs from "../../components/MatchesTabs";
 import { db } from "../../db";
 import { matches, teamMemberships } from "../../db/schema";
 import { authOptions } from "../../lib/auth";
+import { formatNumericDate } from "../../lib/dateFormat";
 import { membershipKeysFromUserId } from "../../lib/steamIdentity";
 
 function getIngestMeta(raw: any) {
@@ -40,6 +41,7 @@ export default async function TournamentsPage() {
   const recentBase = await db
     .select({
       matchId: matches.matchId,
+      scrimDate: matches.scrimDate,
       ingestedAt: matches.ingestedAt,
       rawJson: matches.rawJson,
     })
@@ -56,6 +58,7 @@ export default async function TournamentsPage() {
     .slice(0, 200)
     .map((row) => ({
       matchId: row.matchId,
+      matchDateText: formatNumericDate(row.scrimDate ?? row.ingestedAt),
       ingestedAtText: row.ingestedAt ? new Date(row.ingestedAt).toLocaleString() : "-",
     }));
 
@@ -64,6 +67,7 @@ export default async function TournamentsPage() {
     .slice(0, 200)
     .map((row) => ({
       matchId: row.matchId,
+      matchDateText: formatNumericDate(row.scrimDate ?? row.ingestedAt),
       ingestedAtText: row.ingestedAt ? new Date(row.ingestedAt).toLocaleString() : "-",
     }));
 

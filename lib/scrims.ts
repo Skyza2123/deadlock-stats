@@ -1,3 +1,5 @@
+import { formatFriendlyDateWithNumeric } from "./dateFormat";
+
 export const SCRIM_STORAGE_KEY = "deadlock-scrim-dashboard";
 
 export type ScrimMatch = {
@@ -107,12 +109,7 @@ export function formatScrimDate(scrimDate: string) {
   const [year, month, day] = parts;
   const utcDate = new Date(Date.UTC(year, month - 1, day));
 
-  return new Intl.DateTimeFormat(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    timeZone: "UTC",
-  }).format(utcDate);
+  return formatFriendlyDateWithNumeric(utcDate);
 }
 
 export async function fetchScrimsFromApi() {

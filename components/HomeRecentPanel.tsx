@@ -19,6 +19,7 @@ type RecentMatchRow = {
     killAssist: number;
   } | null;
   ingestedAtText: string;
+  matchDateText: string;
 };
 
 type Props = {
@@ -175,6 +176,7 @@ export default function HomeRecentPanel({
                     <p className="font-mono text-sm">{m.matchId}</p>
                     <span className="text-xs opacity-80">{resultText(m)}</span>
                   </div>
+                  <p className="mt-1 font-mono text-xs text-zinc-300">{m.matchDateText}</p>
                   <p className="mt-1 text-xs text-zinc-500">{m.ingestedAtText}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5 text-[11px]">
                     <span className={`rounded px-2 py-0.5 border ${m.scrimDateSet ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300" : "border-zinc-700/80 bg-zinc-900/60 text-zinc-300"}`}>
@@ -212,6 +214,7 @@ export default function HomeRecentPanel({
                 <thead className="bg-zinc-900/80">
                   <tr>
                     <th className="p-3 text-left">Match</th>
+                    <th className="p-3 text-left">Date</th>
                     <th className="p-3 text-left">Result</th>
                     <th className="p-3 text-left">Ingested</th>
                     <th className="p-3 text-left">Checklist</th>
@@ -235,6 +238,7 @@ export default function HomeRecentPanel({
                       }}
                     >
                       <td className="p-3 font-mono">{m.matchId}</td>
+                      <td className="p-3 font-mono">{m.matchDateText}</td>
                       <td className="p-3">{resultText(m)}</td>
                       <td className="p-3">{m.ingestedAtText}</td>
                       <td className="p-3">

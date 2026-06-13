@@ -6,6 +6,7 @@ import { db } from "../../../db";
 import { matches, matchPlayers, players, matchPlayerItems } from "../../../db/schema";
 import { eq, sql } from "drizzle-orm";
 import { heroName, itemName, fmtTime, hasItem } from "../../../lib/deadlockData";
+import { formatFriendlyDateWithNumeric } from "../../../lib/dateFormat";
 import { getAbilityMeta } from "../../../lib/abilityCatalog";
 import { heroSmallIconPath, heroBackgroundPath } from "../../../lib/heroIcons";
 import { itemIconPath } from "../../../lib/itemIcons";
@@ -379,12 +380,7 @@ function fmtMetric(value: number) {
 
 function formatUtcScrimDate(value: Date | null | undefined) {
   if (!value) return "Not set";
-  return new Intl.DateTimeFormat(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    timeZone: "UTC",
-  }).format(value);
+  return formatFriendlyDateWithNumeric(value);
 }
 
 async function loadStaticDemoMatchData() {

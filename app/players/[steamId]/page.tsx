@@ -7,6 +7,7 @@ import PlayerGraphs from "../../../components/PlayerGraphs";
 import { db } from "../../../db";
 import { matchPlayerItems, matchPlayers, matches, players } from "../../../db/schema";
 import { fmtTime, hasItem, heroName, itemName } from "../../../lib/deadlockData";
+import { formatNumericDate } from "../../../lib/dateFormat";
 import { heroBackgroundPath, heroCardIconPath, heroRenderPath, heroSmallIconPath } from "../../../lib/heroIcons";
 import { itemIconPath } from "../../../lib/itemIcons";
 import { buildHeatmapSeriesFromManyPlayerRaw } from "../../../lib/mapHeatmap";
@@ -537,6 +538,7 @@ export default async function PlayerAllMatchesPage({
     return {
       ...row,
       result,
+      matchDateText: formatNumericDate(row.scrimDate ?? row.ingestedAt),
       durationText: Number.isFinite(durationS) && durationS > 0 ? fmtTime(durationS) : "-",
       durationS: safeDurationS,
       damageTotal,
@@ -874,6 +876,7 @@ export default async function PlayerAllMatchesPage({
                   <thead className="bg-transparent dark:bg-zinc-950/70">
                     <tr>
                       <th className="px-3 py-2 text-left">Match</th>
+                      <th className="px-3 py-2 text-left">Date</th>
                       <th className="px-3 py-2 text-left">Result</th>
                       <th className="px-3 py-2 text-left">Hero</th>
                       <th className="px-3 py-2 text-right">K / D / A</th>
@@ -892,6 +895,7 @@ export default async function PlayerAllMatchesPage({
                     {rowsWithResult.map((row) => (
                       <tr key={row.matchId} className="border-t border-zinc-300/50 odd:bg-transparent hover:bg-zinc-900/35 dark:border-zinc-700/90 dark:odd:bg-zinc-950/30">
                         <td className="p-0 font-mono"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.matchId}</Link></td>
+                        <td className="p-0 font-mono"><Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>{row.matchDateText}</Link></td>
                         <td className="p-0">
                           <Link className="block px-3 py-2" href={`/match/${row.matchId}/player/${steamId}`}>
                             <span

@@ -5,6 +5,7 @@ import Link from "next/link";
 
 type MatchCodeRow = {
   matchId: string;
+  matchDateText: string;
   ingestedAtText: string;
 };
 
@@ -54,6 +55,7 @@ export default function MatchesTabs({
             <thead className="bg-zinc-900/80">
               <tr>
                 <th className="p-3 text-left">Match code</th>
+                <th className="p-3 text-left">Date</th>
                 <th className="p-3 text-left">Uploaded</th>
                 <th className="p-3 text-left">Open</th>
               </tr>
@@ -62,6 +64,7 @@ export default function MatchesTabs({
               {visibleRows.map((row) => (
                 <tr key={row.matchId} className="border-t border-zinc-800/80 odd:bg-zinc-900/20">
                   <td className="p-3 font-mono">{row.matchId}</td>
+                  <td className="p-3 font-mono">{row.matchDateText}</td>
                   <td className="p-3">{row.ingestedAtText}</td>
                   <td className="p-3">
                     <Link className="text-emerald-300 hover:text-emerald-200 hover:underline" href={`/match/${row.matchId}`}>

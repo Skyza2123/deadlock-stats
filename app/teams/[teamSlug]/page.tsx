@@ -8,6 +8,7 @@ import TeamStatsTabsShell from "../../../components/TeamStatsTabsShell";
 import { db } from "../../../db";
 import { matchPlayerItems, matchPlayers, matches, players, teamMemberships, teams } from "../../../db/schema";
 import { fmtTime, hasItem, heroName, itemName } from "../../../lib/deadlockData";
+import { formatNumericDate } from "../../../lib/dateFormat";
 import { heroCardIconPath, heroSmallIconPath } from "../../../lib/heroIcons";
 import { authOptions } from "../../../lib/auth";
 import { itemIconPath } from "../../../lib/itemIcons";
@@ -414,6 +415,7 @@ export default async function TeamStatsPage({
       side: string | null;
       result: "Win" | "Loss" | "Unknown";
       durationText: string;
+      scrimDate: Date | null;
       ingestedAt: Date | null;
     }
   >();
@@ -458,6 +460,7 @@ export default async function TeamStatsPage({
       side: dominantSide,
       result,
       durationText: Number.isFinite(durationS) && durationS > 0 ? fmtTime(durationS) : "-",
+      scrimDate: match.scrimDate,
       ingestedAt: match.ingestedAt,
     });
   }
@@ -867,6 +870,7 @@ export default async function TeamStatsPage({
       playersRepresented: summary?.playersRepresented ?? 0,
       side: summary?.side ?? null,
       result: summary?.result ?? "Unknown",
+      matchDateText: formatNumericDate(summary?.scrimDate ?? summary?.ingestedAt),
       durationText: summary?.durationText ?? "-",
       ingestedAt: summary?.ingestedAt ?? null,
       draftEvents,
@@ -1336,6 +1340,7 @@ export default async function TeamStatsPage({
                 <thead className="bg-zinc-900/70">
                   <tr>
                     <th className="p-3 text-left">Match</th>
+                    <th className="p-3 text-left">Date</th>
                     <th className="p-3 text-left">Result</th>
                     <th className="p-3 text-left">Side</th>
                     <th className="p-3 text-left">Players</th>
@@ -1348,6 +1353,7 @@ export default async function TeamStatsPage({
                   {recentTeamMatches.map((match) => (
                     <tr key={match.matchId} className="border-t border-zinc-800/80 odd:bg-zinc-900/20 hover:bg-zinc-900/40">
                       <td className="p-0 font-mono"><Link className="block px-3 py-3" href={`/match/${match.matchId}`}>{match.matchId}</Link></td>
+                      <td className="p-0 font-mono"><Link className="block px-3 py-3" href={`/match/${match.matchId}`}>{match.matchDateText}</Link></td>
                       <td className="p-0">
                         <Link className="block px-3 py-3" href={`/match/${match.matchId}`}>
                           <span

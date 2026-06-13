@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 
 import { db } from "../../../../db";
 import { matchPlayers, matches, players } from "../../../../db/schema";
+import { formatNumericDate } from "../../../../lib/dateFormat";
 import { fmtTime, heroName } from "../../../../lib/deadlockData";
 
 const TEAM_NAMES: Record<string, string> = {
@@ -23,6 +24,7 @@ export async function GET(
     .select({
       matchId: matches.matchId,
       rawJson: matches.rawJson,
+      scrimDate: matches.scrimDate,
       ingestedAt: matches.ingestedAt,
     })
     .from(matches)
@@ -75,6 +77,7 @@ export async function GET(
           }
         : null,
       ingestedAtText: row.ingestedAt ? new Date(row.ingestedAt).toLocaleString() : "-",
+      matchDateText: formatNumericDate(row.scrimDate ?? row.ingestedAt),
     },
   });
 }
