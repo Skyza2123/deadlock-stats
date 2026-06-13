@@ -125,6 +125,11 @@ type TeamOption = {
 
 type ModalMode = "create" | "edit";
 
+type MapUploadSlot = {
+  matchId: string;
+  bansFile: File | null;
+};
+
 function makeScrimId() {
   return `scrim_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
@@ -137,15 +142,17 @@ function todayIsoDate() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function parseMatchCodes(value: string) {
+function createEmptyMapSlots(): MapUploadSlot[] {
+  return Array.from({ length: 3 }, () => ({ matchId: "", bansFile: null }));
+}
+
+function activeMapSlots(slots: MapUploadSlot[]) {
   const seen = new Set<string>();
-  return value
-    .split(/[\s,;]+/)
-    .map((entry) => entry.trim())
-    .filter(Boolean)
-    .filter((entry) => {
-      if (seen.has(entry)) return false;
-      seen.add(entry);
+  return slots
+    .map((slot) => ({ ...slot, matchId: slot.matchId.trim() }))
+    .filter((slot) => {
+      if (!slot.matchId || seen.has(slot.matchId)) return false;
+      seen.add(slot.matchId);
       return true;
     });
 }
@@ -168,8 +175,7 @@ export default function ScrimDashboard() {
   const [assignment, setAssignment] = useState<ScrimAssignment>("team");
   const [teamSlug, setTeamSlug] = useState("");
   const [scrimDate, setScrimDate] = useState(todayIsoDate());
-  const [firstMapCode, setFirstMapCode] = useState("");
-  const [firstBansFiles, setFirstBansFiles] = useState<File[]>([]);
+  const [mapSlots, setMapSlots] = useState<MapUploadSlot[]>(() => createEmptyMapSlots());
   const [isPublic, setIsPublic] = useState(false);
 
   const [filterMode, setFilterMode] = useState<"all" | ScrimAssignment>(() => {
@@ -372,8 +378,7 @@ export default function ScrimDashboard() {
     setScrimName("");
     setAssignment("team");
     setScrimDate(normalizeScrimDate(todayIsoDate(), todayIsoDate()));
-    setFirstMapCode("");
-    setFirstBansFiles([]);
+    setMapSlots(createEmptyMapSlots());
     setIsPublic(false);
     setEditingScrimId(null);
   }
@@ -392,28 +397,26 @@ export default function ScrimDashboard() {
     setTeamSlug(scrim.teamSlug);
     setScrimDate(normalizeScrimDate(scrim.scrimDate, todayIsoDate()));
     setIsPublic(scrim.isPublic);
-    setFirstMapCode("");
-    setFirstBansFiles([]);
+    setMapSlots(createEmptyMapSlots());
     setModalOpen(true);
   }
 
   function closeModal() {
     setModalOpen(false);
     setLoading(false);
-    setFirstMapCode("");
-    setFirstBansFiles([]);
+    setMapSlots(createEmptyMapSlots());
   }
 
   async function submitScrim(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const trimmedName = scrimName.trim();
-    const firstMapCodes = parseMatchCodes(firstMapCode);
+    const slotsToUpload = activeMapSlots(mapSlots);
     const normalizedScrimDate = normalizeScrimDate(scrimDate, todayIsoDate());
 
     if (!trimmedName || !normalizedScrimDate) return;
     if (assignment === "team" && !teamSlug.trim()) return;
-    if (modalMode === "create" && firstMapCodes.length === 0) return;
+    if (modalMode === "create" && slotsToUpload.length === 0) return;
 
     setLoading(true);
     setError(null);
@@ -447,14 +450,14 @@ export default function ScrimDashboard() {
 
       const firstMatches: ScrimMatch[] = [];
 
-      for (const [index, matchId] of firstMapCodes.entries()) {
+      for (const slot of slotsToUpload) {
         const match = await ingestMatch({
-          matchId,
+          matchId: slot.matchId,
           scrimName: trimmedName,
           assignment,
           teamSlug: teamSlug.trim(),
           scrimDate: normalizedScrimDate,
-          bansFile: firstBansFiles[index] ?? null,
+          bansFile: slot.bansFile,
         });
         firstMatches.push(match);
       }
@@ -725,27 +728,53 @@ export default function ScrimDashboard() {
               </label>
 
               {modalMode === "create" ? (
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Map codes / Match IDs</label>
-                    <textarea
-                      value={firstMapCode}
-                      onChange={(e) => setFirstMapCode(e.target.value)}
-                      placeholder="One or more map codes / Match IDs"
-                      className="min-h-24 w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
-                      required
-                    />
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Best of 3 maps</p>
                   </div>
 
-                  <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-xs font-medium uppercase tracking-wide text-zinc-400">Optional draft JSON files</label>
-                    <input
-                      type="file"
-                      accept="application/json,.json"
-                      multiple
-                      onChange={(e) => setFirstBansFiles(Array.from(e.target.files ?? []))}
-                      className="w-full text-xs"
-                    />
+                  <div className="grid gap-3">
+                    {mapSlots.map((slot, index) => (
+                      <div key={index} className="rounded-lg border border-zinc-700/70 bg-zinc-900/45 p-3">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <p className="text-sm font-semibold text-zinc-100">Map {index + 1}</p>
+                          {slot.bansFile ? (
+                            <span className="truncate text-xs text-amber-300">{slot.bansFile.name}</span>
+                          ) : null}
+                        </div>
+                        <div className="grid gap-2 md:grid-cols-[1fr_220px]">
+                          <input
+                            value={slot.matchId}
+                            onChange={(e) =>
+                              setMapSlots((current) =>
+                                current.map((entry, entryIndex) =>
+                                  entryIndex === index ? { ...entry, matchId: e.target.value } : entry
+                                )
+                              )
+                            }
+                            placeholder={`Map ${index + 1} match ID`}
+                            className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2.5 text-sm"
+                            required={index === 0}
+                          />
+                          <label className="inline-flex cursor-pointer items-center justify-center rounded border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-sm text-amber-200 hover:bg-amber-500/15">
+                            <span>{slot.bansFile ? "Replace draft" : "Upload draft"}</span>
+                            <input
+                              type="file"
+                              accept="application/json,.json"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0] ?? null;
+                                setMapSlots((current) =>
+                                  current.map((entry, entryIndex) =>
+                                    entryIndex === index ? { ...entry, bansFile: file } : entry
+                                  )
+                                );
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ) : null}
@@ -756,7 +785,7 @@ export default function ScrimDashboard() {
                   loading ||
                   !scrimName.trim() ||
                   !scrimDate ||
-                  (modalMode === "create" && parseMatchCodes(firstMapCode).length === 0) ||
+                  (modalMode === "create" && activeMapSlots(mapSlots).length === 0) ||
                   (assignment === "team" && (!teamSlug.trim() || teamsLoading))
                 }
                 className="w-full rounded border border-emerald-500/40 bg-emerald-700/90 px-4 py-2 text-sm font-medium hover:bg-emerald-600 disabled:opacity-60"

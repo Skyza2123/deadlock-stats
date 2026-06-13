@@ -91,6 +91,11 @@ type TeamOption = {
   name: string;
 };
 
+type MapUploadSlot = {
+  matchId: string;
+  bansFile: File | null;
+};
+
 function todayIsoDate() {
   const now = new Date();
   const yyyy = now.getFullYear();
@@ -99,15 +104,17 @@ function todayIsoDate() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function parseMatchCodes(value: string) {
+function createEmptyMapSlots(): MapUploadSlot[] {
+  return Array.from({ length: 3 }, () => ({ matchId: "", bansFile: null }));
+}
+
+function activeMapSlots(slots: MapUploadSlot[]) {
   const seen = new Set<string>();
-  return value
-    .split(/[\s,;]+/)
-    .map((entry) => entry.trim())
-    .filter(Boolean)
-    .filter((entry) => {
-      if (seen.has(entry)) return false;
-      seen.add(entry);
+  return slots
+    .map((slot) => ({ ...slot, matchId: slot.matchId.trim() }))
+    .filter((slot) => {
+      if (!slot.matchId || seen.has(slot.matchId)) return false;
+      seen.add(slot.matchId);
       return true;
     });
 }
@@ -126,9 +133,8 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
   const [scrimDate, setScrimDate] = useState("");
   const [isPublic, setIsPublic] = useState(true);
 
-  const [matchCode, setMatchCode] = useState("");
   const [matchDate, setMatchDate] = useState("");
-  const [bansFiles, setBansFiles] = useState<File[]>([]);
+  const [mapSlots, setMapSlots] = useState<MapUploadSlot[]>(() => createEmptyMapSlots());
   const [addingMatch, setAddingMatch] = useState(false);
 
   const [saving, setSaving] = useState(false);
@@ -321,9 +327,9 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
     e.preventDefault();
     if (!scrim) return;
 
-    const matchCodes = parseMatchCodes(matchCode);
+    const slotsToUpload = activeMapSlots(mapSlots);
     const normalizedMatchDate = normalizeScrimDate(matchDate, scrim.scrimDate);
-    if (matchCodes.length === 0 || !normalizedMatchDate) return;
+    if (slotsToUpload.length === 0 || !normalizedMatchDate) return;
 
     setAddingMatch(true);
     setError(null);
@@ -332,14 +338,14 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
     try {
       const addedMatches: ScrimMatch[] = [];
 
-      for (const [index, matchId] of matchCodes.entries()) {
+      for (const slot of slotsToUpload) {
         const match = await ingestMatch({
-          matchId,
+          matchId: slot.matchId,
           scrimName: scrim.name,
           assignment: scrim.assignment,
           teamSlug: scrim.teamSlug,
           scrimDate: normalizedMatchDate,
-          bansFile: bansFiles[index] ?? null,
+          bansFile: slot.bansFile,
         });
         addedMatches.push(match);
       }
@@ -351,9 +357,8 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
 
       await updateScrimInApi(nextEntry);
       setScrims(scrims.map((entry) => (entry.id === scrim.id ? nextEntry : entry)));
-      setMatchCode("");
       setMatchDate(scrim.scrimDate);
-      setBansFiles([]);
+      setMapSlots(createEmptyMapSlots());
       setNotice(`Added ${addedMatches.length} match${addedMatches.length === 1 ? "" : "es"}.`);
       setShowAddMapForm(false);
       router.refresh();
@@ -659,15 +664,8 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
           </div>
 
           {showAddMapForm ? (
-            <form onSubmit={onAddMatch} className="rounded-xl border border-zinc-700/80 bg-zinc-900/30 p-3 sm:p-4 space-y-2 max-w-xl">
-              <p className="text-sm font-medium text-zinc-200">Add maps</p>
-              <textarea
-                value={matchCode}
-                onChange={(e) => setMatchCode(e.target.value)}
-                placeholder="One or more match codes / Match IDs"
-                className="min-h-24 w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
-                required
-              />
+            <form onSubmit={onAddMatch} className="rounded-xl border border-zinc-700/80 bg-zinc-900/30 p-3 sm:p-4 space-y-3 max-w-3xl">
+              <p className="text-sm font-medium text-zinc-200">Add best-of-3 maps</p>
               <input
                 type="date"
                 value={matchDate}
@@ -675,17 +673,53 @@ export default function ScrimDetailView({ scrimId }: { scrimId: string }) {
                 className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
                 required
               />
-              <input
-                type="file"
-                accept="application/json,.json"
-                multiple
-                onChange={(e) => setBansFiles(Array.from(e.target.files ?? []))}
-                className="w-full text-xs"
-              />
+              <div className="grid gap-3">
+                {mapSlots.map((slot, index) => (
+                  <div key={index} className="rounded-lg border border-zinc-700/70 bg-zinc-950/35 p-3">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-zinc-100">Map {index + 1}</p>
+                      {slot.bansFile ? (
+                        <span className="truncate text-xs text-amber-300">{slot.bansFile.name}</span>
+                      ) : null}
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-[1fr_220px]">
+                      <input
+                        value={slot.matchId}
+                        onChange={(e) =>
+                          setMapSlots((current) =>
+                            current.map((entry, entryIndex) =>
+                              entryIndex === index ? { ...entry, matchId: e.target.value } : entry
+                            )
+                          )
+                        }
+                        placeholder={`Map ${index + 1} match ID`}
+                        className="w-full rounded border border-zinc-700/80 bg-zinc-900/90 px-3 py-2 text-sm"
+                        required={index === 0}
+                      />
+                      <label className="inline-flex cursor-pointer items-center justify-center rounded border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-sm text-amber-200 hover:bg-amber-500/15">
+                        <span>{slot.bansFile ? "Replace draft" : "Upload draft"}</span>
+                        <input
+                          type="file"
+                          accept="application/json,.json"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] ?? null;
+                            setMapSlots((current) =>
+                              current.map((entry, entryIndex) =>
+                                entryIndex === index ? { ...entry, bansFile: file } : entry
+                              )
+                            );
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
               <div className="flex items-center gap-2">
                 <button
                   type="submit"
-                  disabled={addingMatch || parseMatchCodes(matchCode).length === 0 || !matchDate}
+                  disabled={addingMatch || activeMapSlots(mapSlots).length === 0 || !matchDate}
                   className="rounded border border-emerald-500/40 bg-emerald-700/90 px-3 py-1.5 text-sm font-medium hover:bg-emerald-600 disabled:opacity-60"
                 >
                   <span className="inline-flex items-center gap-1.5">
