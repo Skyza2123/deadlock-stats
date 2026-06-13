@@ -2,21 +2,21 @@ import crypto from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 
 import BackButton from "../../../../components/BackButton";
 import { db, pool } from "../../../../lib";
 import { authOptions } from "../../../../lib/auth";
+import { membershipKeysFromUserId, primaryMembershipKeyFromUserId } from "../../../../lib/steamIdentity";
 import { players, teamMemberships, teams } from "../../../../db/schema";
 
 function extractMembershipKey(session: { user?: { id?: string } } | null) {
-  const rawUserId = String(session?.user?.id ?? "").trim();
-  if (!rawUserId) return "";
-  if (rawUserId.startsWith("steam:")) return rawUserId.slice(6).trim();
-  if (rawUserId.startsWith("user:")) return rawUserId.slice(5).trim();
-  if (rawUserId.includes(":")) return "";
-  return rawUserId;
+  return primaryMembershipKeyFromUserId(session?.user?.id);
+}
+
+function extractMembershipKeys(session: { user?: { id?: string } } | null) {
+  return membershipKeysFromUserId(session?.user?.id);
 }
 
 function isAdminSession(session: { user?: { email?: string | null; isAdmin?: boolean } } | null) {
@@ -47,6 +47,7 @@ async function getManageContext(teamSlug: string) {
 
   const admin = isAdminSession(session as { user?: { email?: string | null; isAdmin?: boolean } } | null);
   const membershipKey = extractMembershipKey(session as { user?: { id?: string } } | null);
+  const membershipKeys = extractMembershipKeys(session as { user?: { id?: string } } | null);
 
   const teamRows = await db
     .select({
@@ -71,7 +72,7 @@ async function getManageContext(teamSlug: string) {
     };
   }
 
-  if (!membershipKey) return { ok: false as const, reason: "forbidden" };
+  if (!membershipKeys.length) return { ok: false as const, reason: "forbidden" };
 
   const teamIdText = String(teamRows[0].teamId);
 
@@ -81,7 +82,7 @@ async function getManageContext(teamSlug: string) {
     .where(
       and(
         sql`(${teamMemberships.teamId} = ${teamSlug} OR ${teamMemberships.teamId} = ${teamIdText})`,
-        eq(teamMemberships.steamId, membershipKey),
+        inArray(teamMemberships.steamId, membershipKeys),
         isNull(teamMemberships.endAt)
       )
     )

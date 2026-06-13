@@ -12,6 +12,7 @@ import { heroCardIconPath, heroSmallIconPath } from "../../../lib/heroIcons";
 import { authOptions } from "../../../lib/auth";
 import { itemIconPath } from "../../../lib/itemIcons";
 import { buildHeatmapSeriesFromManyPlayerRaw } from "../../../lib/mapHeatmap";
+import { membershipKeysFromUserId } from "../../../lib/steamIdentity";
 
 function safeNum(n: number | null | undefined) {
   return typeof n === "number" && Number.isFinite(n) ? n : 0;
@@ -122,12 +123,7 @@ function matchNumberFromId(matchId: string | null | undefined): number {
 }
 
 function extractMembershipKey(session: { user?: { id?: string } } | null) {
-  const rawUserId = String(session?.user?.id ?? "").trim();
-  if (!rawUserId) return "";
-  if (rawUserId.startsWith("steam:")) return rawUserId.slice(6).trim();
-  if (rawUserId.startsWith("user:")) return rawUserId.slice(5).trim();
-  if (rawUserId.includes(":")) return "";
-  return rawUserId;
+  return membershipKeysFromUserId(session?.user?.id);
 }
 
 function isAdminSession(session: { user?: { email?: string | null; isAdmin?: boolean } } | null) {
@@ -185,10 +181,10 @@ export default async function TeamStatsPage({
   }
 
   const { teamSlug } = await params;
-  const membershipKey = extractMembershipKey(session as { user?: { id?: string } } | null);
+  const membershipKeys = extractMembershipKey(session as { user?: { id?: string } } | null);
   const isAdmin = isAdminSession(session as { user?: { email?: string | null; isAdmin?: boolean } } | null);
 
-  const canViewTeam = isAdmin || (membershipKey
+  const canViewTeam = isAdmin || (membershipKeys.length
     ? (
         await db
           .select({ teamId: teamMemberships.teamId })
@@ -201,7 +197,7 @@ export default async function TeamStatsPage({
                   SELECT ${teams.teamId}::text FROM ${teams} WHERE ${teams.slug} = ${teamSlug}
                 )
               )`,
-              eq(teamMemberships.steamId, membershipKey),
+              inArray(teamMemberships.steamId, membershipKeys),
               isNull(teamMemberships.endAt)
             )
           )

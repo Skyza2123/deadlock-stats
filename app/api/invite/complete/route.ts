@@ -2,17 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { pool } from "@/lib";
-
-function getMembershipKey(rawId: string) {
-  if (rawId.startsWith("user:")) return rawId.slice(5);
-  if (rawId.startsWith("steam:")) return rawId.slice(6);
-  return rawId;
-}
+import { membershipKeysFromUserId, primaryMembershipKeyFromUserId } from "@/lib/steamIdentity";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const rawUserId = String((session?.user as { id?: string } | undefined)?.id ?? "");
-  const membershipKey = getMembershipKey(rawUserId);
+  const membershipKey = primaryMembershipKeyFromUserId(rawUserId);
+  const membershipKeys = membershipKeysFromUserId(rawUserId);
   if (!membershipKey) {
     return NextResponse.json({ error: "Sign in required" }, { status: 401 });
   }
@@ -72,9 +68,9 @@ export async function POST(req: NextRequest) {
     const existingMembership = await client.query(
       `SELECT 1
        FROM team_memberships
-       WHERE team_id = $1 AND steam_id = $2 AND end_at IS NULL
+       WHERE team_id = $1 AND steam_id = ANY($2::text[]) AND end_at IS NULL
        LIMIT 1`,
-      [teamSlug, membershipKey]
+      [teamSlug, membershipKeys]
     );
 
     if (existingMembership.rows.length === 0) {

@@ -5,6 +5,7 @@ import { db } from "../../../../db";
 import { matchPlayerItems, matchPlayers, matches, teamMemberships, teams } from "../../../../db/schema";
 import { authOptions } from "../../../../lib/auth";
 import { heroName, itemName } from "../../../../lib/deadlockData";
+import { membershipKeysFromUserId } from "../../../../lib/steamIdentity";
 
 function safeNum(n: number | null | undefined) {
   return typeof n === "number" && Number.isFinite(n) ? n : 0;
@@ -20,12 +21,7 @@ function slugify(value: string) {
 }
 
 function extractMembershipKey(session: { user?: { id?: string } } | null) {
-  const rawUserId = String(session?.user?.id ?? "").trim();
-  if (!rawUserId) return "";
-  if (rawUserId.startsWith("steam:")) return rawUserId.slice(6).trim();
-  if (rawUserId.startsWith("user:")) return rawUserId.slice(5).trim();
-  if (rawUserId.includes(":")) return "";
-  return rawUserId;
+  return membershipKeysFromUserId(session?.user?.id);
 }
 
 function isAdminSession(session: { user?: { email?: string | null; isAdmin?: boolean } } | null) {
@@ -141,10 +137,10 @@ export default async function EnemyTrackingPage({
   const toRaw = String(resolved?.to ?? "").trim();
   const enemyRaw = String(resolved?.enemy ?? "").trim();
 
-  const membershipKey = extractMembershipKey(session as { user?: { id?: string } } | null);
+  const membershipKeys = extractMembershipKey(session as { user?: { id?: string } } | null);
   const isAdmin = isAdminSession(session as { user?: { email?: string | null; isAdmin?: boolean } } | null);
 
-  const canViewTeam = isAdmin || (membershipKey
+  const canViewTeam = isAdmin || (membershipKeys.length
     ? (
         await db
           .select({ teamId: teamMemberships.teamId })
@@ -157,7 +153,7 @@ export default async function EnemyTrackingPage({
                   SELECT ${teams.teamId}::text FROM ${teams} WHERE ${teams.slug} = ${teamSlug}
                 )
               )`,
-              eq(teamMemberships.steamId, membershipKey),
+              inArray(teamMemberships.steamId, membershipKeys),
               isNull(teamMemberships.endAt)
             )
           )

@@ -1,18 +1,11 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, inArray, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 
 import MatchesTabs from "../../components/MatchesTabs";
 import { db } from "../../db";
 import { matches, teamMemberships } from "../../db/schema";
 import { authOptions } from "../../lib/auth";
-
-function normalizeMembershipKey(rawId: string) {
-  const value = String(rawId ?? "").trim();
-  if (!value) return "";
-  if (value.startsWith("steam:")) return value.slice(6);
-  if (value.startsWith("user:")) return value.slice(5);
-  return value;
-}
+import { membershipKeysFromUserId } from "../../lib/steamIdentity";
 
 function getIngestMeta(raw: any) {
   const ingest = raw?.__ingestMeta && typeof raw.__ingestMeta === "object" ? raw.__ingestMeta : {};
@@ -29,13 +22,13 @@ export default async function TournamentsPage() {
   const session = await getServerSession(authOptions);
   const isSignedIn = Boolean(session);
   const viewerId = String((session?.user as { id?: string } | undefined)?.id ?? "");
-  const membershipKey = normalizeMembershipKey(viewerId);
+  const membershipKeys = membershipKeysFromUserId(viewerId);
 
-  const myTeamRows = isSignedIn && membershipKey
+  const myTeamRows = isSignedIn && membershipKeys.length
     ? await db
         .select({ teamId: teamMemberships.teamId })
         .from(teamMemberships)
-        .where(and(eq(teamMemberships.steamId, membershipKey), sql`${teamMemberships.endAt} is null`))
+        .where(and(inArray(teamMemberships.steamId, membershipKeys), sql`${teamMemberships.endAt} is null`))
     : [];
 
   const teamSlugSet = new Set(

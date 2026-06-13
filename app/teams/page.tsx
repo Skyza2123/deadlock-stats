@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import Link from "next/link";
 import { db } from "../../db";
 import { teamMemberships, teams } from "../../db/schema";
 import { authOptions } from "../../lib/auth";
+import { membershipKeysFromUserId, primaryMembershipKeyFromUserId } from "../../lib/steamIdentity";
 
 function slugify(value: string) {
   return value
@@ -19,12 +20,11 @@ function slugify(value: string) {
 }
 
 function extractMembershipKey(session: { user?: { id?: string } } | null) {
-  const rawUserId = String(session?.user?.id ?? "").trim();
-  if (!rawUserId) return "";
-  if (rawUserId.startsWith("steam:")) return rawUserId.slice(6).trim();
-  if (rawUserId.startsWith("user:")) return rawUserId.slice(5).trim();
-  if (rawUserId.includes(":")) return "";
-  return rawUserId;
+  return primaryMembershipKeyFromUserId(session?.user?.id);
+}
+
+function extractMembershipKeys(session: { user?: { id?: string } } | null) {
+  return membershipKeysFromUserId(session?.user?.id);
 }
 
 function isAdminSession(session: { user?: { email?: string | null; isAdmin?: boolean } } | null) {
@@ -72,7 +72,8 @@ export default async function TeamsPage({
   }
 
   const membershipKey = extractMembershipKey(session as { user?: { id?: string } } | null);
-  if (!isAdmin && !membershipKey) {
+  const membershipKeys = extractMembershipKeys(session as { user?: { id?: string } } | null);
+  if (!isAdmin && !membershipKeys.length) {
     return (
       <main className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
         <section className="panel-premium rounded-xl p-4 md:p-5">
@@ -170,7 +171,7 @@ export default async function TeamsPage({
           teamMemberships,
           and(
             sql`(${teamMemberships.teamId} = ${teams.slug} OR ${teamMemberships.teamId} = ${teams.teamId}::text)`,
-            eq(teamMemberships.steamId, membershipKey),
+            inArray(teamMemberships.steamId, membershipKeys),
             isNull(teamMemberships.endAt)
           )
         )

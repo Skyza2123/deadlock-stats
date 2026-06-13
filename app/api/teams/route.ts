@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, inArray, isNull, sql } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 
 import { db } from "../../../db";
 import { teamMemberships, teams } from "../../../db/schema";
 import { authOptions } from "../../../lib/auth";
+import { membershipKeysFromUserId } from "../../../lib/steamIdentity";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -32,17 +33,9 @@ export async function GET() {
   }
 
   const rawUserId = String((session.user as { id?: string } | undefined)?.id ?? "").trim();
-  const membershipKey = !rawUserId
-    ? ""
-    : rawUserId.startsWith("steam:")
-      ? rawUserId.slice(6).trim()
-      : rawUserId.startsWith("user:")
-        ? rawUserId.slice(5).trim()
-        : rawUserId.includes(":")
-          ? ""
-          : rawUserId;
+  const membershipKeys = membershipKeysFromUserId(rawUserId);
 
-  if (!membershipKey) {
+  if (!membershipKeys.length) {
     return NextResponse.json({ ok: true, teams: [] });
   }
 
@@ -56,7 +49,7 @@ export async function GET() {
       teamMemberships,
       and(
         sql`(${teamMemberships.teamId} = ${teams.slug} OR ${teamMemberships.teamId} = ${teams.teamId}::text)`,
-        eq(teamMemberships.steamId, membershipKey),
+        inArray(teamMemberships.steamId, membershipKeys),
         isNull(teamMemberships.endAt)
       )
     )

@@ -13,6 +13,7 @@ import {
   teams,
 } from "../../../db/schema";
 import { authOptions } from "../../../lib/auth";
+import { membershipKeysFromUserId } from "../../../lib/steamIdentity";
 
 function normalizeEnemyTeamName(value: string) {
   const collapsed = value.replace(/\s+/g, " ").trim();
@@ -131,15 +132,7 @@ export async function POST(req: Request) {
       Boolean((session?.user as any)?.isAdmin) ||
       (Boolean(sessionEmail) && (sessionEmail === adminEmail || sessionEmail === tempAdminEmail));
     const savedMatchesKey = String(rawUserId || sessionEmail).trim();
-    const membershipKey = !rawUserId
-      ? ""
-      : rawUserId.startsWith("steam:")
-        ? rawUserId.slice(6).trim()
-        : rawUserId.startsWith("user:")
-          ? rawUserId.slice(5).trim()
-          : rawUserId.includes(":")
-            ? ""
-            : rawUserId;
+    const membershipKeys = membershipKeysFromUserId(rawUserId);
 
     if (!matchId) {
       return NextResponse.json({ ok: false, error: "Missing matchId" }, { status: 400 });
@@ -150,7 +143,7 @@ export async function POST(req: Request) {
     }
 
     if (isTeamUpload) {
-      if (!isAdmin && !membershipKey) {
+      if (!isAdmin && !membershipKeys.length) {
         return NextResponse.json({ ok: false, error: "Invalid session user" }, { status: 401 });
       }
 
@@ -173,7 +166,7 @@ export async function POST(req: Request) {
           .where(
             and(
               sql`(${teamMemberships.teamId} = ${teamSlug} OR ${teamMemberships.teamId} = ${teamIdText})`,
-              eq(teamMemberships.steamId, membershipKey),
+              inArray(teamMemberships.steamId, membershipKeys),
               sql`${teamMemberships.endAt} is null`
             )
           )
