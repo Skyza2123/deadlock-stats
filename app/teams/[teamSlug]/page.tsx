@@ -12,7 +12,7 @@ import { heroCardIconPath, heroSmallIconPath } from "../../../lib/heroIcons";
 import { authOptions } from "../../../lib/auth";
 import { itemIconPath } from "../../../lib/itemIcons";
 import { buildHeatmapSeriesFromManyPlayerRaw } from "../../../lib/mapHeatmap";
-import { membershipKeysFromUserId } from "../../../lib/steamIdentity";
+import { membershipKeysFromUserId, steamIdVariants } from "../../../lib/steamIdentity";
 
 function safeNum(n: number | null | undefined) {
   return typeof n === "number" && Number.isFinite(n) ? n : 0;
@@ -51,6 +51,12 @@ type TeamMatchRow = {
   deaths: number | null;
   assists: number | null;
   netWorth: number | null;
+};
+
+type RosterEntry = {
+  rosterSteamId: string;
+  displayName: string | null;
+  matchSteamIds: string[];
 };
 
 type DraftEventRow = {
@@ -279,7 +285,22 @@ export default async function TeamStatsPage({
       )
     );
 
-  const steamIds = rosterRows.map((row) => row.steamId);
+  const rosterEntries: RosterEntry[] = rosterRows.map((row) => ({
+    rosterSteamId: row.steamId,
+    displayName: row.displayName,
+    matchSteamIds: steamIdVariants(row.steamId),
+  }));
+
+  const rosterEntryByMatchSteamId = new Map<string, RosterEntry>();
+  for (const entry of rosterEntries) {
+    for (const matchSteamId of entry.matchSteamIds) {
+      if (!rosterEntryByMatchSteamId.has(matchSteamId)) {
+        rosterEntryByMatchSteamId.set(matchSteamId, entry);
+      }
+    }
+  }
+
+  const steamIds = [...rosterEntryByMatchSteamId.keys()];
 
   const teamMatchRows: TeamMatchRow[] = steamIds.length
     ? await db
@@ -481,6 +502,7 @@ export default async function TeamStatsPage({
     string,
     {
       steamId: string;
+      detailSteamId: string;
       displayName: string | null;
       matchIds: Set<string>;
       wins: number;
@@ -494,10 +516,11 @@ export default async function TeamStatsPage({
     }
   >();
 
-  for (const rosterRow of rosterRows) {
-    playerStatsBySteam.set(rosterRow.steamId, {
-      steamId: rosterRow.steamId,
-      displayName: rosterRow.displayName,
+  for (const rosterEntry of rosterEntries) {
+    playerStatsBySteam.set(rosterEntry.rosterSteamId, {
+      steamId: rosterEntry.rosterSteamId,
+      detailSteamId: rosterEntry.matchSteamIds[0] ?? rosterEntry.rosterSteamId,
+      displayName: rosterEntry.displayName,
       matchIds: new Set<string>(),
       wins: 0,
       losses: 0,
@@ -568,8 +591,11 @@ export default async function TeamStatsPage({
       heroStats.set(resolvedHeroId, stat);
     }
 
-    const playerStat = playerStatsBySteam.get(row.steamId) ?? {
-      steamId: row.steamId,
+    const rosterEntry = rosterEntryByMatchSteamId.get(row.steamId);
+    const playerStatKey = rosterEntry?.rosterSteamId ?? row.steamId;
+    const playerStat = playerStatsBySteam.get(playerStatKey) ?? {
+      steamId: playerStatKey,
+      detailSteamId: row.steamId,
       displayName: null,
       matchIds: new Set<string>(),
       wins: 0,
@@ -583,6 +609,7 @@ export default async function TeamStatsPage({
     };
 
     playerStat.matchIds.add(row.matchId);
+    playerStat.detailSteamId = row.steamId;
     playerStat.kills += safeNum(row.kills);
     playerStat.deaths += safeNum(row.deaths);
     playerStat.assists += safeNum(row.assists);
@@ -599,7 +626,7 @@ export default async function TeamStatsPage({
       );
     }
 
-    playerStatsBySteam.set(row.steamId, playerStat);
+    playerStatsBySteam.set(playerStatKey, playerStat);
   }
 
   const teamSidePlayerKeySet = new Set<string>();
@@ -799,10 +826,11 @@ export default async function TeamStatsPage({
         }
       }
 
-      const detailHref = `/players/${entry.steamId}`;
+      const detailHref = `/players/${entry.detailSteamId}`;
 
       return {
         steamId: entry.steamId,
+        detailSteamId: entry.detailSteamId,
         displayName: entry.displayName,
         matchesPlayed,
         wins: entry.wins,
